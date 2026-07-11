@@ -47,8 +47,8 @@ export function Footer() {
             <address className="not-italic text-sm text-paper/60 leading-relaxed space-y-2">
               <p className="text-paper/80">NAVYUG Training and Research Consultants (NYTRC)</p>
               <p>Haryana, India</p>
-              <p><a href="mailto:contact@gramudyam.in" className="hover:text-clay transition-colors">contact@gramudyam.in</a></p>
-              <p>+91 98000 00000</p>
+              <p><a href="mailto:navyugconsultants2@gmail.com" className="hover:text-clay transition-colors">navyugconsultants2@gmail.com</a></p>
+              <p><a href="tel:+919779535329" className="hover:text-clay transition-colors">+91 97795 35329</a></p>
             </address>
           </div>
         </div>

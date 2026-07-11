@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import nytrcLogo from "@/assets/nytrc-logo.png.asset.json";
 
 const links = [
   { to: "/", label: "Home" },
@@ -11,9 +12,14 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-50 bg-paper/95 backdrop-blur-sm border-b border-ink/10">
       <div className="max-w-7xl mx-auto px-6 h-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:flex md:justify-between">
-        <Link to="/" className="flex items-baseline gap-2 min-w-0 shrink">
-          <span className="font-serif text-2xl font-black tracking-tight text-clay truncate">
-            GramUdyam
+        <Link to="/" className="flex items-center gap-3 min-w-0 shrink">
+          <img
+            src={nytrcLogo.url}
+            alt="NYtrc logo"
+            className="h-10 w-10 object-contain shrink-0"
+          />
+          <span className="font-serif text-2xl font-black tracking-tight text-ink truncate">
+            NY<span className="text-clay">trc</span>
           </span>
           <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-ink/40 font-mono">
             Est. 2018
