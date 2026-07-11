@@ -117,10 +117,10 @@ function ContactPage() {
                   Phone
                 </span>
                 <a
-                  href="tel:+919800000000"
+                  href="tel:+919779535329"
                   className="font-serif text-xl text-ink hover:text-clay transition-colors"
                 >
-                  +91 98000 00000
+                  +91 97795 35329
                 </a>
                 <p className="font-mono text-[10px] uppercase tracking-wider text-ink/50 mt-2">
                   Mon–Sat · 9 AM–6 PM IST
@@ -131,10 +131,10 @@ function ContactPage() {
                   Email
                 </span>
                 <a
-                  href="mailto:contact@gramudyam.in"
+                  href="mailto:navyugconsultants2@gmail.com"
                   className="font-serif text-xl text-ink hover:text-clay transition-colors break-all"
                 >
-                  contact@gramudyam.in
+                  navyugconsultants2@gmail.com
                 </a>
               </div>
             </div>
@@ -179,7 +179,7 @@ function ContactPage() {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <Field label="Email" name="email" type="email" placeholder="you@example.com" required />
-                    <Field label="Phone" name="phone" type="tel" placeholder="+91 98000 00000" />
+                    <Field label="Phone" name="phone" type="tel" placeholder="+91 97795 35329" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <SelectField label="State" name="state" options={states} required />
