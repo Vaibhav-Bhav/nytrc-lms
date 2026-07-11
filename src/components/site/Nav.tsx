@@ -16,13 +16,10 @@ export function Nav() {
           <img
             src={nytrcLogo.url}
             alt="NYtrc logo"
-            className="h-10 w-10 object-contain shrink-0"
+            className="h-11 w-auto object-contain shrink-0"
           />
-          <span className="font-serif text-2xl font-black tracking-tight text-ink truncate">
+          <span className="font-sans text-2xl md:text-3xl font-extrabold tracking-tight text-ink truncate leading-none">
             NY<span className="text-clay">trc</span>
-          </span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-ink/40 font-mono">
-            Est. 2018
           </span>
         </Link>
 
