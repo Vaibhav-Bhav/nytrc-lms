@@ -7,17 +7,17 @@ import networkMap from "@/assets/network-map.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GramUdyam — Where Village Ambition Meets Opportunity" },
+      { title: "GramUdyam — Where Ambition Meets Opportunity" },
       {
         name: "description",
         content:
           "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats.",
       },
-      { property: "og:title", content: "GramUdyam — Rural Entrepreneurship at Scale" },
+      { property: "og:title", content: "GramUdyam — Where Ambition Meets Opportunity" },
       {
         property: "og:description",
         content:
-          "800+ CSCs activated across 12 states. 63% women VLEs. ₹8,200 average monthly VLE income. Evidence-first rural enterprise development.",
+          "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats.",
       },
       { property: "og:url", content: "/" },
     ],
