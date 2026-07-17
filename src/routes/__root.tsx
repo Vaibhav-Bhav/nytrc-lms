@@ -77,18 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GramUdyam — Where Ambition Meets Opportunity" },
+      { title: "NYtrc — Where Ambition Meets Opportunity" },
       {
         name: "description",
         content:
           "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats.",
       },
       { name: "author", content: "NAVYUG Training and Research Consultants (NYTRC)" },
-      { property: "og:site_name", content: "GramUdyam" },
+      { property: "og:site_name", content: "NYtrc" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "GramUdyam — Where Ambition Meets Opportunity" },
-      { name: "twitter:title", content: "GramUdyam — Where Ambition Meets Opportunity" },
+      { property: "og:title", content: "NYtrc — Where Ambition Meets Opportunity" },
+      { name: "twitter:title", content: "NYtrc — Where Ambition Meets Opportunity" },
       { property: "og:description", content: "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats." },
       { name: "twitter:description", content: "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/774f6c82-a480-4d2d-97e9-279a0b60e38c" },

@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="lg:col-span-1">
             <span className="font-serif text-2xl font-black text-clay block mb-6">
-              GramUdyam
+              NYtrc
             </span>
             <p className="text-xs leading-relaxed text-paper/60 max-w-[36ch]">
               Activating rural enterprise across India's gram panchayats — through
@@ -55,7 +55,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-paper/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] font-mono text-paper/40 uppercase tracking-widest text-center md:text-left">
-            &copy; {year} GramUdyam — a public initiative of NYTRC. All rights reserved.
+            &copy; {year} NYtrc — a public initiative of NYTRC. All rights reserved.
           </p>
           <p className="text-[10px] font-mono text-paper/40 uppercase tracking-widest text-center md:text-right">
             MSME Registered · CIN pending publication

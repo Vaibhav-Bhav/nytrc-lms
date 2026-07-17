@@ -6,13 +6,13 @@ import { Footer } from "@/components/site/Footer";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact GramUdyam — Let's Build Something Together" },
+      { title: "Contact NYtrc — Let's Build Something Together" },
       {
         name: "description",
         content:
           "Launch a programme, revive inactive CSCs, enrol for VLE training, or structure a rural impact investment. Our team responds within two working days.",
       },
-      { property: "og:title", content: "Contact GramUdyam" },
+      { property: "og:title", content: "Contact NYtrc" },
       { property: "og:description", content: "Head office in Haryana. Field offices in Patna, Ranchi, Bhubaneswar, Jaipur, Lucknow, Bhopal." },
       { property: "og:url", content: "/contact" },
     ],
@@ -208,7 +208,7 @@ function ContactPage() {
                     Send Message →
                   </button>
                   <p className="text-[11px] text-ink/50 leading-relaxed">
-                    By submitting, you agree to be contacted by GramUdyam regarding
+                    By submitting, you agree to be contacted by NYtrc regarding
                     your enquiry. We do not share your data with third parties.
                   </p>
                 </form>
