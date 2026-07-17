@@ -5,13 +5,13 @@ import { Footer } from "@/components/site/Footer";
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Services — GramUdyam CSC Revival, VLE Training & Impact Advisory" },
+      { title: "Services — NYtrc CSC Revival, VLE Training & Impact Advisory" },
       {
         name: "description",
         content:
           "Four services designed for rural enterprise at scale: CSC activation & revival, VLE training & capacity building, state e-service integration consulting, and impact investment & CSR advisory.",
       },
-      { property: "og:title", content: "GramUdyam Services" },
+      { property: "og:title", content: "NYtrc Services" },
       {
         property: "og:description",
         content:

@@ -7,13 +7,13 @@ import networkMap from "@/assets/network-map.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GramUdyam — Where Ambition Meets Opportunity" },
+      { title: "NYtrc — Where Ambition Meets Opportunity" },
       {
         name: "description",
         content:
           "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats.",
       },
-      { property: "og:title", content: "GramUdyam — Where Ambition Meets Opportunity" },
+      { property: "og:title", content: "NYtrc — Where Ambition Meets Opportunity" },
       {
         property: "og:description",
         content:
@@ -112,7 +112,7 @@ function HomePage() {
               Opportunity
             </h1>
             <p className="max-w-xl text-lg text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
-              GramUdyam partners with rural entrepreneurs, government programmes, and
+              NYtrc partners with rural entrepreneurs, government programmes, and
               impact investors to build a thriving ecosystem of grassroots enterprise
               across India's villages and gram panchayats.
             </p>
@@ -257,7 +257,7 @@ function HomePage() {
             <div className="mt-12 border border-paper/10 p-3 bg-indigo">
               <img
                 src={networkMap}
-                alt="Abstract network map of India in gold linework on indigo, representing GramUdyam's district footprint."
+                alt="Abstract network map of India in gold linework on indigo, representing NYtrc's district footprint."
                 width={1200}
                 height={608}
                 loading="lazy"
@@ -302,7 +302,7 @@ function HomePage() {
             District Field Report · Sitamarhi, Bihar
           </span>
           <blockquote className="font-serif text-2xl md:text-3xl leading-snug mb-8 text-balance">
-            "Before GramUdyam's intervention, I had registered my CSC but had no idea
+            "Before NYtrc's intervention, I had registered my CSC but had no idea
             how to bring in regular income. Within six months of their training and
             service integration support, I now earn over{" "}
             <span className="text-clay">₹12,000 a month</span> serving my entire

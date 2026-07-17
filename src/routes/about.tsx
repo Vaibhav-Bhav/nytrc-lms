@@ -5,13 +5,13 @@ import { Footer } from "@/components/site/Footer";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About GramUdyam — A Private Enterprise with a Public Purpose" },
+      { title: "About NYtrc — A Private Enterprise with a Public Purpose" },
       {
         name: "description",
         content:
-          "Founded in Haryana in 2018 by NAVYUG Training and Research Consultants. Piloting with 40 VLEs; now operational across 12 states. Meet the people and principles behind GramUdyam.",
+          "Founded in Haryana in 2018 by NAVYUG Training and Research Consultants. Piloting with 40 VLEs; now operational across 12 states. Meet the people and principles behind NYtrc.",
       },
-      { property: "og:title", content: "About GramUdyam" },
+      { property: "og:title", content: "About NYtrc" },
       {
         property: "og:description",
         content:
@@ -58,7 +58,7 @@ const team = [
     initials: "SS",
     name: "Dr Seshadri",
     role: "Founder & Director, Programmes",
-    bio: "Took voluntary retirement as an officer in the insurance industry with deep exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at GramUdyam.",
+    bio: "Took voluntary retirement as an officer in the insurance industry with deep exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at NYtrc.",
   },
   {
     initials: "RS",
@@ -93,7 +93,7 @@ function AboutPage() {
             <span className="italic text-clay">Public Purpose</span>.
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
-            GramUdyam is a private enterprise passionate about developing rural
+            NYtrc is a private enterprise passionate about developing rural
             entrepreneurs to make them self-reliant — and to help society grow
             holistically and organically.
           </p>
@@ -141,7 +141,7 @@ function AboutPage() {
               We are a registered LLP working{" "}
               <em>alongside — not instead of</em> government programmes, bringing
               private-sector discipline, speed, and accountability to public service
-              delivery. Publicly we operate under the GramUdyam brand; the
+              delivery. Publicly we operate under the NYtrc brand; the
               underlying legal entity is{" "}
               <strong>NAVYUG Training and Research Consultants (NYTRC)</strong>.
             </p>
