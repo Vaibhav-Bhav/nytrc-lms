@@ -100,10 +100,10 @@ function HomePage() {
               Rural Entrepreneurship · CSC Services · Inclusive Growth
             </span>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tight mb-8">
-              Where Village <br />
-              <span className="italic font-light text-clay">Ambition</span> Meets{" "}
-              <br />
-              Opportunity
+              Where Rural <br />
+              <span className="italic font-light text-clay">Aspirations</span>{" "}
+              Transform <br />
+              into Reality
             </h1>
             <p className="max-w-xl text-lg text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
               NYtrc partners with rural entrepreneurs, government programmes, and
@@ -225,7 +225,7 @@ function HomePage() {
       <section className="bg-indigo text-paper py-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-20">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-harvest">
+            <span className="font-mono text-sm uppercase tracking-widest text-harvest">
               Who We Serve
             </span>
             <h2 className="font-serif text-4xl md:text-5xl mt-6 leading-tight">
@@ -275,6 +275,9 @@ function HomePage() {
               </span>
             </div>
           </div>
+          <span className="font-mono text-sm uppercase tracking-[0.25em] text-clay block mb-4 relative">
+            Testimonials
+          </span>
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-clay block mb-8 relative">
             District Field Report · Sitamarhi, Bihar
           </span>
@@ -299,7 +302,7 @@ function HomePage() {
       {/* Closing CTA */}
       <section className="py-24 px-6 border-t border-ink/10">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold">
+          <span className="font-mono text-sm uppercase tracking-widest text-clay font-bold">
             Get Started Today
           </span>
           <h2 className="font-serif text-4xl md:text-5xl mt-4 mb-10 leading-tight">
