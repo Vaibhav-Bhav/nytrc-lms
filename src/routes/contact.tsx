@@ -54,6 +54,8 @@ const fieldOffices = [
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
+  const districts = selectedState ? DISTRICTS_BY_STATE[selectedState] ?? [] : [];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -182,9 +184,26 @@ function ContactPage() {
                     <Field label="Phone" name="phone" type="tel" placeholder="+91 97795 35329" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <SelectField label="State" name="state" options={states} required />
+                    <SelectField
+                      label="State"
+                      name="state"
+                      options={states}
+                      required
+                      value={selectedState}
+                      onChange={(v) => setSelectedState(v)}
+                    />
                     <SelectField label="Role" name="role" options={roles} required />
                   </div>
+                  {districts.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <SelectField
+                        label="District"
+                        name="district"
+                        options={districts}
+                        required
+                      />
+                    </div>
+                  )}
                   <div>
                     <label
                       htmlFor="message"
@@ -262,12 +281,17 @@ function SelectField({
   name,
   options,
   required,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   options: string[];
   required?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
+  const controlled = value !== undefined;
   return (
     <div>
       <label
@@ -281,7 +305,9 @@ function SelectField({
         id={name}
         name={name}
         required={required}
-        defaultValue=""
+        {...(controlled
+          ? { value, onChange: (e) => onChange?.(e.target.value) }
+          : { defaultValue: "" })}
         className="w-full bg-paper border border-ink/20 px-4 py-3 text-ink focus:outline-none focus:border-clay transition-colors appearance-none"
       >
         <option value="" disabled>
