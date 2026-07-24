@@ -62,12 +62,6 @@ const pillars = [
   },
 ];
 
-const impactStats = [
-  { value: "800+", label: "CSCs Activated" },
-  { value: "12", label: "States Operational" },
-  { value: "63%", label: "Women VLE Enrolment" },
-  { value: "₹8,200", label: "Avg Monthly VLE Income" },
-];
 
 const audiences = [
   {
@@ -196,36 +190,12 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Impact bar — full bleed textured band */}
-      <section className="bg-clay text-paper py-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 ledger-rule opacity-30 pointer-events-none" />
-        <div className="max-w-7xl mx-auto relative">
-          <div className="mb-12">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-harvest font-semibold">
-              Field Report · Ledger Entry
-            </span>
-            <h2 className="font-serif text-3xl md:text-4xl mt-3">
-              What we have on the ground, in numbers we can defend.
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-            {impactStats.map((s) => (
-              <div key={s.label} className="border-t-2 border-harvest pt-4">
-                <div className="font-serif text-5xl md:text-6xl mb-3">{s.value}</div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-paper/80">
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Who we serve */}
       <section className="bg-indigo text-paper py-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-20">
           <div>
-            <span className="font-mono text-sm uppercase tracking-widest text-harvest">
+            <span className="font-mono text-base uppercase tracking-widest text-harvest">
               Who We Serve
             </span>
             <h2 className="font-serif text-4xl md:text-5xl mt-6 leading-tight">
@@ -275,7 +245,7 @@ function HomePage() {
               </span>
             </div>
           </div>
-          <span className="font-mono text-sm uppercase tracking-[0.25em] text-clay block mb-4 relative">
+          <span className="font-mono text-base uppercase tracking-[0.25em] text-clay block mb-4 relative">
             Testimonials
           </span>
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-clay block mb-8 relative">
@@ -302,7 +272,7 @@ function HomePage() {
       {/* Closing CTA */}
       <section className="py-24 px-6 border-t border-ink/10">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="font-mono text-sm uppercase tracking-widest text-clay font-bold">
+          <span className="font-mono text-base uppercase tracking-widest text-clay font-bold">
             Get Started Today
           </span>
           <h2 className="font-serif text-4xl md:text-5xl mt-4 mb-10 leading-tight">
