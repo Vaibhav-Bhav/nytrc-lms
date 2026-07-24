@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { DISTRICTS_BY_STATE } from "@/lib/india-districts";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -36,7 +37,6 @@ const states = [
 const roles = [
   "Aspiring VLE / Rural Entrepreneur",
   "Existing CSC Operator",
-  "Government Official / SDA",
   "Impact Investor / Fund Manager",
   "Corporate / CSR Team",
   "NGO / Development Organisation",
