@@ -44,12 +44,11 @@ const roles = [
 ];
 
 const fieldOffices = [
-  "Patna",
-  "Ranchi",
-  "Bhubaneswar",
-  "Jaipur",
-  "Lucknow",
-  "Bhopal",
+  "Guwahati",
+  "Mohali",
+  "Zirakpur",
+  "Panchkula",
+  "Una (Amba)",
 ];
 
 function ContactPage() {
