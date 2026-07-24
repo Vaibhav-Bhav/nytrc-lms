@@ -59,7 +59,7 @@ export function Nav() {
               </Link>
             ))}
             <Link
-              to="/contact"
+              to="/subscription"
               className="mt-2 border border-ink px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center"
             >
               Partner With Us
