@@ -455,6 +455,13 @@ function SubscriptionPage() {
           >
             Proceed to Register →
           </Link>
+          <p className="mt-8 text-sm text-ink/60">
+            Prefer to speak with us? Call{" "}
+            <a href="tel:+919779535329" className="text-clay hover:underline">
+              +91 97795 35329
+            </a>{" "}
+            (Mon–Sat · 9 AM–6 PM IST).
+          </p>
         </div>
       </section>
 

@@ -48,6 +48,7 @@ export function Footer() {
               <p className="text-paper/80">NAVYUG Training and Research Consultants (NYTRC)</p>
               <p>Gurgaon, Haryana, India</p>
               <p><a href="mailto:navyugconsultants2@gmail.com" className="hover:text-clay transition-colors">navyugconsultants2@gmail.com</a></p>
+              <p><a href="tel:+919779535329" className="hover:text-clay transition-colors">+91 97795 35329</a></p>
             </address>
             <ul className="mt-6 space-y-2 text-xs">
               <li><Link to="/privacy" className="text-paper/60 hover:text-clay transition-colors">Privacy Policy</Link></li>
