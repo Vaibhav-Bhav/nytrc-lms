@@ -52,13 +52,24 @@ const team = [
     initials: "PH",
     name: "Col Praveen Hooda, SM (Retd)",
     role: "Founder & CEO",
-    bio: "More than 30 years of experience in the Indian Army in Combat and Civil Engineering infrastructure — roads, bridges, tunnels, and buildings. Completed the Certified Independent Director examination from IICA in 2026. Recipient of the Indian Road Congress's highest award for excellence in Civil Engineering, along with four service awards while serving in the Indian Army. After hanging up his Olive Green, he served as Executive Director at the National Highways & Infrastructure Development Corporation Limited, a PSU of the Ministry of Road Transport and Highways. With over 35 years of leadership across diverse fields, he aims to give back for the betterment of society.",
+    bio: [
+      "Col Praveen Hooda, SM (Retd) has more than 30 years of experience in the Indian Army in the field of Combat Engineering, Civil Engineering infrastructure development (Roads, Bridges, Tunnels, and Buildings), with a Certified Independent Director exam from IICA in 2026.",
+      "He has the distinction of receiving the highest award for excellence in Civil Engineering from the Indian Road Congress, apart from four more awards while serving in the Indian Army.",
+      "Post hanging his Olive Green, he has also served as Executive Director (ED) at the National Highways & Infrastructure Development Corporation Ltd (NHIDCL), a PSU of MORTH.",
+      "With more than 35 years of vast experience in leadership roles in various fields, aims to give back for the betterment of society.",
+    ],
   },
   {
     initials: "SS",
     name: "Dr Seshadri",
     role: "Founder & Director, Programmes",
-    bio: "A dedicated academician and industry veteran with 29 years of diverse experience. Completed the Certified Independent Director examination from IICA in 2025. Holds a Ph.D. in Management specialising in Rural Entrepreneurship, complemented by an LL.M. in International Business and Finance Law. Keen on bridging the gap between industry practice and academic theory in Human Resources, Management, Information Technology, and Legal subjects. Passionate about rural entrepreneurship, he took voluntary retirement as an officer in the insurance industry with vast exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at NYtrc.",
+    bio: [
+      "A dedicated academician and industry veteran with 29 years of diverse experience.",
+      "He is a Certified Independent Director exam from IICA in 2025, and with a Ph.D. in Management, specializing in Rural Entrepreneurship, complemented by an LL.M. in International Business and Finance Law.",
+      "Keen on bridging the gap between industry practice and academic theory in HR, Management, IT, and Legal subjects.",
+      "Passionate about rural entrepreneurship and took voluntary retirement as an officer in the insurance industry with vast exposure to insurance and microinsurance domains, and with academic environment exposure for 9 years.",
+      "Keen for research and training programmes for rural development.",
+    ],
   },
 ];
 
@@ -198,7 +209,11 @@ function AboutPage() {
                 <div className="font-mono text-[10px] uppercase tracking-widest text-harvest mb-4">
                   {t.role}
                 </div>
-                <p className="text-sm text-paper/70 leading-relaxed">{t.bio}</p>
+                <div className="space-y-4 text-sm text-paper/70 leading-relaxed">
+                  {t.bio.map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
