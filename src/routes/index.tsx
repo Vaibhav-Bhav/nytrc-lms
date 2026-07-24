@@ -118,7 +118,7 @@ function HomePage() {
                 Explore Our Services
               </Link>
               <Link
-                to="/contact"
+                to="/subscription"
                 className="border border-ink/25 px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-ink/5 transition-all"
               >
                 Partner With Us

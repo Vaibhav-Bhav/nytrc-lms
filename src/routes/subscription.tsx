@@ -410,14 +410,51 @@ function SubscriptionPage() {
             income of <strong>₹25,000 or more</strong> — depending on your
             commitment, service portfolio, and local market opportunities.
           </p>
-          <div className="pt-4">
-            <Link
-              to="/contact"
-              className="inline-flex bg-clay text-paper px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:brightness-110 transition-all"
-            >
-              Join the NYtrc Family →
-            </Link>
-          </div>
+        </div>
+      </section>
+
+      {/* Renewal Policy */}
+      <section className="border-t border-ink/10 bg-paper-warm/40 py-24 px-6">
+        <div className="max-w-4xl mx-auto space-y-6 text-ink/80 text-lg leading-relaxed">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold block">
+            Renewal Policy
+          </span>
+          <h2 className="font-serif text-3xl md:text-4xl text-ink leading-tight">
+            One year of mentorship — with the option to continue.
+          </h2>
+          <p>
+            Throughout your one-year membership with us, our mentors will assist
+            you in navigating the initial setup process, selecting the right mix
+            of services, developing business strategies, overcoming operational
+            challenges, and building a sustainable customer base. After the
+            expiry of the one-year membership, the member can extend the
+            membership by paying the renewal fees.
+          </p>
+          <p>
+            With NYTRC by your side, you will never have to build your
+            enterprise alone — we are dedicated to supporting your progress,
+            strengthening your capabilities, and helping you achieve long-term
+            success.
+          </p>
+        </div>
+      </section>
+
+      {/* Register CTA */}
+      <section className="py-24 px-6 border-t border-ink/10">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold block mb-4">
+            Ready to Begin
+          </span>
+          <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-8">
+            Take the first step toward your{" "}
+            <span className="italic text-clay">rural enterprise</span>.
+          </h2>
+          <Link
+            to="/contact"
+            className="inline-flex bg-clay text-paper px-10 py-5 text-sm font-bold uppercase tracking-[0.15em] hover:brightness-110 transition-all"
+          >
+            Proceed to Register →
+          </Link>
         </div>
       </section>
 
