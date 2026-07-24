@@ -51,7 +51,7 @@ const services = [
     for: "For Entrepreneurs",
     hook: "Build the Skills That Make a CSC Profitable.",
     body: [
-      "Most VLEs fail from lack of training, not lack of ambition. Our CSC Academy curriculum goes beyond portal navigation — managing footfall, cross-selling, grievances, and community trust.",
+      "Most Village Level Entrepreneurs (VLEs) fail from lack of training, not lack of ambition. Our CSC Academy curriculum goes beyond portal navigation — managing footfall, cross-selling, grievances, and community trust.",
       "Delivered in regional languages, in person at the block level, with digital follow-up modules and peer mentoring from high-earning VLEs in the same geography.",
     ],
     features: [
@@ -165,7 +165,7 @@ function ServicesPage() {
           </span>
           <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight mb-10">
             Services Designed for Rural{" "}
-            <span className="italic text-clay">Enterprise</span> at Scale.
+            <span className="italic text-clay">Entrepreneurships</span> and Services at Scale.
           </h1>
           <p className="max-w-2xl text-lg text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
             Four services, one throughline: turning registered CSCs into viable
@@ -245,75 +245,7 @@ function ServicesPage() {
         ))}
       </section>
 
-      {/* Engagement models */}
-      <section className="py-24 px-6 bg-indigo text-paper">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16 max-w-3xl">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-harvest font-semibold">
-              Engagement Models
-            </span>
-            <h2 className="font-serif text-4xl md:text-5xl mt-4 leading-tight mb-6">
-              How We Work Together
-            </h2>
-            <p className="text-paper/70 leading-relaxed max-w-2xl">
-              We offer three engagement models depending on your scale, timeline,
-              and objectives. All engagements include dedicated field support and
-              outcome tracking.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {models.map((m) => (
-              <div
-                key={m.title}
-                className={`p-10 border ${
-                  m.featured
-                    ? "bg-paper text-ink border-harvest"
-                    : "bg-transparent text-paper border-paper/15"
-                }`}
-              >
-                <span
-                  className={`font-mono text-[10px] uppercase tracking-widest block mb-4 ${
-                    m.featured ? "text-clay font-bold" : "text-harvest"
-                  }`}
-                >
-                  {m.tag}
-                </span>
-                <h3 className="font-serif text-2xl mb-6">{m.title}</h3>
-                <ul className="space-y-3 mb-10">
-                  {m.features.map((f) => (
-                    <li
-                      key={f}
-                      className={`text-sm leading-relaxed flex gap-3 items-baseline ${
-                        m.featured ? "text-ink/80" : "text-paper/75"
-                      }`}
-                    >
-                      <span
-                        className={`font-mono text-[10px] shrink-0 ${
-                          m.featured ? "text-clay" : "text-harvest"
-                        }`}
-                      >
-                        —
-                      </span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to="/contact"
-                  className={`inline-flex w-full justify-center px-6 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
-                    m.featured
-                      ? "bg-clay text-paper hover:brightness-110"
-                      : "border border-paper/30 hover:bg-paper/10"
-                  }`}
-                >
-                  {m.cta}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Engagement models — hidden */}
 
       <Footer />
     </div>

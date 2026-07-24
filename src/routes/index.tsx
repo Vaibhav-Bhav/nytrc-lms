@@ -26,12 +26,6 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const heroStats = [
-  { label: "CSC Centres Nationwide", value: "5.8L+" },
-  { label: "Gram Panchayats Targeted", value: "2.5L" },
-  { label: "Loans Disbursed via CSCs", value: "₹3000Cr" },
-  { label: "Monthly Transactions", value: "335L+" },
-];
 
 const tickerItems = [
   "VLE Capacity Building",
@@ -149,23 +143,6 @@ function HomePage() {
         </div>
       </header>
 
-      {/* Ledger stats bar */}
-      <section className="border-y border-ink/10 bg-paper-warm/50 py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4 lg:divide-x lg:divide-ink/10">
-            {heroStats.map((s, i) => (
-              <div key={s.label} className={i > 0 ? "lg:pl-8" : "lg:pr-8"}>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-ink/50 block mb-2">
-                  {s.label}
-                </span>
-                <span className="font-serif text-4xl md:text-5xl text-ink">
-                  {s.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Scrolling ticker */}
       <div className="bg-ink text-paper/90 py-4 overflow-hidden border-b border-ink">

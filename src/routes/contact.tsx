@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { DISTRICTS_BY_STATE } from "@/lib/india-districts";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -36,7 +37,6 @@ const states = [
 const roles = [
   "Aspiring VLE / Rural Entrepreneur",
   "Existing CSC Operator",
-  "Government Official / SDA",
   "Impact Investor / Fund Manager",
   "Corporate / CSR Team",
   "NGO / Development Organisation",
@@ -54,6 +54,8 @@ const fieldOffices = [
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
+  const districts = selectedState ? DISTRICTS_BY_STATE[selectedState] ?? [] : [];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -66,8 +68,8 @@ function ContactPage() {
             Get In Touch
           </span>
           <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight mb-8">
-            Let's Build{" "}
-            <span className="italic text-clay">Something</span> Together.
+            Let's Build the{" "}
+            <span className="italic text-clay">Future</span> Together.
           </h1>
         </div>
       </header>
@@ -182,9 +184,26 @@ function ContactPage() {
                     <Field label="Phone" name="phone" type="tel" placeholder="+91 97795 35329" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <SelectField label="State" name="state" options={states} required />
+                    <SelectField
+                      label="State"
+                      name="state"
+                      options={states}
+                      required
+                      value={selectedState}
+                      onChange={(v) => setSelectedState(v)}
+                    />
                     <SelectField label="Role" name="role" options={roles} required />
                   </div>
+                  {districts.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <SelectField
+                        label="District"
+                        name="district"
+                        options={districts}
+                        required
+                      />
+                    </div>
+                  )}
                   <div>
                     <label
                       htmlFor="message"
@@ -262,12 +281,17 @@ function SelectField({
   name,
   options,
   required,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   options: string[];
   required?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
+  const controlled = value !== undefined;
   return (
     <div>
       <label
@@ -281,7 +305,9 @@ function SelectField({
         id={name}
         name={name}
         required={required}
-        defaultValue=""
+        {...(controlled
+          ? { value, onChange: (e) => onChange?.(e.target.value) }
+          : { defaultValue: "" })}
         className="w-full bg-paper border border-ink/20 px-4 py-3 text-ink focus:outline-none focus:border-clay transition-colors appearance-none"
       >
         <option value="" disabled>
