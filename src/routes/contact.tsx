@@ -66,8 +66,8 @@ function ContactPage() {
             Get In Touch
           </span>
           <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight mb-8">
-            Let's Build{" "}
-            <span className="italic text-clay">Something</span> Together.
+            Let's Build the{" "}
+            <span className="italic text-clay">Future</span> Together.
           </h1>
         </div>
       </header>

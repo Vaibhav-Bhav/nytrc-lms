@@ -50,7 +50,7 @@ const values = [
 const team = [
   {
     initials: "PH",
-    name: "Col Praveen Hooda, SM",
+    name: "Col Praveen Hooda, SM (Retd)",
     role: "Founder & CEO",
     bio: "30+ years in the Indian Army across Combat and Civil Engineering — roads, bridges, tunnels, buildings. Recipient of the Indian Road Congress's highest award for excellence in Civil Engineering, plus four service awards. Post-retirement, served as Executive Director at the National Highways & Infrastructure Development Corporation Ltd (NHIDCL), a PSU of MORTH. 35+ years of leadership across fields.",
   },
@@ -59,12 +59,6 @@ const team = [
     name: "Dr Seshadri",
     role: "Founder & Director, Programmes",
     bio: "Took voluntary retirement as an officer in the insurance industry with deep exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at NYtrc.",
-  },
-  {
-    initials: "RS",
-    name: "Mr Rajeev Sharma",
-    role: "Head, Technology & Integration",
-    bio: "Built digital infrastructure for fintech startups in Tier 3 markets. Now leads Digital Seva Portal integration and the VLE analytics platform across all state deployments.",
   },
 ];
 
@@ -108,7 +102,7 @@ function AboutPage() {
               Origin
             </span>
             <h2 className="font-serif text-4xl md:text-5xl mt-4 leading-tight">
-              We Started Where the System Stopped.
+              We Started Where the System Slowed Down.
             </h2>
             <div className="mt-8 flex flex-col gap-2 font-mono text-[10px] uppercase tracking-widest text-ink/50">
               <div>Est. 2018 · Haryana</div>
@@ -204,24 +198,6 @@ function AboutPage() {
         </div>
       </section>
 
-      {/* Partners */}
-      <section className="py-20 px-6 bg-paper-warm/40 border-t border-ink/10">
-        <div className="max-w-7xl mx-auto">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold block mb-8 text-center">
-            Institutional Partners & Collaborators
-          </span>
-          <div className="flex flex-wrap justify-center gap-x-10 gap-y-4">
-            {partners.map((p) => (
-              <span
-                key={p}
-                className="font-serif text-lg md:text-xl text-ink/70 border-b border-clay/20 pb-1"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>
