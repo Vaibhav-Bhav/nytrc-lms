@@ -62,14 +62,6 @@ const team = [
   },
 ];
 
-const partners = [
-  "CSC SPV — MeitY",
-  "NABARD",
-  "SIDBI",
-  "State NIC Units",
-  "India Post",
-  "SBI Business Correspondent Network",
-];
 
 function AboutPage() {
   return (

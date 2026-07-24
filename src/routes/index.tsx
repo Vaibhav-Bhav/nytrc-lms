@@ -26,12 +26,6 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const heroStats = [
-  { label: "CSC Centres Nationwide", value: "5.8L+" },
-  { label: "Gram Panchayats Targeted", value: "2.5L" },
-  { label: "Loans Disbursed via CSCs", value: "₹3000Cr" },
-  { label: "Monthly Transactions", value: "335L+" },
-];
 
 const tickerItems = [
   "VLE Capacity Building",
