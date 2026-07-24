@@ -37,7 +37,7 @@ export function Nav() {
         </div>
 
         <Link
-          to="/contact"
+          to="/subscription"
           className="hidden md:inline-flex border border-ink px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
         >
           Partner With Us
