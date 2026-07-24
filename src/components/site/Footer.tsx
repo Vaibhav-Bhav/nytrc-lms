@@ -30,12 +30,12 @@ export function Footer() {
 
           <div>
             <h5 className="font-mono text-[10px] uppercase tracking-widest text-harvest mb-6">
-              Services
+              Programme
             </h5>
             <ul className="space-y-3 text-sm">
+              <li><Link to="/subscription" className="hover:text-clay transition-colors">Join the NYtrc Family</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">CSC Revival</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">VLE Training</Link></li>
-              <li><Link to="/services" className="hover:text-clay transition-colors">State Integration</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">Impact Advisory</Link></li>
             </ul>
           </div>
@@ -46,10 +46,14 @@ export function Footer() {
             </h5>
             <address className="not-italic text-sm text-paper/60 leading-relaxed space-y-2">
               <p className="text-paper/80">NAVYUG Training and Research Consultants (NYTRC)</p>
-              <p>Haryana, India</p>
+              <p>Gurgaon, Haryana, India</p>
               <p><a href="mailto:navyugconsultants2@gmail.com" className="hover:text-clay transition-colors">navyugconsultants2@gmail.com</a></p>
-              <p><a href="tel:+919779535329" className="hover:text-clay transition-colors">+91 97795 35329</a></p>
             </address>
+            <ul className="mt-6 space-y-2 text-xs">
+              <li><Link to="/privacy" className="text-paper/60 hover:text-clay transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/social-media" className="text-paper/60 hover:text-clay transition-colors">Social Media Policy</Link></li>
+              <li><Link to="/copyright" className="text-paper/60 hover:text-clay transition-colors">Copyright Policy</Link></li>
+            </ul>
           </div>
         </div>
 

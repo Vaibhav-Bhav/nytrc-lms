@@ -5,17 +5,17 @@ import { Footer } from "@/components/site/Footer";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About NYtrc — A Private Enterprise with a Public Purpose" },
+      { title: "About NYtrc — A Private Entrepreneurship for Social Empowerment" },
       {
         name: "description",
         content:
-          "Founded in Haryana in 2018 by NAVYUG Training and Research Consultants. Piloting with 40 VLEs; now operational across 12 states. Meet the people and principles behind NYtrc.",
+          "NYTRC was registered in April 2026 in Gurgaon, Haryana. We strive to strengthen the rural entrepreneurship ecosystem — empowering unemployed youth and retired defence personnel to become self-reliant.",
       },
       { property: "og:title", content: "About NYtrc" },
       {
         property: "og:description",
         content:
-          "A private LLP working alongside government programmes to bring private-sector discipline and accountability to last-mile rural enterprise development.",
+          "A private LLP working to bring private-sector discipline, speed, and accountability to public service delivery in rural India.",
       },
       { property: "og:url", content: "/about" },
     ],
@@ -52,13 +52,13 @@ const team = [
     initials: "PH",
     name: "Col Praveen Hooda, SM (Retd)",
     role: "Founder & CEO",
-    bio: "30+ years in the Indian Army across Combat and Civil Engineering — roads, bridges, tunnels, buildings. Recipient of the Indian Road Congress's highest award for excellence in Civil Engineering, plus four service awards. Post-retirement, served as Executive Director at the National Highways & Infrastructure Development Corporation Ltd (NHIDCL), a PSU of MORTH. 35+ years of leadership across fields.",
+    bio: "More than 30 years of experience in the Indian Army in Combat and Civil Engineering infrastructure — roads, bridges, tunnels, and buildings. Completed the Certified Independent Director examination from IICA in 2026. Recipient of the Indian Road Congress's highest award for excellence in Civil Engineering, along with four service awards while serving in the Indian Army. After hanging up his Olive Green, he served as Executive Director at the National Highways & Infrastructure Development Corporation Limited, a PSU of the Ministry of Road Transport and Highways. With over 35 years of leadership across diverse fields, he aims to give back for the betterment of society.",
   },
   {
     initials: "SS",
     name: "Dr Seshadri",
     role: "Founder & Director, Programmes",
-    bio: "Took voluntary retirement as an officer in the insurance industry with deep exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at NYtrc.",
+    bio: "A dedicated academician and industry veteran with 29 years of diverse experience. Completed the Certified Independent Director examination from IICA in 2025. Holds a Ph.D. in Management specialising in Rural Entrepreneurship, complemented by an LL.M. in International Business and Finance Law. Keen on bridging the gap between industry practice and academic theory in Human Resources, Management, Information Technology, and Legal subjects. Passionate about rural entrepreneurship, he took voluntary retirement as an officer in the insurance industry with vast exposure to insurance and microinsurance, followed by nine years in academia. Leads research and training programmes for rural development at NYtrc.",
   },
 ];
 
@@ -75,13 +75,11 @@ function AboutPage() {
             Who We Are
           </span>
           <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight mb-10">
-            A Private Enterprise with a{" "}
-            <span className="italic text-clay">Public Purpose</span>.
+            A Private Entrepreneurship for{" "}
+            <span className="italic text-clay">Social Empowerment</span>.
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
-            NYtrc is a private enterprise passionate about developing rural
-            entrepreneurs to make them self-reliant — and to help society grow
-            holistically and organically.
+            We strive to strengthen the rural entrepreneurship ecosystem.
           </p>
         </div>
       </header>
@@ -94,10 +92,11 @@ function AboutPage() {
               Origin
             </span>
             <h2 className="font-serif text-4xl md:text-5xl mt-4 leading-tight">
-              We Started Where the System Slowed Down.
+              We Started Where the System Paused.
             </h2>
             <div className="mt-8 flex flex-col gap-2 font-mono text-[10px] uppercase tracking-widest text-ink/50">
-              <div>Est. 2018 · Haryana</div>
+              <div>Registered April 2026</div>
+              <div>Gurgaon · Haryana</div>
               <div>Registered LLP · MSME</div>
               <div>Legal entity: NYTRC</div>
             </div>
@@ -111,24 +110,40 @@ function AboutPage() {
 
           <div className="lg:col-span-8 space-y-6 text-ink/80 text-lg leading-relaxed">
             <p>
-              Founded in <strong>2018 in Haryana</strong> by a team of development
-              professionals who had watched well-intentioned government schemes fail
-              at the last mile — not because the ideas were wrong, but because
-              ground-level entrepreneurship infrastructure was missing.
+              NYTRC was registered in <strong>April 2026</strong>, with its
+              registered office in <strong>Gurgaon, Haryana</strong>, by a team of
+              professionals having vast experience of more than 35 years in
+              multifaceted roles in the Government of India.
             </p>
             <p>
-              We began with a single mission: help struggling and inactive CSC
-              operators earn a living wage. What started as a pilot with{" "}
-              <strong>40 VLEs</strong> in a handful of districts has grown into a
-              full-service rural enterprise development firm operating across{" "}
-              <strong>12 states</strong>.
+              During our journey, we could interact with various segments of
+              society, keeping close focus on our rural areas. In our research, we
+              identified voids in the implementation of various central and state
+              government schemes — largely due to a lack of information and
+              publicity to make the common citizen aware of these schemes and
+              their potential.
             </p>
             <p>
-              We are a registered LLP working{" "}
-              <em>alongside — not instead of</em> government programmes, bringing
-              private-sector discipline, speed, and accountability to public service
-              delivery. Publicly we operate under the NYtrc brand; the
-              underlying legal entity is{" "}
+              We began with a single mission: to empower unemployed youth and
+              retired defence personnel below officer rank and make them
+              self-reliant. With this mission in mind, we made a humble start by
+              first identifying struggling and inactive Common Service Centre
+              operators and equipping them to earn a decent monthly income —
+              helping stop rural migration to urban areas that deprives families
+              of working on their agricultural lands concurrently.
+            </p>
+            <p>
+              What started as a pilot in <strong>2018</strong> involved the
+              identification of <strong>40 dormant Village Level Entrepreneurs</strong>{" "}
+              across certain districts of <strong>Assam</strong>, mentored to
+              restart their rural entrepreneurship journey. During this
+              interaction, we realised the problems being faced by aspiring rural
+              entrepreneurs — which ultimately prompted us to start this venture.
+            </p>
+            <p>
+              We are a registered LLP working to bring private-sector discipline,
+              speed, and accountability to public service delivery. Publicly we
+              operate under the NYtrc brand; the underlying legal entity is{" "}
               <strong>NAVYUG Training and Research Consultants (NYTRC)</strong>.
             </p>
           </div>
@@ -173,7 +188,7 @@ function AboutPage() {
               Leadership Team
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-2 gap-10 max-w-5xl">
             {team.map((t) => (
               <div key={t.name} className="border-t-2 border-harvest/60 pt-8">
                 <div className="size-16 rounded-full border-2 border-harvest/60 grid place-items-center mb-6 font-serif text-xl text-harvest">
