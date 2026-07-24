@@ -122,6 +122,18 @@ function ContactPage() {
               >
                 navyugconsultants2@gmail.com
               </a>
+            </div>
+
+            <div className="border-t border-ink/10 pt-8">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-clay font-bold block mb-3">
+                Phone
+              </span>
+              <a
+                href="tel:+919779535329"
+                className="font-serif text-xl text-ink hover:text-clay transition-colors"
+              >
+                +91 97795 35329
+              </a>
               <p className="font-mono text-[10px] uppercase tracking-wider text-ink/50 mt-2">
                 Mon–Sat · 9 AM–6 PM IST
               </p>
