@@ -18,6 +18,20 @@ import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCoursesRouteImport } from './routes/api/courses'
+import { Route as ApiStudentCoursesRouteImport } from './routes/api/student/courses'
+import { Route as ApiCoursesIdRouteImport } from './routes/api/courses.$id'
+import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
+import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
+import { Route as ApiStudentLessonsIdRouteImport } from './routes/api/student/lessons.$id'
+import { Route as ApiStudentCoursesIdRouteImport } from './routes/api/student/courses.$id'
+import { Route as ApiSectionsSectionIdLessonsRouteImport } from './routes/api/sections.$sectionId.lessons'
+import { Route as ApiCoursesCourseIdSectionsRouteImport } from './routes/api/courses.$courseId.sections'
+import { Route as ApiAdminSectionsIdRouteImport } from './routes/api/admin/sections.$id'
+import { Route as ApiAdminLessonsIdRouteImport } from './routes/api/admin/lessons.$id'
+import { Route as ApiAdminLessonsIdUnpublishRouteImport } from './routes/api/admin/lessons.$id.unpublish'
+import { Route as ApiAdminLessonsIdPublishRouteImport } from './routes/api/admin/lessons.$id.publish'
+import { Route as ApiAdminSectionsSectionIdLessonsReorderRouteImport } from './routes/api/admin/sections.$sectionId.lessons.reorder'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
@@ -64,6 +78,81 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCoursesRoute = ApiCoursesRouteImport.update({
+  id: '/api/courses',
+  path: '/api/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudentCoursesRoute = ApiStudentCoursesRouteImport.update({
+  id: '/api/student/courses',
+  path: '/api/student/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCoursesIdRoute = ApiCoursesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCoursesRoute,
+} as any)
+const ApiAdminSectionsRoute = ApiAdminSectionsRouteImport.update({
+  id: '/api/admin/sections',
+  path: '/api/admin/sections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
+  id: '/api/admin/lessons',
+  path: '/api/admin/lessons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudentLessonsIdRoute = ApiStudentLessonsIdRouteImport.update({
+  id: '/api/student/lessons/$id',
+  path: '/api/student/lessons/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudentCoursesIdRoute = ApiStudentCoursesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiStudentCoursesRoute,
+} as any)
+const ApiSectionsSectionIdLessonsRoute =
+  ApiSectionsSectionIdLessonsRouteImport.update({
+    id: '/api/sections/$sectionId/lessons',
+    path: '/api/sections/$sectionId/lessons',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiCoursesCourseIdSectionsRoute =
+  ApiCoursesCourseIdSectionsRouteImport.update({
+    id: '/$courseId/sections',
+    path: '/$courseId/sections',
+    getParentRoute: () => ApiCoursesRoute,
+  } as any)
+const ApiAdminSectionsIdRoute = ApiAdminSectionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminSectionsRoute,
+} as any)
+const ApiAdminLessonsIdRoute = ApiAdminLessonsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminLessonsRoute,
+} as any)
+const ApiAdminLessonsIdUnpublishRoute =
+  ApiAdminLessonsIdUnpublishRouteImport.update({
+    id: '/unpublish',
+    path: '/unpublish',
+    getParentRoute: () => ApiAdminLessonsIdRoute,
+  } as any)
+const ApiAdminLessonsIdPublishRoute =
+  ApiAdminLessonsIdPublishRouteImport.update({
+    id: '/publish',
+    path: '/publish',
+    getParentRoute: () => ApiAdminLessonsIdRoute,
+  } as any)
+const ApiAdminSectionsSectionIdLessonsReorderRoute =
+  ApiAdminSectionsSectionIdLessonsReorderRouteImport.update({
+    id: '/$sectionId/lessons/reorder',
+    path: '/$sectionId/lessons/reorder',
+    getParentRoute: () => ApiAdminSectionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +164,20 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
+  '/api/courses/$id': typeof ApiCoursesIdRoute
+  '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
+  '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
+  '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
+  '/api/courses/$courseId/sections': typeof ApiCoursesCourseIdSectionsRoute
+  '/api/sections/$sectionId/lessons': typeof ApiSectionsSectionIdLessonsRoute
+  '/api/student/courses/$id': typeof ApiStudentCoursesIdRoute
+  '/api/student/lessons/$id': typeof ApiStudentLessonsIdRoute
+  '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
+  '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
+  '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +189,20 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
+  '/api/courses/$id': typeof ApiCoursesIdRoute
+  '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
+  '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
+  '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
+  '/api/courses/$courseId/sections': typeof ApiCoursesCourseIdSectionsRoute
+  '/api/sections/$sectionId/lessons': typeof ApiSectionsSectionIdLessonsRoute
+  '/api/student/courses/$id': typeof ApiStudentCoursesIdRoute
+  '/api/student/lessons/$id': typeof ApiStudentLessonsIdRoute
+  '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
+  '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
+  '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +215,20 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
+  '/api/courses/$id': typeof ApiCoursesIdRoute
+  '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
+  '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
+  '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
+  '/api/courses/$courseId/sections': typeof ApiCoursesCourseIdSectionsRoute
+  '/api/sections/$sectionId/lessons': typeof ApiSectionsSectionIdLessonsRoute
+  '/api/student/courses/$id': typeof ApiStudentCoursesIdRoute
+  '/api/student/lessons/$id': typeof ApiStudentLessonsIdRoute
+  '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
+  '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
+  '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +242,20 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/api/courses'
+    | '/api/admin/lessons'
+    | '/api/admin/sections'
+    | '/api/courses/$id'
+    | '/api/student/courses'
+    | '/api/admin/lessons/$id'
+    | '/api/admin/sections/$id'
+    | '/api/courses/$courseId/sections'
+    | '/api/sections/$sectionId/lessons'
+    | '/api/student/courses/$id'
+    | '/api/student/lessons/$id'
+    | '/api/admin/lessons/$id/publish'
+    | '/api/admin/lessons/$id/unpublish'
+    | '/api/admin/sections/$sectionId/lessons/reorder'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +267,20 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/api/courses'
+    | '/api/admin/lessons'
+    | '/api/admin/sections'
+    | '/api/courses/$id'
+    | '/api/student/courses'
+    | '/api/admin/lessons/$id'
+    | '/api/admin/sections/$id'
+    | '/api/courses/$courseId/sections'
+    | '/api/sections/$sectionId/lessons'
+    | '/api/student/courses/$id'
+    | '/api/student/lessons/$id'
+    | '/api/admin/lessons/$id/publish'
+    | '/api/admin/lessons/$id/unpublish'
+    | '/api/admin/sections/$sectionId/lessons/reorder'
   id:
     | '__root__'
     | '/'
@@ -133,6 +292,20 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/api/courses'
+    | '/api/admin/lessons'
+    | '/api/admin/sections'
+    | '/api/courses/$id'
+    | '/api/student/courses'
+    | '/api/admin/lessons/$id'
+    | '/api/admin/sections/$id'
+    | '/api/courses/$courseId/sections'
+    | '/api/sections/$sectionId/lessons'
+    | '/api/student/courses/$id'
+    | '/api/student/lessons/$id'
+    | '/api/admin/lessons/$id/publish'
+    | '/api/admin/lessons/$id/unpublish'
+    | '/api/admin/sections/$sectionId/lessons/reorder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +318,12 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialMediaRoute: typeof SocialMediaRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  ApiCoursesRoute: typeof ApiCoursesRouteWithChildren
+  ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
+  ApiAdminSectionsRoute: typeof ApiAdminSectionsRouteWithChildren
+  ApiStudentCoursesRoute: typeof ApiStudentCoursesRouteWithChildren
+  ApiSectionsSectionIdLessonsRoute: typeof ApiSectionsSectionIdLessonsRoute
+  ApiStudentLessonsIdRoute: typeof ApiStudentLessonsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,8 +391,170 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/courses': {
+      id: '/api/courses'
+      path: '/api/courses'
+      fullPath: '/api/courses'
+      preLoaderRoute: typeof ApiCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/student/courses': {
+      id: '/api/student/courses'
+      path: '/api/student/courses'
+      fullPath: '/api/student/courses'
+      preLoaderRoute: typeof ApiStudentCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/courses/$id': {
+      id: '/api/courses/$id'
+      path: '/$id'
+      fullPath: '/api/courses/$id'
+      preLoaderRoute: typeof ApiCoursesIdRouteImport
+      parentRoute: typeof ApiCoursesRoute
+    }
+    '/api/admin/sections': {
+      id: '/api/admin/sections'
+      path: '/api/admin/sections'
+      fullPath: '/api/admin/sections'
+      preLoaderRoute: typeof ApiAdminSectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/lessons': {
+      id: '/api/admin/lessons'
+      path: '/api/admin/lessons'
+      fullPath: '/api/admin/lessons'
+      preLoaderRoute: typeof ApiAdminLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/student/lessons/$id': {
+      id: '/api/student/lessons/$id'
+      path: '/api/student/lessons/$id'
+      fullPath: '/api/student/lessons/$id'
+      preLoaderRoute: typeof ApiStudentLessonsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/student/courses/$id': {
+      id: '/api/student/courses/$id'
+      path: '/$id'
+      fullPath: '/api/student/courses/$id'
+      preLoaderRoute: typeof ApiStudentCoursesIdRouteImport
+      parentRoute: typeof ApiStudentCoursesRoute
+    }
+    '/api/sections/$sectionId/lessons': {
+      id: '/api/sections/$sectionId/lessons'
+      path: '/api/sections/$sectionId/lessons'
+      fullPath: '/api/sections/$sectionId/lessons'
+      preLoaderRoute: typeof ApiSectionsSectionIdLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/courses/$courseId/sections': {
+      id: '/api/courses/$courseId/sections'
+      path: '/$courseId/sections'
+      fullPath: '/api/courses/$courseId/sections'
+      preLoaderRoute: typeof ApiCoursesCourseIdSectionsRouteImport
+      parentRoute: typeof ApiCoursesRoute
+    }
+    '/api/admin/sections/$id': {
+      id: '/api/admin/sections/$id'
+      path: '/$id'
+      fullPath: '/api/admin/sections/$id'
+      preLoaderRoute: typeof ApiAdminSectionsIdRouteImport
+      parentRoute: typeof ApiAdminSectionsRoute
+    }
+    '/api/admin/lessons/$id': {
+      id: '/api/admin/lessons/$id'
+      path: '/$id'
+      fullPath: '/api/admin/lessons/$id'
+      preLoaderRoute: typeof ApiAdminLessonsIdRouteImport
+      parentRoute: typeof ApiAdminLessonsRoute
+    }
+    '/api/admin/lessons/$id/unpublish': {
+      id: '/api/admin/lessons/$id/unpublish'
+      path: '/unpublish'
+      fullPath: '/api/admin/lessons/$id/unpublish'
+      preLoaderRoute: typeof ApiAdminLessonsIdUnpublishRouteImport
+      parentRoute: typeof ApiAdminLessonsIdRoute
+    }
+    '/api/admin/lessons/$id/publish': {
+      id: '/api/admin/lessons/$id/publish'
+      path: '/publish'
+      fullPath: '/api/admin/lessons/$id/publish'
+      preLoaderRoute: typeof ApiAdminLessonsIdPublishRouteImport
+      parentRoute: typeof ApiAdminLessonsIdRoute
+    }
+    '/api/admin/sections/$sectionId/lessons/reorder': {
+      id: '/api/admin/sections/$sectionId/lessons/reorder'
+      path: '/$sectionId/lessons/reorder'
+      fullPath: '/api/admin/sections/$sectionId/lessons/reorder'
+      preLoaderRoute: typeof ApiAdminSectionsSectionIdLessonsReorderRouteImport
+      parentRoute: typeof ApiAdminSectionsRoute
+    }
   }
 }
+
+interface ApiCoursesRouteChildren {
+  ApiCoursesIdRoute: typeof ApiCoursesIdRoute
+  ApiCoursesCourseIdSectionsRoute: typeof ApiCoursesCourseIdSectionsRoute
+}
+
+const ApiCoursesRouteChildren: ApiCoursesRouteChildren = {
+  ApiCoursesIdRoute: ApiCoursesIdRoute,
+  ApiCoursesCourseIdSectionsRoute: ApiCoursesCourseIdSectionsRoute,
+}
+
+const ApiCoursesRouteWithChildren = ApiCoursesRoute._addFileChildren(
+  ApiCoursesRouteChildren,
+)
+
+interface ApiAdminLessonsIdRouteChildren {
+  ApiAdminLessonsIdPublishRoute: typeof ApiAdminLessonsIdPublishRoute
+  ApiAdminLessonsIdUnpublishRoute: typeof ApiAdminLessonsIdUnpublishRoute
+}
+
+const ApiAdminLessonsIdRouteChildren: ApiAdminLessonsIdRouteChildren = {
+  ApiAdminLessonsIdPublishRoute: ApiAdminLessonsIdPublishRoute,
+  ApiAdminLessonsIdUnpublishRoute: ApiAdminLessonsIdUnpublishRoute,
+}
+
+const ApiAdminLessonsIdRouteWithChildren =
+  ApiAdminLessonsIdRoute._addFileChildren(ApiAdminLessonsIdRouteChildren)
+
+interface ApiAdminLessonsRouteChildren {
+  ApiAdminLessonsIdRoute: typeof ApiAdminLessonsIdRouteWithChildren
+}
+
+const ApiAdminLessonsRouteChildren: ApiAdminLessonsRouteChildren = {
+  ApiAdminLessonsIdRoute: ApiAdminLessonsIdRouteWithChildren,
+}
+
+const ApiAdminLessonsRouteWithChildren = ApiAdminLessonsRoute._addFileChildren(
+  ApiAdminLessonsRouteChildren,
+)
+
+interface ApiAdminSectionsRouteChildren {
+  ApiAdminSectionsIdRoute: typeof ApiAdminSectionsIdRoute
+  ApiAdminSectionsSectionIdLessonsReorderRoute: typeof ApiAdminSectionsSectionIdLessonsReorderRoute
+}
+
+const ApiAdminSectionsRouteChildren: ApiAdminSectionsRouteChildren = {
+  ApiAdminSectionsIdRoute: ApiAdminSectionsIdRoute,
+  ApiAdminSectionsSectionIdLessonsReorderRoute:
+    ApiAdminSectionsSectionIdLessonsReorderRoute,
+}
+
+const ApiAdminSectionsRouteWithChildren =
+  ApiAdminSectionsRoute._addFileChildren(ApiAdminSectionsRouteChildren)
+
+interface ApiStudentCoursesRouteChildren {
+  ApiStudentCoursesIdRoute: typeof ApiStudentCoursesIdRoute
+}
+
+const ApiStudentCoursesRouteChildren: ApiStudentCoursesRouteChildren = {
+  ApiStudentCoursesIdRoute: ApiStudentCoursesIdRoute,
+}
+
+const ApiStudentCoursesRouteWithChildren =
+  ApiStudentCoursesRoute._addFileChildren(ApiStudentCoursesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -225,7 +566,23 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialMediaRoute: SocialMediaRoute,
   SubscriptionRoute: SubscriptionRoute,
+  ApiCoursesRoute: ApiCoursesRouteWithChildren,
+  ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,
+  ApiAdminSectionsRoute: ApiAdminSectionsRouteWithChildren,
+  ApiStudentCoursesRoute: ApiStudentCoursesRouteWithChildren,
+  ApiSectionsSectionIdLessonsRoute: ApiSectionsSectionIdLessonsRoute,
+  ApiStudentLessonsIdRoute: ApiStudentLessonsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
