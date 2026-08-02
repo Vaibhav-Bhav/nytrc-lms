@@ -9,63 +9,33 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SubscriptionRouteImport } from './routes/subscription'
-import { Route as SocialMediaRouteImport } from './routes/social-media'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ServicesRouteImport } from './routes/services'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as CopyrightRouteImport } from './routes/copyright'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CopyrightRouteImport } from './routes/copyright'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SocialMediaRouteImport } from './routes/social-media'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as ApiCoursesRouteImport } from './routes/api/courses'
-import { Route as ApiStudentCoursesRouteImport } from './routes/api/student/courses'
-import { Route as ApiCoursesIdRouteImport } from './routes/api/courses.$id'
-import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
-import { Route as ApiStudentLessonsIdRouteImport } from './routes/api/student/lessons.$id'
-import { Route as ApiStudentCoursesIdRouteImport } from './routes/api/student/courses.$id'
-import { Route as ApiSectionsSectionIdLessonsRouteImport } from './routes/api/sections.$sectionId.lessons'
-import { Route as ApiCoursesCourseIdSectionsRouteImport } from './routes/api/courses.$courseId.sections'
-import { Route as ApiAdminSectionsIdRouteImport } from './routes/api/admin/sections.$id'
+import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
+import { Route as ApiCoursesIdRouteImport } from './routes/api/courses.$id'
+import { Route as ApiStudentCoursesRouteImport } from './routes/api/student/courses'
 import { Route as ApiAdminLessonsIdRouteImport } from './routes/api/admin/lessons.$id'
-import { Route as ApiAdminLessonsIdUnpublishRouteImport } from './routes/api/admin/lessons.$id.unpublish'
+import { Route as ApiAdminSectionsIdRouteImport } from './routes/api/admin/sections.$id'
+import { Route as ApiCoursesCourseIdSectionsRouteImport } from './routes/api/courses.$courseId.sections'
+import { Route as ApiSectionsSectionIdLessonsRouteImport } from './routes/api/sections.$sectionId.lessons'
+import { Route as ApiStudentCoursesIdRouteImport } from './routes/api/student/courses.$id'
+import { Route as ApiStudentLessonsIdRouteImport } from './routes/api/student/lessons.$id'
 import { Route as ApiAdminLessonsIdPublishRouteImport } from './routes/api/admin/lessons.$id.publish'
+import { Route as ApiAdminLessonsIdUnpublishRouteImport } from './routes/api/admin/lessons.$id.unpublish'
 import { Route as ApiAdminSectionsSectionIdLessonsReorderRouteImport } from './routes/api/admin/sections.$sectionId.lessons.reorder'
 
-const SubscriptionRoute = SubscriptionRouteImport.update({
-  id: '/subscription',
-  path: '/subscription',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SocialMediaRoute = SocialMediaRouteImport.update({
-  id: '/social-media',
-  path: '/social-media',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CopyrightRoute = CopyrightRouteImport.update({
-  id: '/copyright',
-  path: '/copyright',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -73,9 +43,39 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopyrightRoute = CopyrightRouteImport.update({
+  id: '/copyright',
+  path: '/copyright',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialMediaRoute = SocialMediaRouteImport.update({
+  id: '/social-media',
+  path: '/social-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCoursesRoute = ApiCoursesRouteImport.update({
@@ -83,9 +83,14 @@ const ApiCoursesRoute = ApiCoursesRouteImport.update({
   path: '/api/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiStudentCoursesRoute = ApiStudentCoursesRouteImport.update({
-  id: '/api/student/courses',
-  path: '/api/student/courses',
+const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
+  id: '/api/admin/lessons',
+  path: '/api/admin/lessons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSectionsRoute = ApiAdminSectionsRouteImport.update({
+  id: '/api/admin/sections',
+  path: '/api/admin/sections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCoursesIdRoute = ApiCoursesIdRouteImport.update({
@@ -93,58 +98,53 @@ const ApiCoursesIdRoute = ApiCoursesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCoursesRoute,
 } as any)
-const ApiAdminSectionsRoute = ApiAdminSectionsRouteImport.update({
-  id: '/api/admin/sections',
-  path: '/api/admin/sections',
+const ApiStudentCoursesRoute = ApiStudentCoursesRouteImport.update({
+  id: '/api/student/courses',
+  path: '/api/student/courses',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
-  id: '/api/admin/lessons',
-  path: '/api/admin/lessons',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStudentLessonsIdRoute = ApiStudentLessonsIdRouteImport.update({
-  id: '/api/student/lessons/$id',
-  path: '/api/student/lessons/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStudentCoursesIdRoute = ApiStudentCoursesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiStudentCoursesRoute,
-} as any)
-const ApiSectionsSectionIdLessonsRoute =
-  ApiSectionsSectionIdLessonsRouteImport.update({
-    id: '/api/sections/$sectionId/lessons',
-    path: '/api/sections/$sectionId/lessons',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCoursesCourseIdSectionsRoute =
-  ApiCoursesCourseIdSectionsRouteImport.update({
-    id: '/$courseId/sections',
-    path: '/$courseId/sections',
-    getParentRoute: () => ApiCoursesRoute,
-  } as any)
-const ApiAdminSectionsIdRoute = ApiAdminSectionsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiAdminSectionsRoute,
 } as any)
 const ApiAdminLessonsIdRoute = ApiAdminLessonsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiAdminLessonsRoute,
 } as any)
-const ApiAdminLessonsIdUnpublishRoute =
-  ApiAdminLessonsIdUnpublishRouteImport.update({
-    id: '/unpublish',
-    path: '/unpublish',
-    getParentRoute: () => ApiAdminLessonsIdRoute,
+const ApiAdminSectionsIdRoute = ApiAdminSectionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminSectionsRoute,
+} as any)
+const ApiCoursesCourseIdSectionsRoute =
+  ApiCoursesCourseIdSectionsRouteImport.update({
+    id: '/$courseId/sections',
+    path: '/$courseId/sections',
+    getParentRoute: () => ApiCoursesRoute,
   } as any)
+const ApiSectionsSectionIdLessonsRoute =
+  ApiSectionsSectionIdLessonsRouteImport.update({
+    id: '/api/sections/$sectionId/lessons',
+    path: '/api/sections/$sectionId/lessons',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiStudentCoursesIdRoute = ApiStudentCoursesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiStudentCoursesRoute,
+} as any)
+const ApiStudentLessonsIdRoute = ApiStudentLessonsIdRouteImport.update({
+  id: '/api/student/lessons/$id',
+  path: '/api/student/lessons/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminLessonsIdPublishRoute =
   ApiAdminLessonsIdPublishRouteImport.update({
     id: '/publish',
     path: '/publish',
+    getParentRoute: () => ApiAdminLessonsIdRoute,
+  } as any)
+const ApiAdminLessonsIdUnpublishRoute =
+  ApiAdminLessonsIdUnpublishRouteImport.update({
+    id: '/unpublish',
+    path: '/unpublish',
     getParentRoute: () => ApiAdminLessonsIdRoute,
   } as any)
 const ApiAdminSectionsSectionIdLessonsReorderRoute =
@@ -328,53 +328,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/subscription': {
-      id: '/subscription'
-      path: '/subscription'
-      fullPath: '/subscription'
-      preLoaderRoute: typeof SubscriptionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/social-media': {
-      id: '/social-media'
-      path: '/social-media'
-      fullPath: '/social-media'
-      preLoaderRoute: typeof SocialMediaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/copyright': {
-      id: '/copyright'
-      path: '/copyright'
-      fullPath: '/copyright'
-      preLoaderRoute: typeof CopyrightRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -384,11 +342,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copyright': {
+      id: '/copyright'
+      path: '/copyright'
+      fullPath: '/copyright'
+      preLoaderRoute: typeof CopyrightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social-media': {
+      id: '/social-media'
+      path: '/social-media'
+      fullPath: '/social-media'
+      preLoaderRoute: typeof SocialMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/courses': {
@@ -398,11 +398,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/student/courses': {
-      id: '/api/student/courses'
-      path: '/api/student/courses'
-      fullPath: '/api/student/courses'
-      preLoaderRoute: typeof ApiStudentCoursesRouteImport
+    '/api/admin/lessons': {
+      id: '/api/admin/lessons'
+      path: '/api/admin/lessons'
+      fullPath: '/api/admin/lessons'
+      preLoaderRoute: typeof ApiAdminLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/sections': {
+      id: '/api/admin/sections'
+      path: '/api/admin/sections'
+      fullPath: '/api/admin/sections'
+      preLoaderRoute: typeof ApiAdminSectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/courses/$id': {
@@ -412,25 +419,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCoursesIdRouteImport
       parentRoute: typeof ApiCoursesRoute
     }
-    '/api/admin/sections': {
-      id: '/api/admin/sections'
-      path: '/api/admin/sections'
-      fullPath: '/api/admin/sections'
-      preLoaderRoute: typeof ApiAdminSectionsRouteImport
+    '/api/student/courses': {
+      id: '/api/student/courses'
+      path: '/api/student/courses'
+      fullPath: '/api/student/courses'
+      preLoaderRoute: typeof ApiStudentCoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/lessons': {
-      id: '/api/admin/lessons'
-      path: '/api/admin/lessons'
-      fullPath: '/api/admin/lessons'
-      preLoaderRoute: typeof ApiAdminLessonsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/api/admin/lessons/$id': {
+      id: '/api/admin/lessons/$id'
+      path: '/$id'
+      fullPath: '/api/admin/lessons/$id'
+      preLoaderRoute: typeof ApiAdminLessonsIdRouteImport
+      parentRoute: typeof ApiAdminLessonsRoute
     }
-    '/api/student/lessons/$id': {
-      id: '/api/student/lessons/$id'
-      path: '/api/student/lessons/$id'
-      fullPath: '/api/student/lessons/$id'
-      preLoaderRoute: typeof ApiStudentLessonsIdRouteImport
+    '/api/admin/sections/$id': {
+      id: '/api/admin/sections/$id'
+      path: '/$id'
+      fullPath: '/api/admin/sections/$id'
+      preLoaderRoute: typeof ApiAdminSectionsIdRouteImport
+      parentRoute: typeof ApiAdminSectionsRoute
+    }
+    '/api/courses/$courseId/sections': {
+      id: '/api/courses/$courseId/sections'
+      path: '/$courseId/sections'
+      fullPath: '/api/courses/$courseId/sections'
+      preLoaderRoute: typeof ApiCoursesCourseIdSectionsRouteImport
+      parentRoute: typeof ApiCoursesRoute
+    }
+    '/api/sections/$sectionId/lessons': {
+      id: '/api/sections/$sectionId/lessons'
+      path: '/api/sections/$sectionId/lessons'
+      fullPath: '/api/sections/$sectionId/lessons'
+      preLoaderRoute: typeof ApiSectionsSectionIdLessonsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/student/courses/$id': {
@@ -440,46 +461,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudentCoursesIdRouteImport
       parentRoute: typeof ApiStudentCoursesRoute
     }
-    '/api/sections/$sectionId/lessons': {
-      id: '/api/sections/$sectionId/lessons'
-      path: '/api/sections/$sectionId/lessons'
-      fullPath: '/api/sections/$sectionId/lessons'
-      preLoaderRoute: typeof ApiSectionsSectionIdLessonsRouteImport
+    '/api/student/lessons/$id': {
+      id: '/api/student/lessons/$id'
+      path: '/api/student/lessons/$id'
+      fullPath: '/api/student/lessons/$id'
+      preLoaderRoute: typeof ApiStudentLessonsIdRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/api/courses/$courseId/sections': {
-      id: '/api/courses/$courseId/sections'
-      path: '/$courseId/sections'
-      fullPath: '/api/courses/$courseId/sections'
-      preLoaderRoute: typeof ApiCoursesCourseIdSectionsRouteImport
-      parentRoute: typeof ApiCoursesRoute
-    }
-    '/api/admin/sections/$id': {
-      id: '/api/admin/sections/$id'
-      path: '/$id'
-      fullPath: '/api/admin/sections/$id'
-      preLoaderRoute: typeof ApiAdminSectionsIdRouteImport
-      parentRoute: typeof ApiAdminSectionsRoute
-    }
-    '/api/admin/lessons/$id': {
-      id: '/api/admin/lessons/$id'
-      path: '/$id'
-      fullPath: '/api/admin/lessons/$id'
-      preLoaderRoute: typeof ApiAdminLessonsIdRouteImport
-      parentRoute: typeof ApiAdminLessonsRoute
-    }
-    '/api/admin/lessons/$id/unpublish': {
-      id: '/api/admin/lessons/$id/unpublish'
-      path: '/unpublish'
-      fullPath: '/api/admin/lessons/$id/unpublish'
-      preLoaderRoute: typeof ApiAdminLessonsIdUnpublishRouteImport
-      parentRoute: typeof ApiAdminLessonsIdRoute
     }
     '/api/admin/lessons/$id/publish': {
       id: '/api/admin/lessons/$id/publish'
       path: '/publish'
       fullPath: '/api/admin/lessons/$id/publish'
       preLoaderRoute: typeof ApiAdminLessonsIdPublishRouteImport
+      parentRoute: typeof ApiAdminLessonsIdRoute
+    }
+    '/api/admin/lessons/$id/unpublish': {
+      id: '/api/admin/lessons/$id/unpublish'
+      path: '/unpublish'
+      fullPath: '/api/admin/lessons/$id/unpublish'
+      preLoaderRoute: typeof ApiAdminLessonsIdUnpublishRouteImport
       parentRoute: typeof ApiAdminLessonsIdRoute
     }
     '/api/admin/sections/$sectionId/lessons/reorder': {

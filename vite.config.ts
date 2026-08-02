@@ -12,4 +12,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Hard-pin to node-server so `node .output/server/index.mjs` binds an HTTP
+  // listener and works under PM2. The Lovable sandbox overrides this to
+  // cloudflare-module automatically when LOVABLE_SANDBOX=1, so Lovable CI
+  // is unaffected. See: LovableViteTanstackOptions.nitro in the config pkg.
+  nitro: { preset: "node-server" },
 });
