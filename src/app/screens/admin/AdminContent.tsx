@@ -1,0 +1,796 @@
+import React, { useState, useEffect } from "react";
+import {
+  BookOpen, Plus, Upload, GripVertical, ChevronDown, ChevronRight, Pencil, Trash2,
+  FileText, Play, Download, CheckCircle2, AlertTriangle, Check, RefreshCw, X, Loader2
+} from "lucide-react";
+import { toast } from "sonner";
+import { Screen, Course, Section, UploadStage } from "../../../data/types";
+import { lmsService } from "../../../services/lmsService";
+import { AdminLayout } from "../../components/AdminLayout";
+import { Breadcrumb } from "../../components/Breadcrumb";
+import { Button, cn } from "../../components/Button";
+import { Badge } from "../../components/Badge";
+import { Modal } from "../../components/Modal";
+import { ConfirmModal } from "../../components/ConfirmDialog";
+import { FormInput } from "../../components/FormInput";
+import { FileUpload } from "../../components/FileUpload";
+import { UploadPipeline } from "../../components/UploadPipeline";
+
+export function AdminContent({
+  onNavigate,
+  selectedCourseId,
+  onSelectCourse,
+}: {
+  onNavigate: (s: Screen) => void;
+  selectedCourseId?: string;
+  onSelectCourse?: (id: string) => void;
+}) {
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  // Upload modal state
+  const [uploadModal, setUploadModal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage>("idle");
+  const [uploadFileType, setUploadFileType] = useState<"video" | "pdf">("video");
+  const [uploadTargetSection, setUploadTargetSection] = useState<string | null>(null);
+  const [uploadTargetLesson, setUploadTargetLesson] = useState<string | null>(null);
+  const [simulateUploadFail, setSimulateUploadFail] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState<{ sectionId: string; lessonId: string; title: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Add Section modal state
+  const [addSectionModal, setAddSectionModal] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [newSectionDesc, setNewSectionDesc] = useState("");
+  const [sectionLoading, setSectionLoading] = useState(false);
+
+  // Add Lesson modal state
+  const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string } | null>(null);
+  const [newLessonTitle, setNewLessonTitle] = useState("");
+  const [newLessonDesc, setNewLessonDesc] = useState("");
+  const [newLessonType, setNewLessonType] = useState<"video" | "pdf">("video");
+  const [lessonLoading, setLessonLoading] = useState(false);
+
+  // Publish Course modal state
+  const [publishModal, setPublishModal] = useState(false);
+  const [publishState, setPublishState] = useState<"idle" | "publishing" | "published">("idle");
+
+  // Delete Course modal state
+  const [deleteCourseModal, setDeleteCourseModal] = useState(false);
+  const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
+
+  const loadContentData = async (targetId?: string) => {
+    setLoading(true);
+    const fetchedCourses = await lmsService.getCourses();
+    setAllCourses(fetchedCourses);
+
+    const activeCourse = targetId
+      ? fetchedCourses.find((c) => c.id === targetId) || fetchedCourses[0]
+      : fetchedCourses.find((c) => c.id === selectedCourseId) || fetchedCourses[fetchedCourses.length - 1] || fetchedCourses[0];
+
+    if (activeCourse) {
+      setCourse(activeCourse);
+      const fetchedSections = await lmsService.getSectionsByCourse(activeCourse.id);
+      setSections(fetchedSections);
+      setExpandedSections(new Set(fetchedSections.map((s) => s.id)));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadContentData(selectedCourseId);
+  }, [selectedCourseId]);
+
+  function handleCourseSwitch(id: string) {
+    onSelectCourse?.(id);
+    loadContentData(id);
+  }
+
+  async function handleAddSection() {
+    if (!newSectionName.trim() || !course) return;
+    setSectionLoading(true);
+    try {
+      const createdSection = await lmsService.createSection(course.id, {
+        title: newSectionName.trim(),
+        description: newSectionDesc.trim(),
+      });
+      setSections((prev) => [...prev, { ...createdSection, lessons: [] }]);
+      setExpandedSections((prev) => new Set([...prev, createdSection.id]));
+      setSectionLoading(false);
+      setAddSectionModal(false);
+      setNewSectionName("");
+      setNewSectionDesc("");
+      toast.success("Section created successfully");
+    } catch (err: any) {
+      setSectionLoading(false);
+      toast.error(err.message || "Failed to create section");
+    }
+  }
+
+  async function handleAddLesson() {
+    if (!newLessonTitle.trim() || !addLessonModal) return;
+    setLessonLoading(true);
+    try {
+      const createdLesson = await lmsService.createLesson(addLessonModal.sectionId, {
+        title: newLessonTitle.trim(),
+        type: newLessonType,
+        description: newLessonDesc.trim(),
+      });
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === addLessonModal.sectionId
+            ? { ...s, lessons: [...(s.lessons || []), createdLesson] }
+            : s
+        )
+      );
+      setLessonLoading(false);
+      setAddLessonModal(null);
+      setNewLessonTitle("");
+      setNewLessonDesc("");
+      toast.success("Lesson added — ready for media upload.");
+    } catch (err: any) {
+      setLessonLoading(false);
+      toast.error(err.message || "Failed to add lesson");
+    }
+  }
+
+  async function handlePublishCourse() {
+    if (!course) return;
+    setPublishState("publishing");
+    try {
+      await lmsService.publishCourse(course.id);
+      setCourse((prev) => (prev ? { ...prev, status: "published" } : null));
+      setPublishState("published");
+      toast.success("Course published successfully — now visible to students!");
+    } catch (err: any) {
+      setPublishState("idle");
+      toast.error(err.message || "Failed to publish course");
+    }
+  }
+
+  async function handleDeleteCourse() {
+    if (!course) return;
+    setDeleteCourseLoading(true);
+    try {
+      await lmsService.deleteCourse(course.id);
+      setDeleteCourseLoading(false);
+      setDeleteCourseModal(false);
+      toast.success("Course deleted successfully");
+      onNavigate("admin-dashboard");
+    } catch (err: any) {
+      setDeleteCourseLoading(false);
+      toast.error(err.message || "Failed to delete course");
+    }
+  }
+
+  async function handleToggleSectionPublished(sectionId: string) {
+    try {
+      const updated = await lmsService.toggleSectionPublished(sectionId);
+      setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, published: updated.published } : s)));
+      toast.success(updated.published ? "Section published" : "Section set to draft");
+    } catch (err: any) {
+      toast.error("Failed to update section");
+    }
+  }
+
+  async function handleToggleLessonPublished(sectionId: string, lessonId: string) {
+    try {
+      const updated = await lmsService.toggleLessonPublished(lessonId);
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === sectionId
+            ? {
+                ...s,
+                lessons: s.lessons?.map((l) => (l.id === lessonId ? { ...l, published: updated.published, status: updated.status } : l)),
+              }
+            : s
+        )
+      );
+      toast.success(updated.published ? "Lesson published" : "Lesson set to draft");
+    } catch (err: any) {
+      toast.error("Failed to update lesson");
+    }
+  }
+
+  async function handleToggleDownloadPermission(sectionId: string, lessonId: string) {
+    try {
+      const updated = await lmsService.toggleLessonDownloadPermission(lessonId);
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === sectionId
+            ? {
+                ...s,
+                lessons: s.lessons?.map((l) => (l.id === lessonId ? { ...l, downloadPermission: updated.downloadPermission, hasDownload: updated.hasDownload } : l)),
+              }
+            : s
+        )
+      );
+      toast.success("Download permission updated");
+    } catch (err: any) {
+      toast.error("Failed to update download permission");
+    }
+  }
+
+  async function handleDeleteLesson() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      await lmsService.deleteLesson(deleteTarget.lessonId);
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === deleteTarget.sectionId ? { ...s, lessons: s.lessons?.filter((l) => l.id !== deleteTarget.lessonId) } : s
+        )
+      );
+      setDeleteLoading(false);
+      setDeleteTarget(null);
+      toast.success("Lesson deleted");
+    } catch (err: any) {
+      setDeleteLoading(false);
+      toast.error("Failed to delete lesson");
+    }
+  }
+
+  function handleFileSelected(file: File) {
+    setSelectedFile(file);
+    const isPdf = file.name.endsWith(".pdf") || file.type.includes("pdf");
+    setUploadFileType(isPdf ? "pdf" : "video");
+    handleStartUpload(file);
+  }
+
+  async function handleStartUpload(fileToUpload?: File) {
+    const file = fileToUpload || selectedFile;
+    setUploadStage("uploading");
+    setUploadProgress(0);
+
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return 90;
+        }
+        return prev + 15;
+      });
+    }, 150);
+
+    try {
+      const dummyFile = file || new File(["dummy"], uploadFileType === "pdf" ? "document.pdf" : "lesson.mp4", { type: uploadFileType === "pdf" ? "application/pdf" : "video/mp4" });
+      await lmsService.uploadFile(dummyFile, simulateUploadFail);
+      clearInterval(interval);
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploadStage("processing");
+        setTimeout(() => {
+          setUploadStage(uploadFileType === "pdf" ? "published" : "generating");
+          if (uploadFileType !== "pdf") {
+            setTimeout(() => {
+              setUploadStage("ready");
+            }, 1200);
+          } else {
+            toast.success("PDF uploaded successfully");
+          }
+        }, 1200);
+      }, 300);
+    } catch (err: any) {
+      clearInterval(interval);
+      setUploadStage("failed");
+      toast.error(err.message || "Upload failed");
+    }
+  }
+
+  async function handlePublishUploadedLesson() {
+    if (uploadTargetLesson) {
+      const targetSection = sections.find((s) => s.lessons?.some((l) => l.id === uploadTargetLesson));
+      if (targetSection) {
+        await handleToggleLessonPublished(targetSection.id, uploadTargetLesson);
+      }
+    }
+    setUploadStage("published");
+    toast.success("Lesson content published successfully");
+  }
+
+  function handleRetryUpload() {
+    setUploadStage("idle");
+    setUploadProgress(0);
+    if (selectedFile) {
+      handleStartUpload(selectedFile);
+    }
+  }
+
+  function closeUploadModal() {
+    const busy = uploadStage === "uploading" || uploadStage === "processing" || uploadStage === "generating";
+    if (!busy) {
+      setUploadModal(false);
+      setUploadStage("idle");
+      setUploadProgress(0);
+      setSelectedFile(null);
+      setUploadTargetSection(null);
+      setUploadTargetLesson(null);
+    }
+  }
+
+  return (
+    <AdminLayout current="admin-content" onNavigate={onNavigate}>
+      <main className="flex-1 p-4 sm:p-8">
+        <div className="mb-4 sm:mb-5">
+          <Breadcrumb items={[{ label: "Admin" }, { label: "Content Editor" }]} />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Content Editor</h1>
+            {allCourses.length > 1 ? (
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium">Select course:</span>
+                <select
+                  value={course?.id || ""}
+                  onChange={(e) => handleCourseSwitch(e.target.value)}
+                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {allCourses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title} ({c.status})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm mt-1 truncate">
+                {course?.title || "Modern JavaScript: From Fundamentals to Advanced"}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="secondary" onClick={() => setAddSectionModal(true)}>
+              <Plus className="w-4 h-4" />
+              Add section
+            </Button>
+            <Button onClick={() => setPublishModal(true)} disabled={course?.status === "published"}>
+              <CheckCircle2 className="w-4 h-4" />
+              {course?.status === "published" ? "Course Published" : "Publish Course"}
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleteCourseModal(true)}>
+              <Trash2 className="w-4 h-4" />
+              Delete Course
+            </Button>
+          </div>
+        </div>
+
+        {/* Course Container Card */}
+        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-border bg-muted/20">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-semibold text-foreground truncate">{course?.title}</span>
+            </div>
+            <Badge variant={course?.status || "draft"} />
+          </div>
+
+          {loading ? (
+            <div className="p-8 text-center">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Loading sections and lessons...</p>
+            </div>
+          ) : sections.length === 0 ? (
+            <div className="p-8 text-center border-b border-border">
+              <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm font-medium text-foreground">No sections created yet</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-4">
+                Architecture rule: Create a section first before lessons can be added.
+              </p>
+              <Button size="sm" onClick={() => setAddSectionModal(true)}>
+                <Plus className="w-3.5 h-3.5" />
+                Add first section
+              </Button>
+            </div>
+          ) : (
+            sections.map((section) => {
+              const expanded = expandedSections.has(section.id);
+              const lessons = section.lessons || [];
+
+              return (
+                <div key={section.id} className="border-b border-border last:border-0">
+                  <div className="flex items-center gap-2 px-4 sm:px-5 py-3 hover:bg-muted/20 transition-colors group">
+                    <GripVertical className="w-4 h-4 text-muted-foreground/30 cursor-grab flex-shrink-0 hidden sm:block" />
+                    <button
+                      onClick={() =>
+                        setExpandedSections((prev) => {
+                          const n = new Set(prev);
+                          n.has(section.id) ? n.delete(section.id) : n.add(section.id);
+                          return n;
+                        })
+                      }
+                      className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                    >
+                      {expanded ? (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <span className="text-sm font-semibold text-foreground truncate">{section.title}</span>
+                      <span className="text-xs text-muted-foreground ml-1 flex-shrink-0">({lessons.length})</span>
+                    </button>
+                    <button
+                      onClick={() => handleToggleSectionPublished(section.id)}
+                      className={cn(
+                        "ml-1 px-2 sm:px-2.5 py-1 rounded-md text-xs font-semibold transition-colors border flex-shrink-0",
+                        section.published
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
+                          : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/40"
+                      )}
+                    >
+                      {section.published ? "Published" : "Draft"}
+                    </button>
+                  </div>
+
+                  {expanded && (
+                    <div className="bg-muted/10">
+                      {lessons.length === 0 ? (
+                        <div className="pl-8 sm:pl-12 pr-4 sm:pr-5 py-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between">
+                          <span>No lessons in this section. Add a lesson first before uploading media.</span>
+                          <button
+                            onClick={() => {
+                              setAddLessonModal({ sectionId: section.id });
+                              setNewLessonType("video");
+                            }}
+                            className="text-primary font-semibold hover:underline"
+                          >
+                            + Add Lesson
+                          </button>
+                        </div>
+                      ) : (
+                        lessons.map((lesson) => (
+                          <div
+                            key={lesson.id}
+                            className="flex items-center gap-2 pl-8 sm:pl-12 pr-4 sm:pr-5 py-2.5 border-t border-border/50 hover:bg-muted/20 transition-colors group/l"
+                          >
+                            <GripVertical className="w-3.5 h-3.5 text-muted-foreground/20 cursor-grab flex-shrink-0 hidden sm:block" />
+                            {lesson.type === "pdf" ? (
+                              <FileText className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <Play className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                            )}
+                            <span className="flex-1 text-sm text-foreground truncate">{lesson.title}</span>
+                            <span className="text-xs text-muted-foreground flex-shrink-0 hidden sm:block">
+                              {lesson.type.toUpperCase()}
+                            </span>
+
+                            {/* PDF download toggle */}
+                            {lesson.type === "pdf" && (
+                              <button
+                                onClick={() => handleToggleDownloadPermission(section.id, lesson.id)}
+                                title={lesson.downloadPermission ? "Disable download" : "Enable download"}
+                                className={cn(
+                                  "px-2 py-0.5 rounded text-xs font-medium border transition-colors flex-shrink-0 hidden sm:flex items-center gap-1",
+                                  lesson.downloadPermission
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
+                                    : "bg-muted text-muted-foreground border-border hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200"
+                                )}
+                              >
+                                <Download className="w-3 h-3" />
+                                {lesson.downloadPermission ? "DL on" : "DL off"}
+                              </button>
+                            )}
+
+                            <div className="flex items-center gap-1 opacity-0 group-hover/l:opacity-100 transition-opacity flex-shrink-0">
+                              <button
+                                onClick={() => {
+                                  setUploadTargetSection(section.id);
+                                  setUploadTargetLesson(lesson.id);
+                                  setUploadFileType(lesson.type);
+                                  setUploadModal(true);
+                                }}
+                                title="Upload/Replace Media"
+                                className="p-1.5 rounded hover:bg-muted transition-colors text-xs text-primary font-medium flex items-center gap-1"
+                              >
+                                <Upload className="w-3 h-3" />
+                                Upload
+                              </button>
+                              <button
+                                onClick={() =>
+                                  setDeleteTarget({
+                                    sectionId: section.id,
+                                    lessonId: lesson.id,
+                                    title: lesson.title,
+                                  })
+                                }
+                                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => handleToggleLessonPublished(section.id, lesson.id)}
+                              className={cn(
+                                "ml-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors border flex-shrink-0",
+                                lesson.published
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
+                                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/40"
+                              )}
+                            >
+                              {lesson.published ? "Published" : "Draft"}
+                            </button>
+                          </div>
+                        ))
+                      )}
+
+                      <div className="pl-8 sm:pl-12 pr-5 py-2.5 border-t border-border/50 flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setAddLessonModal({ sectionId: section.id });
+                            setNewLessonType("video");
+                          }}
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Add lesson
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+
+          <div className="px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 bg-muted/10">
+            <button
+              onClick={() => setAddSectionModal(true)}
+              className="flex items-center gap-2 text-sm text-primary font-semibold hover:underline"
+            >
+              <Plus className="w-4 h-4" />
+              Add section
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {/* Upload Media Modal */}
+      <Modal
+        open={uploadModal}
+        onClose={closeUploadModal}
+        title="Upload lesson content"
+        actions={
+          uploadStage === "published" || uploadStage === "ready" ? (
+            <Button size="sm" onClick={closeUploadModal}>
+              Done
+            </Button>
+          ) : (
+            <Button variant="secondary" size="sm" onClick={closeUploadModal}>
+              Close
+            </Button>
+          )
+        }
+      >
+        {uploadStage === "idle" ? (
+          <div className="flex flex-col gap-4">
+            <FileUpload
+              hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
+              onChange={handleFileSelected}
+            />
+
+            {/* Test Simulation Toggle */}
+            <div className="p-3 bg-muted/30 rounded-lg border border-border flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Test error state (~10% failure simulation):</span>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+                <input
+                  type="checkbox"
+                  checked={simulateUploadFail}
+                  onChange={(e) => setSimulateUploadFail(e.target.checked)}
+                  className="rounded border-border"
+                />
+                Simulate failure
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div className="py-2">
+            <UploadPipeline
+              stage={uploadStage}
+              progress={uploadProgress}
+              filename={selectedFile?.name || (uploadFileType === "video" ? "intro-to-closures.mp4" : "core-concepts-reference.pdf")}
+              fileType={uploadFileType}
+              onRetry={handleRetryUpload}
+              onPublish={handlePublishUploadedLesson}
+            />
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Lesson Modal */}
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteLesson}
+        loading={deleteLoading}
+        title="Delete lesson"
+        description={`This will permanently remove "${deleteTarget?.title}" and its media file.`}
+        warning="Students with progress on this lesson will lose that record. Consider setting it to draft instead if students are active."
+        confirmLabel="Delete lesson"
+        confirmVariant="destructive"
+        icon={AlertTriangle}
+      />
+
+      {/* Add Section modal */}
+      <Modal
+        open={addSectionModal}
+        onClose={() => {
+          setAddSectionModal(false);
+          setNewSectionName("");
+          setNewSectionDesc("");
+        }}
+        title="Add section"
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setAddSectionModal(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" loading={sectionLoading} disabled={!newSectionName.trim()} onClick={handleAddSection}>
+              Add section
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <FormInput
+            label="Section name"
+            placeholder="e.g. Getting Started"
+            value={newSectionName}
+            onChange={(e) => setNewSectionName(e.target.value)}
+            required
+          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">
+              Description <span className="text-muted-foreground font-normal">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Brief description of this section"
+              value={newSectionDesc}
+              onChange={(e) => setNewSectionDesc(e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Lesson modal */}
+      <Modal
+        open={!!addLessonModal}
+        onClose={() => {
+          setAddLessonModal(null);
+          setNewLessonTitle("");
+          setNewLessonDesc("");
+        }}
+        title="Add lesson"
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setAddLessonModal(null)}>
+              Cancel
+            </Button>
+            <Button size="sm" loading={lessonLoading} disabled={!newLessonTitle.trim()} onClick={handleAddLesson}>
+              Add lesson
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <FormInput
+            label="Lesson title"
+            placeholder="e.g. Introduction to Closures"
+            value={newLessonTitle}
+            onChange={(e) => setNewLessonTitle(e.target.value)}
+            required
+          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">
+              Description <span className="text-muted-foreground font-normal">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              placeholder="What will students learn in this lesson?"
+              value={newLessonDesc}
+              onChange={(e) => setNewLessonDesc(e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">Content type</label>
+            <div className="flex gap-3">
+              {(["video", "pdf"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setNewLessonType(t)}
+                  className={cn(
+                    "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all",
+                    newLessonType === t
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/30"
+                  )}
+                >
+                  {t === "video" ? <Play className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                  {t === "video" ? "Video" : "PDF"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Publish Course modal */}
+      <Modal
+        open={publishModal}
+        onClose={() => {
+          if (publishState !== "publishing") setPublishModal(false);
+        }}
+        title="Publish course"
+        actions={
+          publishState === "published" ? (
+            <Button size="sm" onClick={() => setPublishModal(false)}>
+              Done
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={publishState === "publishing"}
+                onClick={() => setPublishModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button size="sm" loading={publishState === "publishing"} onClick={handlePublishCourse}>
+                <CheckCircle2 className="w-4 h-4" />
+                Publish now
+              </Button>
+            </>
+          )
+        }
+      >
+        {publishState === "published" ? (
+          <div className="flex flex-col items-center text-center py-3 gap-3">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">Course published</p>
+              <p className="text-sm text-muted-foreground mt-1">The course is now visible to enrolled students.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Publishing will make <strong className="text-foreground">{course?.title}</strong> visible to all enrolled students immediately.
+            </p>
+            <div className="flex items-start gap-2.5 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/40">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                Only published sections and lessons will be visible. Ensure all content is ready before proceeding.
+              </p>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Course Confirm Modal */}
+      <ConfirmModal
+        open={deleteCourseModal}
+        onClose={() => setDeleteCourseModal(false)}
+        onConfirm={handleDeleteCourse}
+        loading={deleteCourseLoading}
+        title="Delete course"
+        description={`Are you sure you want to delete "${course?.title}"?`}
+        warning="This will permanently remove the course and all associated sections, lessons, and media files from both Admin and Student portals. This action cannot be undone."
+        confirmLabel="Delete Course"
+        confirmVariant="destructive"
+        icon={AlertTriangle}
+      />
+    </AdminLayout>
+  );
+}
