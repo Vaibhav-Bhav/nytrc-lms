@@ -119,8 +119,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-account" onNavigate={onNavigate} />
+    <StudentNav current="student-account" onNavigate={onNavigate}>
       <main className="flex-1 p-4 sm:p-6 max-w-3xl mx-auto w-full">
         <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-5 sm:mb-6">Account Settings</h1>
 
@@ -327,6 +326,6 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
         loading={actionLoading}
         variant="destructive"
       />
-    </div>
+    </StudentNav>
   );
 }

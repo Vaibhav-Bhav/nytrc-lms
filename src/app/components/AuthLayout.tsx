@@ -13,7 +13,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
           </blockquote>
           <p className="text-white/50 mt-4 text-sm">Priya Sharma — enrolled Nov 2024</p>
         </div>
-        <p className="text-white/30 text-xs">© 2025 Learnbase</p>
+        <p className="text-white/30 text-xs">© 2025 NYtrc LMS</p>
       </div>
       <div className="flex-1 flex items-center justify-center p-6 min-h-screen lg:min-h-0">
         <div className="w-full max-w-sm">

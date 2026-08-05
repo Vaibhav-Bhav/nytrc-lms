@@ -22,11 +22,11 @@ export function SupportCard({ type, className }: { type?: keyof typeof SUPPORT_M
           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{message}</p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3">
             <a
-              href="mailto:support@learnbase.io"
-              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold"
+              href="mailto:support@nytrc.edu"
+              className="text-xs font-semibold text-primary hover:underline flex items-center justify-center gap-1"
             >
               <Mail className="w-3.5 h-3.5" />
-              support@learnbase.io
+              support@nytrc.edu
             </a>
             <span className="text-xs text-muted-foreground hidden sm:inline">·</span>
             <span className="text-xs text-muted-foreground">Replies within 2 hours on weekdays</span>

@@ -42,8 +42,7 @@ export function StudentCourses({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
-      <StudentNav current="student-courses" onNavigate={onNavigate} />
+    <StudentNav current="student-courses" onNavigate={onNavigate}>
       <main className="flex-1 p-4 sm:p-6 max-w-4xl mx-auto w-full">
         <div className="mb-4">
           <Breadcrumb
@@ -149,6 +148,6 @@ export function StudentCourses({
           </div>
         )}
       </main>
-    </div>
+    </StudentNav>
   );
 }

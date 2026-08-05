@@ -23,7 +23,7 @@ export function SessionExpiredScreen({ onNavigate }: { onNavigate: (s: Screen) =
         Sign in again
       </Button>
       <p className="text-xs text-muted-foreground text-center mt-5">
-        Need help? <a href="#" className="text-primary hover:underline">support@learnbase.io</a>
+        Need help? <a href="#" className="text-primary hover:underline">support@nytrc.edu</a>
       </p>
     </AuthLayout>
   );

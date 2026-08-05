@@ -45,8 +45,7 @@ export function StudentDashboard({
   const remaining = totalLessons - completedLessons;
 
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-dashboard" onNavigate={onNavigate} />
+    <StudentNav current="student-dashboard" onNavigate={onNavigate}>
       <main className="flex-1 p-4 sm:p-6 max-w-3xl mx-auto w-full">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Good morning, Sarah.</h1>
@@ -221,6 +220,6 @@ export function StudentDashboard({
 
         <SupportCard />
       </main>
-    </div>
+    </StudentNav>
   );
 }

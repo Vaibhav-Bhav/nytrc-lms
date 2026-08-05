@@ -64,7 +64,7 @@ export function AdminSidebar({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">Admin</p>
-            <p className="text-xs text-muted-foreground truncate">admin@learnbase.io</p>
+            <p className="text-xs text-muted-foreground truncate">admin@nytrc.edu</p>
           </div>
         </div>
         <div className="px-1 mb-1">

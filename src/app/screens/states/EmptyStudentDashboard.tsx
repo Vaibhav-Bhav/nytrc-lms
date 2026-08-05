@@ -5,9 +5,8 @@ import { EmptyState } from "../../components/EmptyState";
 
 export function EmptyStudentDashboard({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-dashboard" onNavigate={onNavigate} />
-      <main className="flex-1 flex items-center justify-center">
+    <StudentNav current="student-dashboard" onNavigate={onNavigate}>
+      <main className="flex-1 flex items-center justify-center p-6">
         <EmptyState
           icon={BookOpen}
           title="No course yet"
@@ -15,6 +14,6 @@ export function EmptyStudentDashboard({ onNavigate }: { onNavigate: (s: Screen) 
           action={{ label: "Contact support", onClick: () => {}, icon: Mail }}
         />
       </main>
-    </div>
+    </StudentNav>
   );
 }

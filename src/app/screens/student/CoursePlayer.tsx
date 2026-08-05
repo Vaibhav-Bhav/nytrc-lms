@@ -192,8 +192,7 @@ export function CoursePlayer({
   );
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <StudentNav current="course-player" onNavigate={onNavigate} />
+    <StudentNav current="course-player" onNavigate={onNavigate}>
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Main player content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
@@ -469,6 +468,6 @@ export function CoursePlayer({
           </div>
         )}
       </div>
-    </div>
+    </StudentNav>
   );
 }

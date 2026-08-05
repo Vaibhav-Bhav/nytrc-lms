@@ -263,7 +263,7 @@ export const lmsService = {
     // Abstracted Service Layer Return (Designed for easy Bunny Stream / R2 swap)
     return {
       url: isPdf
-        ? `https://pub-r2.learnbase.io/docs/${Date.now()}_${file.name}`
+        ? `https://pub-r2.nytrc.edu/docs/${Date.now()}_${file.name}`
         : `https://video.bunnycdn.com/play/${Date.now()}_${file.name}`,
       fileName: file.name,
       fileType: isPdf ? "pdf" : "video",

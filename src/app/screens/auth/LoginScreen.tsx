@@ -225,7 +225,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
         <div className="flex gap-2">
           <button
             onClick={() => {
-              setEmail("admin@learnbase.io");
+              setEmail("admin@nytrc.edu");
               setPassword("admin123");
               onNavigate("admin-dashboard");
             }}
@@ -248,7 +248,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
 
       <div className="flex items-center justify-between mt-5">
         <p className="text-xs text-muted-foreground">
-          Need help? <a href="#" className="text-primary hover:underline">support@learnbase.io</a>
+          Need help? <a href="#" className="text-primary hover:underline">support@nytrc.edu</a>
         </p>
         <button
           onClick={() => onNavigate("auth-device-limit-exceeded")}
