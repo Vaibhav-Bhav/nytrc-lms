@@ -29,6 +29,21 @@ export const Route = createFileRoute('/api/payments/verify')({
             if (err.message === 'PAYMENT_NOT_FOUND') {
               return Response.json({ error: 'Payment record not found' }, { status: 404 })
             }
+            if (err.message === 'PAYMENT_ALREADY_PROCESSED') {
+              return Response.json({ error: 'Payment has already been processed' }, { status: 409 })
+            }
+            if (err.message === 'PAYMENT_NOT_SUCCESSFUL') {
+              return Response.json({ error: 'Payment status is not successful' }, { status: 400 })
+            }
+            if (err.message === 'ENTITLEMENT_ALREADY_EXISTS') {
+              return Response.json({ error: 'Student already has access to this course' }, { status: 409 })
+            }
+            if (err.message === 'INVOICE_ALREADY_EXISTS') {
+              return Response.json({ error: 'Invoice has already been generated for this payment' }, { status: 409 })
+            }
+            if (err.message === 'INVALID_PAYMENT_STATUS') {
+              return Response.json({ error: 'Invalid payment status for verification' }, { status: 400 })
+            }
             if (err.message.startsWith('Missing required environment variable')) {
               console.error('[verify] Configuration error:', err.message)
               return Response.json({ error: 'Payment service is not configured' }, { status: 503 })
