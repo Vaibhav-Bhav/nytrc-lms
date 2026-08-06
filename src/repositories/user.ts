@@ -26,6 +26,10 @@ export const userRepository = {
     return users.find((u) => u.email.toLowerCase() === email.toLowerCase()) ?? null
   },
 
+  async findByResetToken(resetToken: string): Promise<User | null> {
+    return users.find((u) => u.reset_token === resetToken) ?? null
+  },
+
   async create(data: NewUser): Promise<User> {
     const now = new Date().toISOString()
     const password_hash = await hashPassword(data.password)

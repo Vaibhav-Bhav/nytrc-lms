@@ -27,7 +27,26 @@ export const Route = createFileRoute('/api/auth/login')({
             location_metadata: body.location_metadata ?? null,
           })
 
-          return Response.json(result)
+          // Setup secure cookie header configuration
+          const isProduction = process.env.APP_ENV !== 'development'
+          const cookieOptions = [
+            `session_token=${result.session_token}`,
+            'HttpOnly',
+            'Path=/',
+            `Max-Age=${7 * 24 * 60 * 60}`, // 7 days in seconds
+            'SameSite=Lax',
+            ...(isProduction ? ['Secure'] : [])
+          ].join('; ')
+
+          console.log(`[login] Successful login for: ${parsed.data.email}. Setting session cookie.`)
+
+          return new Response(JSON.stringify(result), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Set-Cookie': cookieOptions
+            }
+          })
         } catch (err) {
           if (err instanceof Error) {
             if (err.message === 'INVALID_CREDENTIALS') {
@@ -40,6 +59,7 @@ export const Route = createFileRoute('/api/auth/login')({
               return Response.json({ error: 'Active device session limit exceeded' }, { status: 400 })
             }
           }
+          console.error('[login] Unexpected error:', err)
           return Response.json({ error: 'Internal server error' }, { status: 500 })
         }
       },

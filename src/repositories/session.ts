@@ -66,6 +66,26 @@ export const sessionRepository = {
     )
   },
 
+  async deactivateAllExcept(userId: string, keepSessionId: string): Promise<void> {
+    sessions = sessions.map((s) =>
+      s.user_id === userId && s.id !== keepSessionId ? { ...s, is_active: false } : s,
+    )
+  },
+
+  async countActiveByUserId(userId: string): Promise<number> {
+    const now = new Date()
+    return sessions.filter(
+      (s) => s.user_id === userId && s.is_active && new Date(s.expires_at) > now
+    ).length
+  },
+
+  async deactivateExpiredSessions(): Promise<void> {
+    const now = new Date()
+    sessions = sessions.map((s) =>
+      s.is_active && new Date(s.expires_at) < now ? { ...s, is_active: false } : s
+    )
+  },
+
   async remove(id: string): Promise<boolean> {
     const before = sessions.length
     sessions = sessions.filter((s) => s.id !== id)

@@ -22,49 +22,32 @@ function getSessionTokenFromRequest(request: Request): string | null {
   return null
 }
 
-export const Route = createFileRoute('/api/auth/logout')({
+export const Route = createFileRoute('/api/auth/sessions/$id')({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      DELETE: async ({ request, params }: { request: Request; params: { id: string } }) => {
         try {
           const token = getSessionTokenFromRequest(request)
-
           if (!token) {
-            return Response.json({ error: 'Authorization token is required' }, { status: 401 })
+            return Response.json({ error: 'Unauthorized' }, { status: 401 })
           }
 
-          await authService.logout(token)
+          const { id } = params
+          await authService.revokeSession(token, id)
 
-          // Setup cookie clear header configuration
-          const isProduction = process.env.APP_ENV !== 'development'
-          const cookieOptions = [
-            'session_token=',
-            'HttpOnly',
-            'Path=/',
-            'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-            'SameSite=Lax',
-            ...(isProduction ? ['Secure'] : [])
-          ].join('; ')
-
-          console.log(`[logout] Successful logout. Clearing session cookie.`)
-
-          return new Response(JSON.stringify({ message: 'Logged out successfully' }), {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Set-Cookie': cookieOptions
-            }
-          })
+          // If the revoked session is the current session, we should clear the cookie too.
+          // However, revoking current session is usually done via logout, but we support it.
+          return Response.json({ message: 'Session revoked successfully' })
         } catch (err) {
           if (err instanceof Error) {
+            if (err.message === 'UNAUTHORIZED') {
+              return Response.json({ error: 'Unauthorized' }, { status: 401 })
+            }
             if (err.message === 'SESSION_NOT_FOUND') {
               return Response.json({ error: 'Session not found' }, { status: 404 })
             }
-            if (err.message === 'Not implemented') {
-              return Response.json({ error: 'Not implemented' }, { status: 501 })
-            }
           }
-          console.error('[logout] Unexpected error:', err)
+          console.error(`[sessions] DELETE specific session ${params.id} Error:`, err)
           return Response.json({ error: 'Internal server error' }, { status: 500 })
         }
       },
