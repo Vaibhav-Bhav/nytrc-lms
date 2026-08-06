@@ -1,36 +1,30 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { lessonService } from '@/services/lessons'
-import { sectionService } from '@/services/sections'
-import { requireEnrolled } from '@/middleware/auth'
+import { studentService } from '@/services/student'
+import { authenticate, requireStudent } from '@/middleware/auth'
 
 export const Route = createFileRoute('/api/student/lessons/$id')({
   server: {
     handlers: {
-      GET: async ({ params, request }) => {
+      GET: async ({ params, request }: { params: { id: string }; request: Request }) => {
+        const user = await authenticate(request)
+        await requireStudent(request)
+
         try {
-          const lesson = await lessonService.findById(params.id)
-
-          if (lesson.status !== 'published') {
-            return Response.json({ error: 'Lesson not found' }, { status: 404 })
-          }
-
-          // Fetch the section to resolve course ownership
-          const section = await sectionService.findById(lesson.section_id)
-
-          // Perform enrollment authorization check
-          await requireEnrolled(request, section.course_id)
-
-          return Response.json(lesson)
+          const detail = await studentService.getLessonDetail(user.id, params.id)
+          return Response.json(detail)
         } catch (err) {
           if (err instanceof Response) {
             return err
           }
-          if (err instanceof Error && err.message === 'LESSON_NOT_FOUND') {
-            return Response.json({ error: 'Lesson not found' }, { status: 404 })
+          if (err instanceof Error) {
+            if (err.message === 'LESSON_NOT_FOUND') {
+              return Response.json({ error: 'Lesson not found' }, { status: 404 })
+            }
+            if (err.message === 'FORBIDDEN') {
+              return Response.json({ error: 'Forbidden: You are not enrolled in this course' }, { status: 403 })
+            }
           }
-          if (err instanceof Error && err.message === 'SECTION_NOT_FOUND') {
-            return Response.json({ error: 'Section not found' }, { status: 404 })
-          }
+          console.error('[getLessonDetail] Unexpected error:', err)
           return Response.json({ error: 'Internal server error' }, { status: 500 })
         }
       },
