@@ -23,10 +23,16 @@ export const Route = createFileRoute('/api/payments/verify')({
           return Response.json(result)
         } catch (err) {
           if (err instanceof Error) {
-            if (err.message === 'INVALID_SIGNATURE') {
+            if (
+              err.message === 'INVALID_SIGNATURE' ||
+              err.message === 'PAYMENT_SIGNATURE_INVALID'
+            ) {
               return Response.json({ error: 'Payment signature verification failed' }, { status: 400 })
             }
-            if (err.message === 'PAYMENT_NOT_FOUND') {
+            if (
+              err.message === 'PAYMENT_NOT_FOUND' ||
+              err.message === 'ORDER_NOT_FOUND'
+            ) {
               return Response.json({ error: 'Payment record not found' }, { status: 404 })
             }
             if (err.message === 'PAYMENT_ALREADY_PROCESSED') {

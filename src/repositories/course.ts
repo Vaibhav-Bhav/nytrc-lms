@@ -31,6 +31,7 @@ function toCourse(row: Record<string, unknown>): Course {
     description: (row.description as string | null) ?? null,
     thumbnail_url: (row.thumbnail_url as string | null) ?? null,
     status: row.status as 'draft' | 'published',
+    price: Number(row.price ?? 999), // Fallback to 999 if column not present (local or seed db)
     created_by: row.created_by as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
@@ -67,6 +68,7 @@ export const courseRepository = {
         description: data.description ?? null,
         thumbnail_url: data.thumbnail_url ?? null,
         status: data.status ?? 'draft',
+        price: data.price ?? 999,
         created_by: data.created_by,
       })
       .select()

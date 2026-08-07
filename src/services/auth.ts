@@ -3,6 +3,7 @@
 import { userRepository } from '@/repositories/user'
 import { sessionRepository } from '@/repositories/session'
 import { verifyPassword, hashPassword, isPasswordStrong } from '@/lib/password'
+import { sendEmail } from '@/lib/resend'
 import type { LoginInput } from '@/schemas/users'
 
 type DeviceInfo = {
@@ -221,9 +222,23 @@ export const authService = {
       reset_token_expires_at: resetTokenExpiresAt
     })
 
-    console.log(`[authService] Secure reset token generated for user ${user.id}`)
-
-    // TODO (Sprint 3 - Notifications): Send password reset email via Resend containing resetToken
+    // Send password reset email via Resend containing resetToken
+    try {
+      const resetLink = `${process.env['APP_URL'] || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+      const emailSubject = 'Password Reset Request'
+      const emailHtml = `
+        <h1>Password Reset Request</h1>
+        <p>Dear ${user.name || 'User'},</p>
+        <p>We received a request to reset your password. Click the link below to set a new password:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+        <p>This link is valid for 1 hour. If you did not request this, please ignore this email.</p>
+        <p>Best Regards,<br/>NYTRC Team</p>
+      `
+      await sendEmail(user.email, emailSubject, emailHtml)
+      console.log(`[authService] Password reset email sent successfully to ${user.email}`)
+    } catch (emailErr) {
+      console.error('[authService] Failed to send password reset email:', emailErr)
+    }
   },
 
   async resetPassword(resetToken: string, newPassword: string): Promise<void> {

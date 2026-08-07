@@ -96,6 +96,18 @@ export const invoiceRepository = {
     return data ? toInvoice(data) : null
   },
 
+  async findLatest(): Promise<Invoice | null> {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) throw new Error(`invoiceRepository.findLatest: ${error.message}`)
+    return data ? toInvoice(data) : null
+  },
+
   async create(data: NewInvoice): Promise<Invoice> {
     const { data: row, error } = await supabase
       .from('invoices')

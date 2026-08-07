@@ -8,6 +8,7 @@ export const courseSchema = z.object({
   description: z.string().nullable(),
   thumbnail_url: z.string().url().nullable(),
   status: z.enum(['draft', 'published']),
+  price: z.number().nonnegative().default(999),
   created_by: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -18,6 +19,7 @@ export const newCourseSchema = z.object({
   description: z.string().optional(),
   thumbnail_url: z.string().url().optional(),
   status: z.enum(['draft', 'published']).optional(),
+  price: z.number().nonnegative().optional(),
   created_by: z.string().uuid(),
 })
 
