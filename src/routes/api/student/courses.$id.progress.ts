@@ -1,17 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { studentService } from '@/services/student'
-import { authenticate, requireStudent } from '@/middleware/auth'
+import { progressService } from '@/services/progress'
+import { authenticate, requireStudent, requireEnrolled } from '@/middleware/auth'
 
-export const Route = createFileRoute('/api/student/courses/$id')({
+export const Route = createFileRoute('/api/student/courses/$id/progress')({
   server: {
     handlers: {
       GET: async ({ params, request }: { params: { id: string }; request: Request }) => {
+        // 1. Authenticate user session
         const user = await authenticate(request)
+
+        // 2. Authorize student role
         await requireStudent(request)
 
+        // 3. Authorize course access entitlement
+        const courseId = params.id
+        await requireEnrolled(request, courseId)
+
         try {
-          const detail = await studentService.getCourseDetail(user.id, params.id)
-          return Response.json(detail)
+          // 4. Calculate progress percentage
+          const result = await progressService.calculateCourseCompletion(user.id, courseId)
+          return Response.json(result)
         } catch (err) {
           if (err instanceof Response) {
             return err
@@ -20,11 +28,8 @@ export const Route = createFileRoute('/api/student/courses/$id')({
             if (err.message === 'COURSE_NOT_FOUND') {
               return Response.json({ error: 'Course not found' }, { status: 404 })
             }
-            if (err.message === 'FORBIDDEN') {
-              return Response.json({ error: 'Forbidden: You are not enrolled in this course' }, { status: 403 })
-            }
           }
-          console.error('[getCourseDetail] Unexpected error:', err)
+          console.error('[getCourseProgressRoute] Unexpected error:', err)
           return Response.json({ error: 'Internal server error' }, { status: 500 })
         }
       },
