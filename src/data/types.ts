@@ -6,10 +6,13 @@ export type Screen =
   | "payment-processing" | "payment-success" | "payment-failed" | "payment-pending"
   | "student-dashboard" | "student-courses" | "course-player" | "student-account"
   | "admin-dashboard" | "admin-create-course" | "admin-content" | "admin-students" | "admin-student-detail" | "admin-refund"
+  | "admin-payment-history" | "admin-email-log"
   | "student-course-detail"
   | "skel-dashboard" | "skel-player" | "skel-admin-table"
   | "empty-student" | "empty-admin-students" | "empty-admin-content"
   | "error-content";
+
+export type AuthStatus = "idle" | "loading" | "success" | "session-expired" | "unauthorized" | "logout-success";
 
 export type BadgeVariant =
   | "completed" | "in-progress" | "locked" | "continue-learning" | "access-granted" | "access-locked" | "access-expired"
@@ -84,6 +87,7 @@ export interface PaymentInvoice {
   amount: string;
   status: "paid" | "refunded" | "cancelled";
   invoice: string;
+  invoiceNumber?: string;
 }
 
 export interface EmailLogEntry {

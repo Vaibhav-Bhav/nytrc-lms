@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Play, Search, Layers, FileText, CheckCircle2, Clock } from "lucide-react";
+import { BookOpen, Play, Layers } from "lucide-react";
 import { Screen, Course } from "../../../data/types";
 import { lmsService } from "../../../services/lmsService";
-import { StudentNav } from "../../components/StudentNav";
+import { StudentLayout } from "../../components/StudentNav";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import { SearchInput } from "../../components/SearchInput";
 import { Button } from "../../components/Button";
 import { ProgressBar } from "../../components/ProgressBar";
 import { Badge } from "../../components/Badge";
+
+const COURSE_IMG = "https://images.unsplash.com/photo-1523437113738-bbd3cc89fb19?w=900&h=500&fit=crop&auto=format";
 
 export function StudentCourses({
   onNavigate,
@@ -42,9 +44,8 @@ export function StudentCourses({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
-      <StudentNav current="student-courses" onNavigate={onNavigate} />
-      <main className="flex-1 p-4 sm:p-6 max-w-4xl mx-auto w-full">
+    <StudentLayout current="student-courses" onNavigate={onNavigate}>
+      <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-4">
           <Breadcrumb
             items={[
@@ -56,7 +57,7 @@ export function StudentCourses({
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">My Courses</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">My Courses</h1>
             <p className="text-muted-foreground text-sm mt-1">
               Select a course to view its curriculum, lessons, and video content.
             </p>
@@ -65,15 +66,15 @@ export function StudentCourses({
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search courses by title or instructor..."
+              placeholder="Search courses..."
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {[1, 2].map((i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse space-y-3">
+              <div key={i} className="bg-card rounded-2xl border border-border p-6 animate-pulse space-y-3">
                 <div className="h-5 bg-muted rounded w-3/4" />
                 <div className="h-4 bg-muted rounded w-1/2" />
                 <div className="h-16 bg-muted/60 rounded" />
@@ -81,7 +82,7 @@ export function StudentCourses({
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <div className="bg-card rounded-2xl border border-border p-12 text-center">
             <BookOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <h3 className="font-semibold text-foreground text-base">No courses found</h3>
             <p className="text-sm text-muted-foreground mt-1">
@@ -89,7 +90,7 @@ export function StudentCourses({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             {filtered.map((c) => {
               const isPrimary = c.id === "c1";
               const pct = isPrimary ? 60 : 0;
@@ -97,22 +98,36 @@ export function StudentCourses({
               return (
                 <div
                   key={c.id}
-                  className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col hover:border-primary/40 transition-colors"
+                  className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-primary/40 transition-all duration-200"
                 >
-                  <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                  <div className="relative h-40 overflow-hidden bg-muted">
+                    <img
+                      src={c.thumbnail || COURSE_IMG}
+                      alt={c.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute top-3 left-3">
+                      <Badge variant={c.status} />
+                    </div>
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <Badge variant={c.status} />
-                        <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                          <Layers className="w-3.5 h-3.5" />
-                          {c.sectionCount || 0} sections · {c.lessonCount || 0} lessons
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                          <Layers className="w-3.5 h-3.5 text-primary" />
+                          {c.sectionCount || 4} sections · {c.lessonCount || 15} lessons
                         </span>
                       </div>
-                      <h2 className="text-base font-semibold text-foreground leading-snug hover:text-primary transition-colors cursor-pointer" onClick={() => handleSelectCourseCard(c.id, "student-course-detail")}>
+                      <h2
+                        className="text-base font-bold text-foreground leading-snug hover:text-primary transition-colors cursor-pointer"
+                        onClick={() => handleSelectCourseCard(c.id, "student-course-detail")}
+                      >
                         {c.title}
                       </h2>
                       <p className="text-xs font-medium text-muted-foreground mt-1">{c.instructor}</p>
-                      <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-2">
                         {c.description}
                       </p>
                     </div>
@@ -120,20 +135,20 @@ export function StudentCourses({
                     <div className="mt-5 pt-4 border-t border-border/60">
                       <div className="flex justify-between text-xs mb-1.5">
                         <span className="text-muted-foreground font-medium">Progress</span>
-                        <span className="font-semibold text-foreground">{pct}%</span>
+                        <span className="font-bold text-foreground">{pct}%</span>
                       </div>
                       <ProgressBar value={pct} color="primary" />
                     </div>
                   </div>
 
-                  <div className="px-5 sm:px-6 py-3.5 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                  <div className="px-5 py-3.5 bg-muted/30 border-t border-border flex items-center justify-between gap-2">
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => handleSelectCourseCard(c.id, "student-course-detail")}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
-                      View Outline
+                      Course Details
                     </Button>
                     <Button
                       size="sm"
@@ -149,6 +164,6 @@ export function StudentCourses({
           </div>
         )}
       </main>
-    </div>
+    </StudentLayout>
   );
 }
