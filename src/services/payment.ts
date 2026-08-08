@@ -354,115 +354,113 @@ export const paymentService = {
       console.log(`[paymentService] Course access entitlement created for student ${payment.student_id} on course ${payment.course_id}`)
     }
 
-    // 5. Generate GST Invoice Metadata
+    // 5. Find or create GST Invoice Metadata
+    let invoice: Invoice | null = null
+    const sellerStateEnv = process.env['SELLER_STATE']
+    if (!sellerStateEnv || sellerStateEnv.trim() === '') {
+      throw new Error('Missing required environment variable: SELLER_STATE. Please configure SELLER_STATE in production environment variables.')
+    }
+
     if (payment.invoice_id) {
-      console.log(`[paymentService] Invoice already generated with ID: ${payment.invoice_id} for payment ${payment.id}. Bypassing invoice creation.`)
-    } else {
+      console.log(`[paymentService] Invoice already generated with ID: ${payment.invoice_id} for payment ${payment.id}. Loading existing invoice record.`)
+      invoice = await invoiceRepository.findById(payment.invoice_id)
+    }
+
+    const gstRate = 0.18
+    const totalAmount = payment.amount_paid
+    const taxableValue = Number((totalAmount / (1 + gstRate)).toFixed(2))
+    const gstAmount = Number((totalAmount - taxableValue).toFixed(2))
+
+    const buyerState = (payment.gst_state || '').trim().toUpperCase()
+    const sellerState = sellerStateEnv.trim().toUpperCase()
+
+    const cgst = buyerState === sellerState ? Number((gstAmount / 2).toFixed(2)) : 0
+    const sgst = buyerState === sellerState ? Number((gstAmount / 2).toFixed(2)) : 0
+    const igst = buyerState !== sellerState ? gstAmount : 0
+
+    if (!invoice) {
+      const invoiceNumber = await generateSequentialInvoiceNumber()
+      
+      console.log(`[paymentService] Calculated GST invoice breakdown. Total: ${totalAmount}, Taxable: ${taxableValue}, GST: ${gstAmount}, CGST: ${cgst}, SGST: ${sgst}, IGST: ${igst}, Buyer State: ${buyerState || 'N/A'}, Seller State: ${sellerState}`)
+
+      invoice = await invoiceRepository.create({
+        payment_id: payment.id,
+        invoice_number: invoiceNumber,
+        base_amount: taxableValue,
+        gst_amount: gstAmount,
+        gst_rate: gstRate,
+        total_amount: totalAmount,
+        invoice_status: 'generated',
+      })
+
+      // Link invoice_id back to payment (Do NOT change payment_status)
+      await paymentRepository.update(payment.id, {
+        invoice_id: invoice.id,
+      })
+
+      console.log(`[paymentService] Invoice successfully created with ID: ${invoice.id} and linked to payment ${payment.id}`)
+    }
+
+    // 6. Generate PDF invoice, upload to Cloudflare R2, and send confirmation email
+    if (invoice && !invoice.invoice_download_url) {
       try {
-        const sellerStateEnv = process.env['SELLER_STATE']
-        if (!sellerStateEnv || sellerStateEnv.trim() === '') {
-          throw new Error('Missing required environment variable: SELLER_STATE. Please configure SELLER_STATE in production environment variables.')
+        const studentUser = await userRepository.findById(payment.student_id)
+        const courseObj = await courseRepository.findById(payment.course_id)
+
+        if (!studentUser || !courseObj) {
+          throw new Error(`Student user (found: ${!!studentUser}) or Course (found: ${!!courseObj}) not found. Downstream payment flow marked unsuccessful.`)
         }
 
-        const invoiceNumber = await generateSequentialInvoiceNumber()
-        
-        const buyerState = (payment.gst_state || '').trim().toUpperCase()
-        const sellerState = sellerStateEnv.trim().toUpperCase()
+        const studentName = studentUser.name || 'Student'
+        const courseName = courseObj.title || 'Course'
 
-        const gstRate = 0.18
-        const totalAmount = payment.amount_paid
-        const taxableValue = Number((totalAmount / (1 + gstRate)).toFixed(2))
-        const gstAmount = Number((totalAmount - taxableValue).toFixed(2))
-
-        const cgst = buyerState === sellerState ? Number((gstAmount / 2).toFixed(2)) : 0
-        const sgst = buyerState === sellerState ? Number((gstAmount / 2).toFixed(2)) : 0
-        const igst = buyerState !== sellerState ? gstAmount : 0
-
-        console.log(`[paymentService] Calculated GST invoice breakdown. Total: ${totalAmount}, Taxable: ${taxableValue}, GST: ${gstAmount}, CGST: ${cgst}, SGST: ${sgst}, IGST: ${igst}, Buyer State: ${buyerState || 'N/A'}, Seller State: ${sellerState}`)
-
-        // TODO (Future Sprint - Extended Invoice Schema): Persist the calculated values 
-        // (buyer_state, cgst, sgst, igst) once the SQL database schema is expanded.
-        const invoice = await invoiceRepository.create({
-          payment_id: payment.id,
-          invoice_number: invoiceNumber,
-          base_amount: taxableValue,
-          gst_amount: gstAmount,
-          gst_rate: gstRate,
-          total_amount: totalAmount,
-          invoice_status: 'generated',
+        console.log(`[paymentService] Generating PDF invoice for: ${invoice.invoice_number}`)
+        const pdfBuffer = generateInvoicePdf({
+          invoiceNumber: invoice.invoice_number,
+          studentName,
+          courseName,
+          amountPaid: totalAmount,
+          taxableValue,
+          gstAmount,
+          cgst,
+          sgst,
+          igst,
+          totalAmount,
+          invoiceDate: new Date().toLocaleDateString('en-IN'),
         })
 
-        // Link invoice_id back to payment (Do NOT change payment_status)
-        await paymentRepository.update(payment.id, {
-          invoice_id: invoice.id,
-        })
-
-        console.log(`[paymentService] Invoice successfully created with ID: ${invoice.id} and linked to payment ${payment.id}`)
-
-        // Generate PDF invoice and upload to Cloudflare R2 (best-effort)
-        try {
-          const studentUser = await userRepository.findById(payment.student_id)
-          const courseObj = await courseRepository.findById(payment.course_id)
-          const studentName = studentUser?.name || 'Student'
-          const courseName = courseObj?.title || 'Course'
-
-          console.log(`[paymentService] Generating PDF invoice for: ${invoiceNumber}`)
-          const pdfBuffer = generateInvoicePdf({
-            invoiceNumber,
-            studentName,
-            courseName,
-            amountPaid: totalAmount,
-            taxableValue,
-            gstAmount,
-            cgst,
-            sgst,
-            igst,
-            totalAmount,
-            invoiceDate: new Date().toLocaleDateString('en-IN'),
-          })
-
-          const r2Key = `invoices/${invoiceNumber}.pdf`
-          console.log(`[paymentService] Uploading PDF invoice to R2: ${r2Key}`)
-          const { publicUrl } = await uploadR2File(r2Key, pdfBuffer, 'application/pdf')
-
-          console.log(`[paymentService] Invoice PDF uploaded successfully. URL: ${publicUrl}`)
-
-          // Update the invoice record with the public PDF URL
-          await invoiceRepository.updateDownloadUrl(invoice.id, publicUrl)
-          console.log(`[paymentService] Invoice record ${invoice.id} updated with download URL: ${publicUrl}`)
-        } catch (pdfErr) {
-          console.error('[paymentService] Failed to generate or upload invoice PDF (continuing with success):', pdfErr)
-        }
+        const r2Key = `invoices/${invoice.invoice_number}.pdf`
+        console.log(`[paymentService] Uploading PDF invoice to R2: ${r2Key}`)
+        const { publicUrl } = await uploadR2File(r2Key, pdfBuffer, 'application/pdf')
+        console.log(`[paymentService] Invoice PDF uploaded successfully. URL: ${publicUrl}`)
 
         // Send Payment Confirmation Email via Resend
-        try {
-          const studentUser = await userRepository.findById(payment.student_id)
-          const courseObj = await courseRepository.findById(payment.course_id)
-          
-          if (studentUser && courseObj) {
-            const emailSubject = `Payment Confirmed: ${courseObj.title}`
-            const emailHtml = `
-              <h1>Payment Confirmation</h1>
-              <p>Dear ${studentUser.name || 'Student'},</p>
-              <p>Thank you for your payment. Your enrollment in the course is now active.</p>
-              <ul>
-                <li><strong>Course:</strong> ${courseObj.title}</li>
-                <li><strong>Amount Paid:</strong> INR ${payment.amount_paid}</li>
-                <li><strong>Invoice Number:</strong> ${invoice.invoice_number}</li>
-              </ul>
-              <p>Happy Learning!</p>
-              <p>Best Regards,<br/>NYTRC Team</p>
-            `
-            await sendEmail(studentUser.email, emailSubject, emailHtml)
-            console.log(`[paymentService] Payment confirmation email sent successfully to ${studentUser.email}`)
-          } else {
-            console.warn('[paymentService] Skip payment email: student user or course not found')
-          }
-        } catch (emailErr) {
-          console.error('[paymentService] Failed to send payment confirmation email:', emailErr)
-        }
-      } catch (invErr) {
-        console.error('[paymentService] Failed to generate invoice metadata:', invErr)
+        const emailSubject = `Payment Confirmed: ${courseObj.title}`
+        const emailHtml = `
+          <h1>Payment Confirmation</h1>
+          <p>Dear ${studentUser.name || 'Student'},</p>
+          <p>Thank you for your payment. Your enrollment in the course is now active.</p>
+          <ul>
+            <li><strong>Course:</strong> ${courseObj.title}</li>
+            <li><strong>Amount Paid:</strong> INR ${payment.amount_paid}</li>
+            <li><strong>Invoice Number:</strong> ${invoice.invoice_number}</li>
+          </ul>
+          <p>Happy Learning!</p>
+          <p>Best Regards,<br/>NYTRC Team</p>
+        `
+        await sendEmail(studentUser.email, emailSubject, emailHtml)
+        console.log(`[paymentService] Payment confirmation email sent successfully to ${studentUser.email}`)
+
+        // Persist the download URL to the database only after the email has been successfully sent.
+        // This ensures that if a crash happens during upload or email transmission,
+        // the next webhook retry will resume the entire downstream PDF + Email flow.
+        await invoiceRepository.updateDownloadUrl(invoice.id, publicUrl)
+        console.log(`[paymentService] Invoice record ${invoice.id} updated with download URL: ${publicUrl}`)
+        
+        // Update local object URL
+        invoice.invoice_download_url = publicUrl
+      } catch (flowErr) {
+        console.error('[paymentService] Failed to complete PDF or Email delivery flow (will retry on next webhook):', flowErr)
       }
     }
 

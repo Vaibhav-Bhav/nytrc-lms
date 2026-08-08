@@ -49,6 +49,17 @@ export const courseRepository = {
     return (data ?? []).map(toCourse)
   },
 
+  async findPublished(): Promise<Course[]> {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: true })
+
+    if (error) throw new Error(`courseRepository.findPublished: ${error.message}`)
+    return (data ?? []).map(toCourse)
+  },
+
   async findById(id: string): Promise<Course | null> {
     const { data, error } = await supabase
       .from('courses')

@@ -1,19 +1,28 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { courseService } from '@/services/courses'
 import { newCourseSchema } from '@/schemas/courses'
+import { requireAdmin, isAdminRequest } from '@/middleware/auth'
 
 export const Route = createFileRoute('/api/courses')({
   server: {
     handlers: {
-      GET: async () => {
-        const courses = await courseService.findAll()
+      GET: async ({ request }: { request: Request }) => {
+        const isAdmin = await isAdminRequest(request)
+        const courses = isAdmin
+          ? await courseService.findAll()
+          : await courseService.findPublished()
         return Response.json(courses)
       },
 
       POST: async ({ request }) => {
+        await requireAdmin(request)
+        const user = (request as any).user
         try {
           const body = await request.json()
-          const parsed = newCourseSchema.safeParse(body)
+          const parsed = newCourseSchema.safeParse({
+            ...body,
+            created_by: user.id,
+          })
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', issues: parsed.error.issues },

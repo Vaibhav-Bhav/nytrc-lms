@@ -19,7 +19,7 @@ export const Route = createFileRoute('/api/student/progress/$lessonId')({
 
           // 3. Resolve parent course to check enrollment
           const lesson = await lessonRepository.findById(lessonId)
-          if (!lesson) {
+          if (!lesson || lesson.status !== 'published') {
             return Response.json({ error: 'Lesson not found' }, { status: 404 })
           }
 

@@ -20,15 +20,30 @@ export const lessonService = {
   },
 
   async create(data: NewLesson) {
+    if (!data.title || data.title.trim().length === 0) {
+      throw new Error('TITLE_REQUIRED')
+    }
     const section = await sectionRepository.findById(data.section_id)
     if (!section) {
       throw new Error('SECTION_NOT_FOUND')
     }
-    return lessonRepository.create(data)
+    return lessonRepository.create({
+      ...data,
+      title: data.title.trim(),
+    })
   },
 
   async update(id: string, data: UpdateLesson) {
-    const updated = await lessonRepository.update(id, data)
+    const { section_id, ...updateData } = data
+
+    if (updateData.title !== undefined) {
+      if (updateData.title === null || updateData.title.trim().length === 0) {
+        throw new Error('TITLE_REQUIRED')
+      }
+      updateData.title = updateData.title.trim()
+    }
+
+    const updated = await lessonRepository.update(id, updateData)
     if (!updated) {
       throw new Error('LESSON_NOT_FOUND')
     }

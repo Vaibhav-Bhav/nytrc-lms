@@ -86,6 +86,18 @@ export async function requireAdmin(request: Request): Promise<void> {
 }
 
 /**
+ * Checks if the request comes from an authenticated admin without throwing errors.
+ */
+export async function isAdminRequest(request: Request): Promise<boolean> {
+  try {
+    const user = await authenticate(request)
+    return user.role === 'admin'
+  } catch {
+    return false
+  }
+}
+
+/**
  * Restricts access to student users only.
  */
 export async function requireStudent(request: Request): Promise<void> {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Play, Pause, Volume2, VolumeX, Maximize2, FileText, CheckCircle2,
   Lock, EyeOff, Circle, Clock, ChevronUp, ChevronDown, ChevronLeft,
@@ -10,6 +10,73 @@ import { lmsService } from "../../../services/lmsService";
 import { StudentNav } from "../../components/StudentNav";
 import { Button, cn } from "../../components/Button";
 import { Badge } from "../../components/Badge";
+
+function parseDuration(duration?: string | null): number {
+  if (!duration) return 900; // default 15 mins
+  const parts = duration.split(":");
+  if (parts.length === 2) {
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseInt(parts[1], 10) || 0;
+    return mins * 60 + secs;
+  }
+  const match = duration.match(/(\d+)/);
+  if (match) {
+    return parseInt(match[1], 10) * 60;
+  }
+  return 900;
+}
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
+
+async function saveProgressApi(
+  lessonId: string,
+  payload: { videoProgressSeconds?: number; documentProgressPage?: number; completed?: boolean },
+) {
+  try {
+    const response = await fetch("/api/student/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lessonId,
+        videoProgressSeconds: payload.videoProgressSeconds,
+        documentProgressPage: payload.documentProgressPage,
+        completed: payload.completed,
+      }),
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    if (response.status === 401) {
+      console.warn("[Progress] No active session found. Running in mock/localStorage mode.");
+      if (payload.completed) {
+        await lmsService.markLessonComplete(lessonId);
+      }
+      return null;
+    }
+    toast.error("Failed to save progress to the server.");
+    throw new Error(`Server returned status ${response.status}`);
+  } catch (e) {
+    console.error("Progress save failed:", e);
+    toast.error("Network error: Progress could not be saved to server.");
+    throw e;
+  }
+}
+
+async function loadProgressApi(lessonId: string) {
+  try {
+    const response = await fetch(`/api/student/progress/${lessonId}`);
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn("Real API load progress failed:", e);
+  }
+  return null;
+}
 
 export function CoursePlayer({
   onNavigate,
@@ -29,6 +96,12 @@ export function CoursePlayer({
   const [pdfError, setPdfError] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [currentTime, setCurrentTime] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(5);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const lastSavedTimeRef = useRef<number>(0);
 
   useEffect(() => {
     async function loadPlayerData() {
@@ -50,6 +123,70 @@ export function CoursePlayer({
     }
     loadPlayerData();
   }, [selectedCourseId]);
+
+  useEffect(() => {
+    if (!currentLessonId) return;
+    async function syncProgress() {
+      const progress = await loadProgressApi(currentLessonId);
+      if (progress) {
+        const seconds = progress.video_progress_seconds || 0;
+        setCurrentTime(seconds);
+        setCurrentPage(progress.document_progress_page || 1);
+        lastSavedTimeRef.current = seconds;
+        if (videoRef.current) {
+          videoRef.current.currentTime = seconds;
+        }
+        if (progress.completed) {
+          setCompletedIds((prev) => new Set([...prev, currentLessonId]));
+        }
+      } else {
+        setCurrentTime(0);
+        setCurrentPage(1);
+        lastSavedTimeRef.current = 0;
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0;
+        }
+      }
+      const lesson = allLessons.find((l) => l.id === currentLessonId);
+      if (lesson) {
+        setTotalPages((lesson as any).page_count || (lesson as any).pageCount || 5);
+      }
+    }
+    syncProgress();
+  }, [currentLessonId, sections]);
+
+  function handleTimeUpdate(time: number) {
+    setCurrentTime(time);
+    if (Math.abs(time - lastSavedTimeRef.current) >= 15) {
+      lastSavedTimeRef.current = time;
+      saveProgressApi(currentLessonId, { videoProgressSeconds: Math.floor(time) });
+    }
+  }
+
+  function handleVideoEnded() {
+    setPlaying(false);
+    saveProgressApi(currentLessonId, {
+      videoProgressSeconds: parseDuration(currentLesson?.duration || "15:00"),
+      completed: true,
+    }).then(() => {
+      setCompletedIds((prev) => new Set([...prev, currentLessonId]));
+      toast.success("Lesson completed!");
+    });
+  }
+
+  async function handlePdfPageChange(nextPage: number) {
+    if (nextPage < 1 || nextPage > totalPages) return;
+    setCurrentPage(nextPage);
+    const isCompleted = nextPage === totalPages;
+    await saveProgressApi(currentLesson.id, {
+      documentProgressPage: nextPage,
+      completed: isCompleted,
+    });
+    if (isCompleted) {
+      setCompletedIds((prev) => new Set([...prev, currentLesson.id]));
+      toast.success("PDF Lesson completed!");
+    }
+  }
 
   const allLessons = sections.flatMap((s) => s.lessons || []);
   const currentIdx = allLessons.findIndex((l) => l.id === currentLessonId);
@@ -200,10 +337,18 @@ export function CoursePlayer({
           {!isPdf ? (
             <div className="bg-slate-900">
               <div className="relative" style={{ paddingBottom: "56.25%" }}>
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800" />
+                <div className="absolute inset-0 bg-slate-950 flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                    className="w-full h-full object-contain"
+                    onTimeUpdate={(e) => handleTimeUpdate(e.currentTarget.currentTime)}
+                    onEnded={handleVideoEnded}
+                    muted={muted}
+                    playsInline
+                  />
                   {videoError ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 gap-4">
                       <AlertCircle className="w-10 h-10 text-white/30" />
                       <div className="text-center px-4">
                         <p className="text-white/70 font-medium text-sm">Video failed to load</p>
@@ -219,18 +364,25 @@ export function CoursePlayer({
                     </div>
                   ) : (
                     <>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                        <button
-                          onClick={() => setPlaying(!playing)}
-                          className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm flex items-center justify-center transition-colors border border-white/20"
-                        >
-                          {playing ? <Pause className="w-6 h-6 text-white" /> : <Play className="w-6 h-6 text-white ml-0.5" />}
-                        </button>
-                        <div className="text-center px-4">
-                          <p className="text-white font-medium text-xs sm:text-sm">{currentLesson?.title}</p>
-                          <p className="text-white/50 text-xs mt-0.5">{currentLesson?.duration || "Video Lesson"}</p>
+                      {!playing && (
+                        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              if (videoRef.current) {
+                                videoRef.current.play().catch(console.error);
+                                setPlaying(true);
+                              }
+                            }}
+                            className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm flex items-center justify-center transition-colors border border-white/20"
+                          >
+                            <Play className="w-6 h-6 text-white ml-0.5" />
+                          </button>
+                          <div className="text-center px-4">
+                            <p className="text-white font-medium text-xs sm:text-sm">{currentLesson?.title}</p>
+                            <p className="text-white/50 text-xs mt-0.5">{currentLesson?.duration || "Video Lesson"}</p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       <button
                         onClick={() => setVideoError(true)}
                         className="absolute top-3 right-3 text-white/20 hover:text-white/40 text-xs transition-colors"
@@ -238,21 +390,52 @@ export function CoursePlayer({
                         sim error
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 sm:px-4 pt-8 pb-2 sm:pb-3">
-                        <div className="h-1 bg-white/20 rounded-full mb-3 cursor-pointer group">
-                          <div className="w-[37%] h-full bg-primary rounded-full relative">
+                        <div
+                          className="h-1 bg-white/20 rounded-full mb-3 cursor-pointer group"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const clickX = e.clientX - rect.left;
+                            const width = rect.width;
+                            const pct = clickX / width;
+                            const durationSeconds = parseDuration(currentLesson?.duration || "15:00");
+                            const seekTime = Math.floor(pct * durationSeconds);
+                            setCurrentTime(seekTime);
+                            if (videoRef.current) {
+                              videoRef.current.currentTime = seekTime;
+                            }
+                            saveProgressApi(currentLesson.id, { videoProgressSeconds: seekTime });
+                          }}
+                        >
+                          <div
+                            className="h-full bg-primary rounded-full relative"
+                            style={{ width: `${(currentTime / parseDuration(currentLesson?.duration || "15:00")) * 100}%` }}
+                          >
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 sm:gap-3">
-                            <button onClick={() => setPlaying(!playing)} className="text-white/80 hover:text-white transition-colors">
+                            <button
+                              onClick={() => {
+                                if (videoRef.current) {
+                                  if (playing) {
+                                    videoRef.current.pause();
+                                    setPlaying(false);
+                                  } else {
+                                    videoRef.current.play().catch(console.error);
+                                    setPlaying(true);
+                                  }
+                                }
+                              }}
+                              className="text-white/80 hover:text-white transition-colors"
+                            >
                               {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                             </button>
                             <button onClick={() => setMuted(!muted)} className="text-white/80 hover:text-white transition-colors">
                               {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                             </button>
                             <span className="text-white/50 text-xs tabular-nums hidden sm:inline">
-                              11:28 / {currentLesson?.duration || "25:00"}
+                              {formatTime(currentTime)} / {currentLesson?.duration || "15:00"}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -329,11 +512,31 @@ export function CoursePlayer({
                       )}
                     </div>
                   </div>
-                  <div className="h-56 sm:h-72 flex items-center justify-center bg-muted/10">
-                    <div className="text-center">
-                      <FileText className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                  <div className="h-56 sm:h-72 flex flex-col items-center justify-center bg-muted/10 p-4">
+                    <div className="text-center mb-4">
+                      <FileText className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
                       <p className="text-muted-foreground text-sm font-medium">Document content preview</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">PDF viewer active</p>
+                      <p className="text-xs text-muted-foreground/60 mt-0.5">Page {currentPage} of {totalPages}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={currentPage <= 1}
+                        onClick={() => handlePdfPageChange(currentPage - 1)}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous Page
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={currentPage >= totalPages}
+                        onClick={() => handlePdfPageChange(currentPage + 1)}
+                      >
+                        Next Page
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -369,10 +572,10 @@ export function CoursePlayer({
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-3">
                   <h3 className="font-semibold text-foreground">{currentLesson?.title}</h3>
-                  {currentLesson && !completedIds.has(currentLessonId) && currentLesson.type === "video" && (
+                  {currentLesson && !completedIds.has(currentLessonId) && currentLesson.type === "video" && currentTime > 0 && (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400 flex-shrink-0">
                       <Clock className="w-3.5 h-3.5" />
-                      Resume from 11:28
+                      Resume from {formatTime(currentTime)}
                     </div>
                   )}
                 </div>

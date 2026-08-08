@@ -10,10 +10,7 @@ export const studentService = {
    * Retrieves all courses in which the student has an active enrollment.
    */
   async getEnrolledCourses(studentId: string) {
-    const accesses = await courseAccessRepository.findAll()
-    const activeAccesses = accesses.filter(
-      (ca) => ca.student_id === studentId && ca.access_status === 'active',
-    )
+    const activeAccesses = await courseAccessRepository.findActiveByStudentId(studentId)
 
     const enrolledCourses = []
     for (const ca of activeAccesses) {
@@ -60,10 +57,12 @@ export const studentService = {
           page_count: l.page_count,
         }))
 
-      sectionsWithLessons.push({
-        ...section,
-        lessons: publishedLessons,
-      })
+      if (publishedLessons.length > 0) {
+        sectionsWithLessons.push({
+          ...section,
+          lessons: publishedLessons,
+        })
+      }
     }
 
     return {
