@@ -1,13 +1,12 @@
 import { WifiOff, RefreshCw, Mail } from "lucide-react";
 import { Screen } from "../../../data/types";
-import { StudentNav } from "../../components/StudentNav";
+import { StudentLayout } from "../../components/StudentNav";
 import { Button } from "../../components/Button";
 
 export function ErrorContentScreen({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-dashboard" onNavigate={onNavigate} />
-      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center min-h-[calc(100vh-64px)]">
         <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-5">
           <WifiOff className="w-8 h-8 text-red-500 dark:text-red-400" />
         </div>
@@ -26,6 +25,6 @@ export function ErrorContentScreen({ onNavigate }: { onNavigate: (s: Screen) => 
           </Button>
         </div>
       </main>
-    </div>
+    </StudentLayout>
   );
 }

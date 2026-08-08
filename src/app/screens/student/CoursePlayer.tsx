@@ -146,7 +146,7 @@ export function CoursePlayer({
                       lesson.locked || isNotPublished
                         ? "opacity-50 cursor-not-allowed"
                         : isCurrent
-                        ? "bg-primary/10"
+                        ? "bg-primary-light"
                         : "hover:bg-muted/30"
                     )}
                   >
@@ -156,7 +156,7 @@ export function CoursePlayer({
                       ) : isNotPublished ? (
                         <EyeOff className="w-4 h-4 text-muted-foreground/40" />
                       ) : isDone ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-success-foreground" />
                       ) : isCurrent ? (
                         <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
                           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -210,10 +210,10 @@ export function CoursePlayer({
         {/* Main player content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           {!isPdf ? (
-            <div className="bg-[#071828]">
+            <div className="bg-slate-950">
               <div className="relative" style={{ paddingBottom: "56.25%" }}>
                 <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#071828] via-[#0C2040] to-[#1549A8]/40" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-primary/40" />
                   {videoError ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                       <AlertCircle className="w-10 h-10 text-white/30" />
@@ -318,7 +318,7 @@ export function CoursePlayer({
                       </button>
                       {currentLesson?.hasDownload || currentLesson?.downloadPermission ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold hidden sm:flex">
+                          <span className="text-xs text-success-foreground flex items-center gap-1 font-semibold hidden sm:flex">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Download allowed
                           </span>
@@ -375,7 +375,7 @@ export function CoursePlayer({
                 <div className="flex items-center gap-3 mb-3">
                   <h3 className="font-bold text-foreground text-base">{currentLesson?.title}</h3>
                   {currentLesson && !completedIds.has(currentLessonId) && currentLesson.type === "video" && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-400 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-warning-light border border-warning/20 rounded-lg text-xs font-semibold text-warning-foreground flex-shrink-0">
                       <Clock className="w-3.5 h-3.5" />
                       Resume from 11:28
                     </div>
@@ -429,14 +429,14 @@ export function CoursePlayer({
             {isPdf && !completedIds.has(currentLessonId) && (
               <button
                 onClick={markComplete}
-                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-success-foreground hover:underline transition-colors cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Mark as complete</span>
               </button>
             )}
             {isPdf && completedIds.has(currentLessonId) && (
-              <span className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+              <span className="flex items-center gap-1.5 text-xs sm:text-sm text-success-foreground font-semibold">
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Completed</span>
               </span>

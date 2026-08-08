@@ -26,14 +26,14 @@ export function Button({
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none";
   const variants = {
     primary:
-      "bg-primary text-primary-foreground hover:bg-[#0E3A8A] dark:hover:opacity-90 focus-visible:ring-primary shadow-sm hover:shadow-md",
+      "bg-primary text-primary-foreground hover:bg-primary-hover focus-visible:ring-primary shadow-xs",
     secondary:
-      "bg-card text-foreground border border-border hover:bg-muted focus-visible:ring-primary shadow-sm",
+      "bg-card text-foreground border border-border hover:bg-muted focus-visible:ring-primary shadow-xs",
     ghost: "text-foreground hover:bg-muted focus-visible:ring-primary",
     destructive:
-      "bg-destructive text-destructive-foreground hover:bg-red-700 dark:hover:bg-red-500 focus-visible:ring-destructive shadow-sm",
+      "bg-destructive text-destructive-foreground hover:bg-destructive-hover focus-visible:ring-destructive shadow-xs",
     outline:
-      "border border-border bg-transparent text-foreground hover:bg-muted focus-visible:ring-primary shadow-sm",
+      "border border-border bg-transparent text-foreground hover:bg-muted focus-visible:ring-primary shadow-xs",
   };
   const sizes = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm", lg: "px-5 py-2.5 text-base" };
   return (

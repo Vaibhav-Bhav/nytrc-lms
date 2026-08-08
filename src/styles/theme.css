@@ -2,82 +2,149 @@
 
 :root {
   --font-size: 16px;
+
+  /* Neutrals */
   --background: #F8FAFC;
-  --foreground: #1E293B;
-  --card: #ffffff;
-  --card-foreground: #1E293B;
-  --popover: #ffffff;
-  --popover-foreground: #1E293B;
-  --primary: #3730A3;
-  --primary-foreground: #ffffff;
-  --secondary: #EEF2FF;
-  --secondary-foreground: #3730A3;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+
+  /* Primary Brand - EdTech Deep Indigo / Blue */
+  --primary: #1E40AF;
+  --primary-hover: #1E3A8A;
+  --primary-light: #EFF6FF;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary & Muted */
+  --secondary: #F1F5F9;
+  --secondary-foreground: #1E293B;
   --muted: #F1F5F9;
   --muted-foreground: #64748B;
-  --accent: #EEF2FF;
-  --accent-foreground: #3730A3;
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
+
+  /* Destructive & Error */
   --destructive: #DC2626;
-  --destructive-foreground: #ffffff;
+  --destructive-hover: #B91C1C;
+  --destructive-foreground: #FFFFFF;
+
+  /* Semantic Colors */
+  --success: #16A34A;
+  --success-light: #F0FDF4;
+  --success-foreground: #15803D;
+
+  --warning: #D97706;
+  --warning-light: #FFFBEB;
+  --warning-foreground: #B45309;
+
+  --error: #DC2626;
+  --error-light: #FEF2F2;
+  --error-foreground: #B91C1C;
+
+  --info: #2563EB;
+  --info-light: #EFF6FF;
+  --info-foreground: #1D4ED8;
+
+  /* Borders & Inputs */
   --border: #E2E8F0;
-  --input: transparent;
-  --input-background: #F8FAFC;
+  --input: #E2E8F0;
+  --input-background: #FFFFFF;
   --switch-background: #CBD5E1;
+  --ring: #2563EB;
+
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #3730A3;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Charts */
+  --chart-1: #1E40AF;
+  --chart-2: #16A34A;
+  --chart-3: #D97706;
+  --chart-4: #2563EB;
+  --chart-5: #6366F1;
+
+  --radius: 0.75rem;
+
+  /* Sidebar Tokens (Unified Dark Slate Appearance) */
+  --sidebar: #0F172A;
+  --sidebar-foreground: #94A3B8;
+  --sidebar-primary: #1E40AF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563EB;
 }
 
 .dark {
-  --background: #0F1117;
-  --foreground: #E8EDF5;
-  --card: #171B24;
-  --card-foreground: #E8EDF5;
-  --popover: #171B24;
-  --popover-foreground: #E8EDF5;
-  --primary: #818CF8;
-  --primary-foreground: #1E1B4B;
-  --secondary: #1E2432;
-  --secondary-foreground: #C7D2FE;
-  --muted: #1E2432;
-  --muted-foreground: #8B96A8;
-  --accent: #1E2432;
-  --accent-foreground: #A5B4FC;
-  --destructive: #F87171;
-  --destructive-foreground: #450A0A;
-  --border: rgba(255, 255, 255, 0.07);
-  --input: #1E2432;
-  --input-background: #1E2432;
-  --switch-background: #374151;
-  --ring: #818CF8;
-  --font-weight-medium: 600;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Dark Neutrals */
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #131926;
+  --card-foreground: #F8FAFC;
+  --popover: #131926;
+  --popover-foreground: #F8FAFC;
+
+  /* Dark Primary Brand */
+  --primary: #3B82F6;
+  --primary-hover: #2563EB;
+  --primary-light: rgba(59, 130, 246, 0.15);
+  --primary-foreground: #FFFFFF;
+
+  /* Dark Secondary & Muted */
+  --secondary: #1E293B;
+  --secondary-foreground: #93C5FD;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+
+  /* Dark Destructive */
+  --destructive: #EF4444;
+  --destructive-hover: #DC2626;
+  --destructive-foreground: #FFFFFF;
+
+  /* Dark Semantics */
+  --success: #22C55E;
+  --success-light: rgba(34, 197, 94, 0.15);
+  --success-foreground: #4ADE80;
+
+  --warning: #F59E0B;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --warning-foreground: #FBBF24;
+
+  --error: #EF4444;
+  --error-light: rgba(239, 68, 68, 0.15);
+  --error-foreground: #F87171;
+
+  --info: #60A5FA;
+  --info-light: rgba(96, 165, 250, 0.15);
+  --info-foreground: #93C5FD;
+
+  /* Dark Borders & Inputs */
+  --border: #1E293B;
+  --input: #1E293B;
+  --input-background: #131926;
+  --switch-background: #334155;
+  --ring: #3B82F6;
+
+  /* Dark Charts */
+  --chart-1: #3B82F6;
+  --chart-2: #22C55E;
+  --chart-3: #F59E0B;
+  --chart-4: #60A5FA;
+  --chart-5: #818CF8;
+
+  /* Dark Sidebar Tokens */
+  --sidebar: #090D16;
+  --sidebar-foreground: #94A3B8;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #3B82F6;
 }
 
 @theme inline {
@@ -88,6 +155,8 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -96,21 +165,39 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+  --color-info-foreground: var(--info-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -123,17 +210,14 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: var(--ring);
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
-
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
 
   html {
     font-size: var(--font-size);
@@ -181,3 +265,4 @@
     line-height: 1.5;
   }
 }
+

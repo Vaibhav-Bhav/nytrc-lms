@@ -54,11 +54,11 @@ export function UploadPipeline({
                 className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold transition-all",
                   isCompleted
-                    ? "bg-emerald-500 dark:bg-emerald-400 text-white"
+                    ? "bg-success text-white"
                     : isFailed
-                    ? "bg-destructive text-white"
+                    ? "bg-error text-white"
                     : isCurrent && !isFailed
-                    ? "border-2 border-primary bg-primary/10"
+                    ? "border-2 border-primary bg-primary-light"
                     : "border-2 border-border bg-card text-muted-foreground"
                 )}
               >
@@ -94,9 +94,9 @@ export function UploadPipeline({
                 )}
                 {isFailed && (
                   <div className="mt-1 flex items-center gap-3">
-                    <p className="text-xs text-destructive">Upload failed — please try again.</p>
+                    <p className="text-xs text-error-foreground">Upload failed — please try again.</p>
                     {onRetry && (
-                      <button onClick={onRetry} className="text-xs text-primary hover:underline flex items-center gap-1">
+                      <button onClick={onRetry} className="text-xs text-primary hover:underline flex items-center gap-1 font-semibold">
                         <RefreshCw className="w-3 h-3" />
                         Retry
                       </button>
@@ -116,7 +116,7 @@ export function UploadPipeline({
         </Button>
       )}
       {stage === "published" && (
-        <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium px-1">
+        <div className="flex items-center gap-2 text-sm text-success-foreground font-semibold px-1">
           <CheckCircle2 className="w-4 h-4" />
           Lesson published successfully
         </div>

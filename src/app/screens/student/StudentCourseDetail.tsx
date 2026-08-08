@@ -112,7 +112,7 @@ export function StudentCourseDetail({
               </Button>
               {lastViewedLesson && pct > 0 && (
                 <div className="flex items-center gap-2 px-3.5 py-2 bg-muted/40 rounded-xl border border-border text-sm text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0 text-warning-foreground" />
                   <span className="truncate">
                     Resume: <strong className="text-foreground font-semibold">{lastViewedLesson.title}</strong>
                   </span>
@@ -156,12 +156,12 @@ export function StudentCourseDetail({
                 <div key={section.id} className="border-t border-border first:border-0">
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className="w-full flex items-center gap-3 px-5 py-4 hover:bg-muted/20 transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-5 py-4 hover:bg-muted/20 transition-colors text-left cursor-pointer"
                   >
                     <div
                       className={cn(
                         "w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
-                        allDone ? "border-emerald-500 bg-emerald-500 text-white" : "border-border text-muted-foreground"
+                        allDone ? "border-success bg-success text-white" : "border-border text-muted-foreground"
                       )}
                     >
                       {allDone ? <Check className="w-3.5 h-3.5" /> : si + 1}
@@ -193,7 +193,7 @@ export function StudentCourseDetail({
                               lesson.locked || lesson.notPublished
                                 ? "opacity-40 cursor-not-allowed"
                                 : isCurrent
-                                ? "bg-primary/5 hover:bg-primary/10"
+                                ? "bg-primary-light hover:bg-primary-light/80"
                                 : "hover:bg-muted/30"
                             )}
                           >
@@ -203,7 +203,7 @@ export function StudentCourseDetail({
                               ) : lesson.notPublished ? (
                                 <EyeOff className="w-4 h-4 text-muted-foreground" />
                               ) : lesson.completed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                                <CheckCircle2 className="w-4 h-4 text-success-foreground" />
                               ) : isCurrent ? (
                                 <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
                                   <div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -226,7 +226,7 @@ export function StudentCourseDetail({
                               )}
                             </div>
                             {isCurrent && (
-                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-bold flex-shrink-0">
+                              <span className="text-xs bg-primary-light text-primary px-2 py-0.5 rounded font-bold flex-shrink-0">
                                 Current
                               </span>
                             )}

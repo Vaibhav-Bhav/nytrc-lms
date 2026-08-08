@@ -160,7 +160,7 @@ export function DeviceSessionScreen({ onNavigate }: { onNavigate: (s: Screen) =>
                   <span
                     className={cn(
                       "text-[10px] px-1.5 py-0.5 rounded font-medium uppercase",
-                      session.status === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                      session.status === "active" ? "bg-success-light text-success-foreground border border-success/20" : "bg-muted text-muted-foreground"
                     )}
                   >
                     {session.status}

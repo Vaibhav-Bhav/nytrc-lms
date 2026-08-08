@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { User, Monitor, Smartphone, Tablet, RefreshCw, LogOut, ShieldCheck, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { Screen, DeviceSession } from "../../../data/types";
+import { Screen, DeviceSession, PaymentInvoice } from "../../../data/types";
 import { PAYMENT_HISTORY } from "../../../data/mockData";
 import { sessionService } from "../../../services/sessionService";
 import { StudentLayout } from "../../components/StudentNav";
@@ -9,6 +9,7 @@ import { FormInput } from "../../components/FormInput";
 import { Button, cn } from "../../components/Button";
 import { InvoiceCard } from "../../components/InvoiceCard";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { GSTInvoiceModal } from "../../components/GSTInvoiceModal";
 
 export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -25,6 +26,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
   const [confirmLogoutModal, setConfirmLogoutModal] = useState(false);
   const [confirmLogoutAllModal, setConfirmLogoutAllModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
 
   useEffect(() => {
     fetchSessionInfo();
@@ -139,7 +141,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
                   <p className="text-sm text-muted-foreground truncate">sarah.chen@example.com</p>
                 </div>
               </div>
-              <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40 font-semibold rounded-full flex items-center gap-1.5">
+              <span className="text-xs px-3 py-1 bg-success-light text-success-foreground border border-success/20 font-semibold rounded-full flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4" />
                 Student Account
               </span>
@@ -160,7 +162,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-xl border border-primary/20">
+                <span className="text-xs font-bold px-3 py-1 bg-primary-light text-primary rounded-xl border border-primary/20">
                   Active Devices : {activeCount} / {maxDevices}
                 </span>
                 <button
@@ -185,7 +187,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
                       className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
                     >
                       <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
                           {renderDeviceIcon(device.type)}
                         </div>
 
@@ -195,7 +197,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
                               {index + 1}. {device.device_name}
                             </span>
                             {device.is_current_device && (
-                              <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold border border-primary/20">
+                              <span className="text-[11px] bg-primary-light text-primary px-2 py-0.5 rounded-md font-bold border border-primary/20">
                                 Current Device
                               </span>
                             )}
@@ -203,7 +205,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
                               className={cn(
                                 "text-[10px] px-1.5 py-0.5 rounded font-bold uppercase",
                                 device.status === "active"
-                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                  ? "bg-success-light text-success-foreground border border-success/20"
                                   : "bg-muted text-muted-foreground"
                               )}
                             >
@@ -298,11 +300,23 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
               <h2 className="font-bold text-foreground text-base">Billing & Invoices</h2>
             </div>
             {PAYMENT_HISTORY.map((inv) => (
-              <InvoiceCard key={inv.id} inv={inv} onDownload={() => toast.success("Invoice downloaded")} />
+              <InvoiceCard
+                key={inv.id}
+                inv={inv}
+                onViewInvoice={(selected) => setSelectedInvoice(selected)}
+                onDownload={() => setSelectedInvoice(inv)}
+              />
             ))}
           </div>
         </div>
       </main>
+
+      {/* GST Invoice Detailed Modal */}
+      <GSTInvoiceModal
+        isOpen={!!selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        invoice={selectedInvoice}
+      />
 
       {/* Confirmation Modal: Logout Individual Device */}
       <ConfirmDialog

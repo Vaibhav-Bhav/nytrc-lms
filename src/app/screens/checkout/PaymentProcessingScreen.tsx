@@ -10,7 +10,7 @@ export function PaymentProcessingScreen() {
         <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mb-8">
           You've been redirected to Razorpay to complete your purchase. Please do not close this window.
         </p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
           <Lock className="w-3.5 h-3.5" />
           Secured by Razorpay
         </div>

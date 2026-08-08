@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { Download, Search, ArrowLeft } from "lucide-react";
+import { Download, Search, ArrowLeft, Eye } from "lucide-react";
 import { toast } from "sonner";
-import { Screen } from "../../../data/types";
+import { Screen, PaymentInvoice } from "../../../data/types";
 import { PAYMENT_HISTORY } from "../../../data/mockData";
 import { AdminLayout } from "../../components/AdminLayout";
 import { SearchInput } from "../../components/SearchInput";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
+import { GSTInvoiceModal } from "../../components/GSTInvoiceModal";
 
 export function AdminPaymentHistory({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const [search, setSearch] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
 
   const payments = PAYMENT_HISTORY.filter(
     (p) =>
@@ -32,10 +34,15 @@ export function AdminPaymentHistory({ onNavigate }: { onNavigate: (s: Screen) =>
               </button>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground">Payment History</h1>
-                <p className="text-muted-foreground text-sm mt-0.5">All student payment transactions and invoices</p>
+                <p className="text-muted-foreground text-sm mt-0.5">All student payment transactions and GST invoices</p>
               </div>
             </div>
-            <Button variant="secondary" size="sm" className="self-start flex-shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => toast.success("Exporting all transaction records (CSV)...")}
+              className="self-start flex-shrink-0"
+            >
               <Download className="w-4 h-4" />
               Export Transactions
             </Button>
@@ -99,9 +106,9 @@ export function AdminPaymentHistory({ onNavigate }: { onNavigate: (s: Screen) =>
                           <Badge variant={p.status} />
                         </td>
                         <td className="px-5 py-3.5 text-right">
-                          <Button variant="ghost" size="sm" onClick={() => toast.success(`Downloaded ${p.invoice || p.invoiceNumber}`)}>
-                            <Download className="w-3.5 h-3.5" />
-                            PDF
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedInvoice(p)}>
+                            <Eye className="w-3.5 h-3.5" />
+                            View Invoice
                           </Button>
                         </td>
                       </tr>
@@ -113,6 +120,12 @@ export function AdminPaymentHistory({ onNavigate }: { onNavigate: (s: Screen) =>
           </div>
         </div>
       </main>
+
+      <GSTInvoiceModal
+        isOpen={!!selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        invoice={selectedInvoice}
+      />
     </AdminLayout>
   );
 }

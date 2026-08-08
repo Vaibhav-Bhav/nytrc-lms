@@ -1,12 +1,11 @@
 import { Screen } from "../../../data/types";
-import { StudentNav } from "../../components/StudentNav";
+import { StudentLayout } from "../../components/StudentNav";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Skel, LoadingSpinner } from "../../components/LoadingSkeleton";
 
 export function SkeletonDashboard({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-dashboard" onNavigate={onNavigate} />
+    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
       <main className="flex-1 p-4 sm:p-6 max-w-3xl mx-auto w-full">
         <div className="mb-8">
           <Skel className="h-7 w-52 mb-2" />
@@ -41,15 +40,14 @@ export function SkeletonDashboard({ onNavigate }: { onNavigate: (s: Screen) => v
         </div>
         <Skel className="h-16 rounded-xl" />
       </main>
-    </div>
+    </StudentLayout>
   );
 }
 
 export function SkeletonPlayer({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <StudentNav current="course-player" onNavigate={onNavigate} />
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+    <StudentLayout current="course-player" onNavigate={onNavigate}>
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-[calc(100vh-64px)]">
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           <div className="bg-slate-900 relative" style={{ paddingBottom: "56.25%" }}>
             <div className="absolute inset-0 flex items-center justify-center">
@@ -81,7 +79,7 @@ export function SkeletonPlayer({ onNavigate }: { onNavigate: (s: Screen) => void
           </div>
         </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }
 

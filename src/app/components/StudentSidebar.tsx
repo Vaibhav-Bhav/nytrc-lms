@@ -136,17 +136,17 @@ export function StudentSidebar({
                   onClick={() => nav(id)}
                   title={collapsed ? label : undefined}
                   className={cn(
-                    "group relative w-full flex items-center gap-3.5 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                    "group relative w-full flex items-center gap-3.5 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     collapsed ? "justify-center p-3" : "px-3.5 py-3",
                     active
-                      ? "bg-[#1549A8] text-white shadow-md shadow-blue-950/40 relative overflow-hidden before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[4px] before:bg-cyan-400 before:rounded-r-full"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-blue-950/40 relative overflow-hidden before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[4px] before:bg-white before:rounded-r-full"
                       : "bg-transparent text-slate-400 hover:text-slate-100 hover:bg-white/[0.06]"
                   )}
                 >
                   <Icon
                     className={cn(
                       "w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-105",
-                      active ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                      active ? "text-primary-foreground" : "text-slate-400 group-hover:text-slate-200"
                     )}
                   />
                   {!collapsed && <span className="truncate">{label}</span>}
@@ -173,17 +173,17 @@ export function StudentSidebar({
                   onClick={() => (action ? action() : nav(id as Screen))}
                   title={collapsed ? label : undefined}
                   className={cn(
-                    "group relative w-full flex items-center gap-3.5 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                    "group relative w-full flex items-center gap-3.5 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     collapsed ? "justify-center p-3" : "px-3.5 py-3",
                     active
-                      ? "bg-[#1549A8] text-white shadow-md shadow-blue-950/40 relative overflow-hidden before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[4px] before:bg-cyan-400 before:rounded-r-full"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-blue-950/40 relative overflow-hidden before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[4px] before:bg-white before:rounded-r-full"
                       : "bg-transparent text-slate-400 hover:text-slate-100 hover:bg-white/[0.06]"
                   )}
                 >
                   <Icon
                     className={cn(
                       "w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-105",
-                      active ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                      active ? "text-primary-foreground" : "text-slate-400 group-hover:text-slate-200"
                     )}
                   />
                   {!collapsed && <span className="truncate">{label}</span>}
@@ -201,12 +201,12 @@ export function StudentSidebar({
           <button
             onClick={() => setShowProfileMenu((v) => !v)}
             className={cn(
-              "w-full flex items-center gap-3 rounded-[12px] p-2.5 text-left transition-all duration-200 hover:bg-white/[0.06] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+              "w-full flex items-center gap-3 rounded-[12px] p-2.5 text-left transition-all duration-200 hover:bg-white/[0.06] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               collapsed && "justify-center"
             )}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
-              <span className="text-xs font-extrabold text-white">SC</span>
+            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 shadow-md font-bold text-xs">
+              SC
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
@@ -234,7 +234,7 @@ export function StudentSidebar({
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-slate-200 hover:bg-white/[0.08] hover:text-white rounded-xl text-left cursor-pointer transition-colors"
               >
-                <User className="w-4 h-4 text-cyan-400" />
+                <User className="w-4 h-4 text-blue-400" />
                 View Profile & Invoices
               </button>
               <button
@@ -242,7 +242,7 @@ export function StudentSidebar({
                   setShowProfileMenu(false);
                   nav("login");
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-rose-400 hover:bg-rose-500/10 rounded-xl text-left cursor-pointer transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-error-foreground hover:bg-error/10 rounded-xl text-left cursor-pointer transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

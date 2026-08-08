@@ -1,13 +1,12 @@
 import { BookOpen, Mail } from "lucide-react";
 import { Screen } from "../../../data/types";
-import { StudentNav } from "../../components/StudentNav";
+import { StudentLayout } from "../../components/StudentNav";
 import { EmptyState } from "../../components/EmptyState";
 
 export function EmptyStudentDashboard({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex-1 flex flex-col">
-      <StudentNav current="student-dashboard" onNavigate={onNavigate} />
-      <main className="flex-1 flex items-center justify-center">
+    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+      <main className="flex-1 flex items-center justify-center min-h-[calc(100vh-64px)]">
         <EmptyState
           icon={BookOpen}
           title="No course yet"
@@ -15,6 +14,6 @@ export function EmptyStudentDashboard({ onNavigate }: { onNavigate: (s: Screen) 
           action={{ label: "Contact support", onClick: () => {}, icon: Mail }}
         />
       </main>
-    </div>
+    </StudentLayout>
   );
 }

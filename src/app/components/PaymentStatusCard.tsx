@@ -16,10 +16,10 @@ export function PaymentStatusCard({
 }) {
   type Cfg = { icon: React.ElementType; iconCls: string; bg: string; label: string; labelCls: string };
   const cfgs: Record<PaymentState, Cfg> = {
-    processing: { icon: Loader2,       iconCls: "text-primary animate-spin",              bg: "bg-primary/10",                              label: "Processing payment...", labelCls: "text-primary" },
-    paid:       { icon: CheckCircle2,  iconCls: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20",        label: "Payment confirmed",     labelCls: "text-emerald-700 dark:text-emerald-400" },
-    failed:     { icon: AlertCircle,   iconCls: "text-destructive",                       bg: "bg-red-50 dark:bg-red-900/20",                label: "Payment failed",        labelCls: "text-destructive" },
-    pending:    { icon: Clock,         iconCls: "text-amber-600 dark:text-amber-400",     bg: "bg-amber-50 dark:bg-amber-900/20",            label: "Payment pending",       labelCls: "text-amber-700 dark:text-amber-400" },
+    processing: { icon: Loader2,       iconCls: "text-primary animate-spin",              bg: "bg-primary-light",                           label: "Processing payment...", labelCls: "text-primary" },
+    paid:       { icon: CheckCircle2,  iconCls: "text-success-foreground", bg: "bg-success-light",     label: "Payment confirmed",     labelCls: "text-success-foreground" },
+    failed:     { icon: AlertCircle,   iconCls: "text-error-foreground",                    bg: "bg-error-light",             label: "Payment failed",        labelCls: "text-error-foreground" },
+    pending:    { icon: Clock,         iconCls: "text-warning-foreground",                  bg: "bg-warning-light",         label: "Payment pending",       labelCls: "text-warning-foreground" },
     cancelled:  { icon: X,             iconCls: "text-muted-foreground",                  bg: "bg-muted",                                    label: "Payment cancelled",     labelCls: "text-muted-foreground" },
     refunded:   { icon: RefreshCw,     iconCls: "text-muted-foreground",                  bg: "bg-muted",                                    label: "Refunded",              labelCls: "text-muted-foreground" },
   };

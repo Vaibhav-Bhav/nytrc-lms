@@ -70,9 +70,9 @@ export function FileUploadProgress({
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {done ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-success-foreground" />
           ) : error ? (
-            <AlertCircle className="w-4 h-4 text-destructive" />
+            <AlertCircle className="w-4 h-4 text-error-foreground" />
           ) : (
             <span className="text-xs text-muted-foreground tabular-nums">{Math.round(progress)}%</span>
           )}
@@ -87,14 +87,14 @@ export function FileUploadProgress({
         <div
           className={cn(
             "h-full rounded-full transition-all duration-200",
-            error ? "bg-destructive" : done ? "bg-emerald-500 dark:bg-emerald-400" : "bg-primary"
+            error ? "bg-error" : done ? "bg-success" : "bg-primary"
           )}
           style={{ width: `${Math.min(100, progress)}%` }}
         />
       </div>
-      {error && <p className="text-xs text-destructive">Upload failed. Please try again.</p>}
+      {error && <p className="text-xs text-error-foreground">Upload failed. Please try again.</p>}
       {done && (
-        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+        <p className="text-xs text-success-foreground flex items-center gap-1.5 font-medium">
           <CheckCircle2 className="w-3.5 h-3.5" />
           Upload complete
         </p>

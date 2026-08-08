@@ -10,12 +10,14 @@ import {
   Receipt,
   Download,
   Clock,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Screen, Course } from "../../../data/types";
+import { Screen, Course, BadgeVariant } from "../../../data/types";
 import { lmsService } from "../../../services/lmsService";
 import { StudentLayout } from "../../components/StudentNav";
 import { Button, cn } from "../../components/Button";
+import { ProgressBar } from "../../components/ProgressBar";
 import { Badge } from "../../components/Badge";
 import { SupportCard } from "../../components/SupportCard";
 
@@ -115,45 +117,45 @@ export function StudentDashboard({
         ) : (
           <div className="flex flex-col gap-6">
             {/* Hero Card */}
-            <div className="relative overflow-hidden rounded-2xl shadow-xl bg-[#071828]">
+            <div className="relative overflow-hidden rounded-2xl shadow-xl bg-slate-900">
               <img
                 src={COURSE_IMG_WIDE}
                 alt={primaryCourse?.title || "Course"}
                 className="absolute inset-0 w-full h-full object-cover opacity-[0.18] select-none pointer-events-none"
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-[#071828]/95 via-[#0C2040]/90 to-[#1549A8]/80 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-primary/80 pointer-events-none" />
               <div className="relative p-6 sm:p-8 flex gap-6 items-start">
                 <div className="flex-1 min-w-0">
                   <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.12em] mb-2">Welcome back</p>
                   <h1 className="text-[22px] font-extrabold text-white leading-none mb-1 tracking-tight">
                     Sarah Chen <span className="font-normal">👋</span>
                   </h1>
-                  <p className="text-white/55 text-sm mb-6">Continue your learning journey.</p>
+                  <p className="text-white/60 text-sm mb-6">Continue your learning journey.</p>
 
                   <div className="mb-6 space-y-1">
-                    <p className="text-white/35 text-[10px] font-bold uppercase tracking-widest">Current course</p>
+                    <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Current course</p>
                     <p className="text-white font-bold text-[15px] leading-snug">{primaryCourse?.title}</p>
-                    <p className="text-white/50 text-xs">{primaryCourse?.instructor}</p>
+                    <p className="text-white/60 text-xs">{primaryCourse?.instructor}</p>
                   </div>
 
-                  <div className="flex items-center gap-2 mb-6 px-3 py-2.5 bg-white/[0.07] rounded-xl border border-white/10 w-fit max-w-full">
-                    <Clock className="w-3.5 h-3.5 text-white/50 flex-shrink-0" />
+                  <div className="flex items-center gap-2 mb-6 px-3 py-2.5 bg-white/[0.08] rounded-xl border border-white/10 w-fit max-w-full">
+                    <Clock className="w-3.5 h-3.5 text-white/60 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-white/80 text-xs font-semibold truncate">Prototypes &amp; Classes</p>
-                      <p className="text-white/40 text-[10px]">Paused at 11:28 · Advanced Topics</p>
+                      <p className="text-white/90 text-xs font-semibold truncate">Prototypes &amp; Classes</p>
+                      <p className="text-white/50 text-[10px]">Paused at 11:28 · Advanced Topics</p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2.5">
                     <button
                       onClick={() => handleOpenCourse(primaryCourse.id, "course-player")}
-                      className="inline-flex items-center gap-2 bg-white text-[#0C2040] font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:bg-white/92 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:bg-primary-hover active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5" /> Continue Learning
                     </button>
                     <button
                       onClick={() => handleOpenCourse(primaryCourse.id, "student-course-detail")}
-                      className="inline-flex items-center gap-2 bg-white/10 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border border-white/15 hover:bg-white/18 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                      className="inline-flex items-center gap-2 bg-white/10 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border border-white/15 hover:bg-white/20 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     >
                       <BookOpen className="w-3.5 h-3.5" /> View Course
                     </button>
@@ -167,7 +169,7 @@ export function StudentDashboard({
                       <span className="text-white font-extrabold text-[17px] leading-none">{pct}%</span>
                     </div>
                   </div>
-                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Progress</p>
+                  <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest">Progress</p>
                 </div>
               </div>
             </div>
@@ -180,24 +182,24 @@ export function StudentDashboard({
                   value: completedLessons,
                   sub: "Lessons done",
                   Icon: CheckCircle2,
-                  ic: "text-emerald-600 dark:text-emerald-400",
-                  bg: "bg-emerald-50 dark:bg-emerald-900/20",
+                  ic: "text-success-foreground",
+                  bg: "bg-success-light",
                 },
                 {
                   label: "Remaining",
                   value: remaining,
                   sub: "Lessons left",
                   Icon: Circle,
-                  ic: "text-amber-600 dark:text-amber-400",
-                  bg: "bg-amber-50 dark:bg-amber-900/20",
+                  ic: "text-warning-foreground",
+                  bg: "bg-warning-light",
                 },
                 {
                   label: "Progress",
                   value: `${pct}%`,
                   sub: "Overall",
                   Icon: TrendingUp,
-                  ic: "text-primary",
-                  bg: "bg-primary/10",
+                  ic: "text-info-foreground",
+                  bg: "bg-info-light",
                 },
               ].map(({ label, value, sub, Icon, ic, bg }) => (
                 <div key={label} className={cn(wCard, "p-4 sm:p-5")}>
@@ -206,7 +208,7 @@ export function StudentDashboard({
                   </div>
                   <p className="text-[22px] font-extrabold text-foreground leading-none tabular-nums">{value}</p>
                   <p className="text-xs text-muted-foreground mt-1">{sub}</p>
-                  <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider mt-0.5">{label}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
@@ -216,17 +218,17 @@ export function StudentDashboard({
               <p className={cn(wHead, "mb-4")}>Resume Learning</p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-primary-light flex items-center justify-center flex-shrink-0">
                     <Play className="w-5 h-5 text-primary" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[13px] font-bold text-foreground leading-tight">Prototypes &amp; Classes</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Advanced Topics · Lesson 9</p>
                     <div className="flex items-center gap-3 mt-1.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-lg">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-warning-foreground font-semibold bg-warning-light px-2 py-0.5 rounded-lg border border-warning/20">
                         <Clock className="w-3 h-3" /> Paused at 11:28
                       </span>
-                      <span className="text-[11px] text-muted-foreground/60">~18 min lesson</span>
+                      <span className="text-[11px] text-muted-foreground">~18 min lesson</span>
                     </div>
                   </div>
                 </div>
@@ -239,8 +241,8 @@ export function StudentDashboard({
             {/* Access & Payment Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className={cn(wCard, "p-4 flex items-center gap-3")}>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="w-9 h-9 rounded-xl bg-success-light flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-4 h-4 text-success-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground font-medium">Course Access</p>
@@ -250,8 +252,8 @@ export function StudentDashboard({
                 <Badge variant="access-granted" />
               </div>
               <div className={cn(wCard, "p-4 flex items-center gap-3")}>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center flex-shrink-0">
-                  <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="w-9 h-9 rounded-xl bg-success-light flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-4 h-4 text-success-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground font-medium">Payment</p>

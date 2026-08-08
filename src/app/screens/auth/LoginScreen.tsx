@@ -1,17 +1,24 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Laptop, Smartphone, Tablet, ShieldAlert, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Laptop, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Screen } from "../../../data/types";
+import { Screen, AuthStatus } from "../../../data/types";
 import { sessionService } from "../../../services/sessionService";
 import { AuthLayout } from "../../components/AuthLayout";
-import { ErrorBanner } from "../../components/ErrorBanner";
+import { ErrorBanner, AuthStatusBanner } from "../../components/ErrorBanner";
 import { FormInput } from "../../components/FormInput";
-import { Button } from "../../components/Button";
+import { Button, cn } from "../../components/Button";
 
-export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void }) {
+export function LoginScreen({
+  onNavigate,
+  initialAuthStatus = "idle",
+}: {
+  onNavigate: (s: Screen) => void;
+  initialAuthStatus?: AuthStatus;
+}) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoError, setDemoError] = useState(false);
+  const [authStatus, setAuthStatus] = useState<AuthStatus>(initialAuthStatus);
   const [email, setEmail] = useState("sarah.chen@example.com");
   const [password, setPassword] = useState("secure-password");
 
@@ -25,13 +32,15 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
       return;
     }
     setLoading(true);
+    setAuthStatus("loading");
 
     try {
       if (email.toLowerCase().includes("admin")) {
         // Admin login bypasses student device limit check
         setTimeout(() => {
           setLoading(false);
-          onNavigate("admin-dashboard");
+          setAuthStatus("success");
+          setTimeout(() => onNavigate("admin-dashboard"), 400);
         }, 600);
         return;
       }
@@ -59,13 +68,16 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
 
       if (!res.success && res.max_limit_reached) {
         toast.error("Login blocked: Maximum active device limit reached (2/2)");
+        setAuthStatus("idle");
         onNavigate("auth-device-limit-exceeded");
       } else {
         toast.success("Signed in successfully");
-        onNavigate("student-dashboard");
+        setAuthStatus("success");
+        setTimeout(() => onNavigate("student-dashboard"), 400);
       }
     } catch (err) {
       toast.error("Login failed. Please check credentials.");
+      setAuthStatus("idle");
     } finally {
       setLoading(false);
     }
@@ -116,7 +128,10 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
     <AuthLayout>
       <h1 className="text-2xl font-semibold text-foreground mb-1">Welcome back</h1>
       <p className="text-muted-foreground text-sm mb-6">Sign in to continue to your course.</p>
-      
+
+      {/* Auth status banner */}
+      <AuthStatusBanner status={authStatus} onDismiss={() => setAuthStatus("idle")} />
+
       {demoError && (
         <ErrorBanner
           message="Invalid email or password. 4 attempts remaining before your account is locked."
@@ -135,7 +150,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        
+
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-foreground">Password</label>
           <div className="relative">
@@ -167,7 +182,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
           <button
             type="button"
             onClick={() => onNavigate("forgot-password")}
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary hover:underline font-medium"
           >
             Forgot password?
           </button>
@@ -198,7 +213,7 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
           <button
             type="button"
             onClick={handleTrigger3rdDeviceBlock}
-            className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-medium p-2 rounded-lg hover:bg-amber-500/20 text-left transition-colors flex items-center gap-1.5"
+            className="text-xs bg-warning-light text-warning-foreground border border-warning/20 font-medium p-2 rounded-lg hover:bg-warning-light/80 text-left transition-colors flex items-center gap-1.5"
           >
             <ShieldAlert className="w-4 h-4 flex-shrink-0" />
             Test 3rd Device Limit Block
@@ -224,33 +239,55 @@ export function LoginScreen({ onNavigate }: { onNavigate: (s: Screen) => void })
         <span className="text-xs text-muted-foreground font-medium">Quick switch:</span>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => {
-              setEmail("admin@learnbase.io");
+              setEmail("admin@nytrc.org");
               setPassword("admin123");
               onNavigate("admin-dashboard");
             }}
-            className="text-xs bg-primary/10 text-primary font-semibold px-2 py-1 rounded hover:bg-primary/20 transition-colors"
+            className="text-xs bg-primary/10 text-primary font-semibold px-2 py-1 rounded hover:bg-primary/20 transition-colors cursor-pointer"
           >
             Admin Login
           </button>
           <button
+            type="button"
             onClick={() => {
               setEmail("sarah.chen@example.com");
               setPassword("secure-password");
               onNavigate("student-dashboard");
             }}
-            className="text-xs bg-muted text-foreground font-semibold px-2 py-1 rounded hover:bg-muted/80 transition-colors"
+            className="text-xs bg-muted text-foreground font-semibold px-2 py-1 rounded hover:bg-muted/80 transition-colors cursor-pointer"
           >
             Student Login
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-5">
+      {/* Demo auth state toggles */}
+      <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border">
+        {(["session-expired", "unauthorized", "logout-success"] as AuthStatus[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setAuthStatus((prev) => (prev === s ? "idle" : s))}
+            className={cn(
+              "text-xs px-2 py-1 rounded border transition-colors cursor-pointer",
+              authStatus === s
+                ? "bg-muted text-foreground border-border font-semibold"
+                : "text-muted-foreground/50 border-border/40 hover:text-muted-foreground hover:border-border"
+            )}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between mt-4">
         <p className="text-xs text-muted-foreground">
-          Need help? <a href="#" className="text-primary hover:underline">support@learnbase.io</a>
+          Need help? <a href="#" className="text-primary hover:underline">support@nytrc.org</a>
         </p>
         <button
+          type="button"
           onClick={() => onNavigate("auth-device-limit-exceeded")}
           className="text-xs text-muted-foreground/60 hover:text-primary transition-colors font-medium"
         >

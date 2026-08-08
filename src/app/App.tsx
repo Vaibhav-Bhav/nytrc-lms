@@ -3,7 +3,6 @@ import { Toaster } from "sonner";
 import { Screen } from "../data/types";
 import { DarkCtx } from "./components/DarkContext";
 import { ScreenSwitcher } from "./components/ScreenSwitcher";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Auth Screens
 import { LoginScreen } from "./screens/auth/LoginScreen";
@@ -15,7 +14,7 @@ import { DeviceSessionScreen } from "./screens/auth/DeviceSessionScreen";
 import { DeviceLimitExceededScreen } from "./screens/auth/DeviceLimitExceededScreen";
 import { PasswordChangedScreen } from "./screens/auth/PasswordChangedScreen";
 
-// Checkout & Payment Screens (Preserved out-of-scope code)
+// Checkout & Payment Screens
 import { CheckoutScreen } from "./screens/checkout/CheckoutScreen";
 import { PaymentProcessingScreen } from "./screens/checkout/PaymentProcessingScreen";
 import { PaymentSuccessScreen } from "./screens/checkout/PaymentSuccessScreen";
@@ -36,6 +35,8 @@ import { AdminContent } from "./screens/admin/AdminContent";
 import { AdminStudents } from "./screens/admin/AdminStudents";
 import { AdminStudentDetail } from "./screens/admin/AdminStudentDetail";
 import { AdminRefundFlow } from "./screens/admin/AdminRefundFlow";
+import { AdminPaymentHistory } from "./screens/admin/AdminPaymentHistory";
+import { AdminEmailLog } from "./screens/admin/AdminEmailLog";
 
 // State / Skeleton Screens
 import { SkeletonDashboard, SkeletonPlayer, SkeletonAdminTable } from "./screens/states/SkeletonScreens";
@@ -69,39 +70,39 @@ export default function App() {
   return (
     <DarkCtx.Provider value={{ dark, toggle: () => setDark((d) => !d) }}>
       <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-        <ErrorBoundary key={screen} onReset={() => setScreen("admin-students")}>
-          {screen === "login"                  && <LoginScreen onNavigate={setScreen} />}
-          {screen === "force-password"         && <ForcePasswordScreen onNavigate={setScreen} />}
-          {screen === "forgot-password"        && <ForgotPasswordScreen onNavigate={setScreen} />}
-          {screen === "auth-locked"            && <AccountLockedScreen onNavigate={setScreen} />}
-          {screen === "auth-session-expired"   && <SessionExpiredScreen onNavigate={setScreen} />}
-          {screen === "auth-device-session"    && <DeviceSessionScreen onNavigate={setScreen} />}
-          {screen === "auth-device-limit-exceeded" && <DeviceLimitExceededScreen onNavigate={setScreen} />}
-          {screen === "auth-password-changed"  && <PasswordChangedScreen onNavigate={setScreen} />}
-          {screen === "checkout"               && <CheckoutScreen onNavigate={setScreen} />}
-          {screen === "payment-processing"     && <PaymentProcessingScreen />}
-          {screen === "payment-success"        && <PaymentSuccessScreen onNavigate={setScreen} />}
-          {screen === "payment-failed"         && <PaymentFailedScreen onNavigate={setScreen} />}
-          {screen === "payment-pending"        && <PaymentPendingScreen onNavigate={setScreen} />}
-          {screen === "student-dashboard"      && <StudentDashboard onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
-          {screen === "student-courses"        && <StudentCourses onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
-          {screen === "student-course-detail"  && <StudentCourseDetail onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
-          {screen === "course-player"          && <CoursePlayer onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
-          {screen === "student-account"        && <StudentAccount onNavigate={setScreen} />}
-          {screen === "admin-dashboard"        && <AdminDashboard onNavigate={setScreen} />}
-          {screen === "admin-create-course"    && <AdminCreateCourse onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
-          {screen === "admin-content"          && <AdminContent onNavigate={setScreen} selectedCourseId={selectedCourseId} onSelectCourse={handleSelectCourse} />}
-          {screen === "admin-students"         && <AdminStudents onNavigate={setScreen} onSelectStudent={(id) => setSelectedStudentId(id)} />}
-          {screen === "admin-student-detail"   && <AdminStudentDetail onNavigate={setScreen} studentId={selectedStudentId} />}
-          {screen === "admin-refund"           && <AdminRefundFlow onNavigate={setScreen} />}
-          {screen === "skel-dashboard"         && <SkeletonDashboard onNavigate={setScreen} />}
-          {screen === "skel-player"            && <SkeletonPlayer onNavigate={setScreen} />}
-          {screen === "skel-admin-table"       && <SkeletonAdminTable onNavigate={setScreen} />}
-          {screen === "empty-student"          && <EmptyStudentDashboard onNavigate={setScreen} />}
-          {screen === "empty-admin-students"   && <EmptyAdminStudents onNavigate={setScreen} />}
-          {screen === "empty-admin-content"    && <EmptyAdminContent onNavigate={setScreen} />}
-          {screen === "error-content"          && <ErrorContentScreen onNavigate={setScreen} />}
-        </ErrorBoundary>
+        {screen === "login"                  && <LoginScreen onNavigate={setScreen} />}
+        {screen === "force-password"         && <ForcePasswordScreen onNavigate={setScreen} />}
+        {screen === "forgot-password"        && <ForgotPasswordScreen onNavigate={setScreen} />}
+        {screen === "auth-locked"            && <AccountLockedScreen onNavigate={setScreen} />}
+        {screen === "auth-session-expired"   && <SessionExpiredScreen onNavigate={setScreen} />}
+        {screen === "auth-device-session"    && <DeviceSessionScreen onNavigate={setScreen} />}
+        {screen === "auth-device-limit-exceeded" && <DeviceLimitExceededScreen onNavigate={setScreen} />}
+        {screen === "auth-password-changed"  && <PasswordChangedScreen onNavigate={setScreen} />}
+        {screen === "checkout"               && <CheckoutScreen onNavigate={setScreen} />}
+        {screen === "payment-processing"     && <PaymentProcessingScreen />}
+        {screen === "payment-success"        && <PaymentSuccessScreen onNavigate={setScreen} />}
+        {screen === "payment-failed"         && <PaymentFailedScreen onNavigate={setScreen} />}
+        {screen === "payment-pending"        && <PaymentPendingScreen onNavigate={setScreen} />}
+        {screen === "student-dashboard"      && <StudentDashboard onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "student-courses"        && <StudentCourses onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "student-course-detail"  && <StudentCourseDetail onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
+        {screen === "course-player"          && <CoursePlayer onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
+        {screen === "student-account"        && <StudentAccount onNavigate={setScreen} />}
+        {screen === "admin-dashboard"        && <AdminDashboard onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "admin-create-course"    && <AdminCreateCourse onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "admin-content"          && <AdminContent onNavigate={setScreen} selectedCourseId={selectedCourseId} onSelectCourse={handleSelectCourse} />}
+        {screen === "admin-students"         && <AdminStudents onNavigate={setScreen} onSelectStudent={(id) => setSelectedStudentId(id)} />}
+        {screen === "admin-student-detail"   && <AdminStudentDetail onNavigate={setScreen} studentId={selectedStudentId} />}
+        {screen === "admin-refund"           && <AdminRefundFlow onNavigate={setScreen} />}
+        {screen === "admin-payment-history"  && <AdminPaymentHistory onNavigate={setScreen} />}
+        {screen === "admin-email-log"        && <AdminEmailLog onNavigate={setScreen} />}
+        {screen === "skel-dashboard"         && <SkeletonDashboard onNavigate={setScreen} />}
+        {screen === "skel-player"            && <SkeletonPlayer onNavigate={setScreen} />}
+        {screen === "skel-admin-table"       && <SkeletonAdminTable onNavigate={setScreen} />}
+        {screen === "empty-student"          && <EmptyStudentDashboard onNavigate={setScreen} />}
+        {screen === "empty-admin-students"   && <EmptyAdminStudents onNavigate={setScreen} />}
+        {screen === "empty-admin-content"    && <EmptyAdminContent onNavigate={setScreen} />}
+        {screen === "error-content"          && <ErrorContentScreen onNavigate={setScreen} />}
 
         <ScreenSwitcher current={screen} onNavigate={setScreen} />
         <Toaster theme={dark ? "dark" : "light"} position="bottom-right" richColors closeButton />

@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from "react";
 import {
-  BookOpen, Plus, Upload, GripVertical, ChevronDown, ChevronRight, Pencil, Trash2,
-  FileText, Play, Download, CheckCircle2, AlertTriangle, Check, RefreshCw, X, Loader2
+  BookOpen,
+  Plus,
+  Upload,
+  GripVertical,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  FileText,
+  Play,
+  Download,
+  CheckCircle2,
+  AlertTriangle,
+  Check,
+  RefreshCw,
+  X,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Screen, Course, Section, UploadStage } from "../../../data/types";
@@ -11,7 +26,7 @@ import { Breadcrumb } from "../../components/Breadcrumb";
 import { Button, cn } from "../../components/Button";
 import { Badge } from "../../components/Badge";
 import { Modal } from "../../components/Modal";
-import { ConfirmModal } from "../../components/ConfirmDialog";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { FormInput } from "../../components/FormInput";
 import { FileUpload } from "../../components/FileUpload";
 import { UploadPipeline } from "../../components/UploadPipeline";
@@ -188,7 +203,9 @@ export function AdminContent({
           s.id === sectionId
             ? {
                 ...s,
-                lessons: s.lessons?.map((l) => (l.id === lessonId ? { ...l, published: updated.published, status: updated.status } : l)),
+                lessons: s.lessons?.map((l) =>
+                  l.id === lessonId ? { ...l, published: updated.published, status: updated.status } : l
+                ),
               }
             : s
         )
@@ -207,7 +224,11 @@ export function AdminContent({
           s.id === sectionId
             ? {
                 ...s,
-                lessons: s.lessons?.map((l) => (l.id === lessonId ? { ...l, downloadPermission: updated.downloadPermission, hasDownload: updated.hasDownload } : l)),
+                lessons: s.lessons?.map((l) =>
+                  l.id === lessonId
+                    ? { ...l, downloadPermission: updated.downloadPermission, hasDownload: updated.hasDownload }
+                    : l
+                ),
               }
             : s
         )
@@ -260,7 +281,11 @@ export function AdminContent({
     }, 150);
 
     try {
-      const dummyFile = file || new File(["dummy"], uploadFileType === "pdf" ? "document.pdf" : "lesson.mp4", { type: uploadFileType === "pdf" ? "application/pdf" : "video/mp4" });
+      const dummyFile =
+        file ||
+        new File(["dummy"], uploadFileType === "pdf" ? "document.pdf" : "lesson.mp4", {
+          type: uploadFileType === "pdf" ? "application/pdf" : "video/mp4",
+        });
       await lmsService.uploadFile(dummyFile, simulateUploadFail);
       clearInterval(interval);
       setUploadProgress(100);
@@ -317,235 +342,237 @@ export function AdminContent({
 
   return (
     <AdminLayout current="admin-content" onNavigate={onNavigate}>
-      <main className="flex-1 p-4 sm:p-8">
-        <div className="mb-4 sm:mb-5">
-          <Breadcrumb items={[{ label: "Admin" }, { label: "Content Editor" }]} />
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Content Editor</h1>
-            {allCourses.length > 1 ? (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-medium">Select course:</span>
-                <select
-                  value={course?.id || ""}
-                  onChange={(e) => handleCourseSwitch(e.target.value)}
-                  className="px-2 py-1 text-xs font-semibold rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  {allCourses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title} ({c.status})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm mt-1 truncate">
-                {course?.title || "Modern JavaScript: From Fundamentals to Advanced"}
-              </p>
-            )}
+      <main className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
+          <div className="mb-4">
+            <Breadcrumb items={[{ label: "Admin" }, { label: "Content Editor" }]} />
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="secondary" onClick={() => setAddSectionModal(true)}>
-              <Plus className="w-4 h-4" />
-              Add section
-            </Button>
-            <Button onClick={() => setPublishModal(true)} disabled={course?.status === "published"}>
-              <CheckCircle2 className="w-4 h-4" />
-              {course?.status === "published" ? "Course Published" : "Publish Course"}
-            </Button>
-            <Button variant="destructive" onClick={() => setDeleteCourseModal(true)}>
-              <Trash2 className="w-4 h-4" />
-              Delete Course
-            </Button>
-          </div>
-        </div>
-
-        {/* Course Container Card */}
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-border bg-muted/20">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm font-semibold text-foreground truncate">{course?.title}</span>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Content Editor</h1>
+              {allCourses.length > 1 ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-semibold">Select course:</span>
+                  <select
+                    value={course?.id || ""}
+                    onChange={(e) => handleCourseSwitch(e.target.value)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                  >
+                    {allCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title} ({c.status})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm mt-1 truncate">
+                  {course?.title || "Modern JavaScript: From Fundamentals to Advanced"}
+                </p>
+              )}
             </div>
-            <Badge variant={course?.status || "draft"} />
-          </div>
-
-          {loading ? (
-            <div className="p-8 text-center">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading sections and lessons...</p>
-            </div>
-          ) : sections.length === 0 ? (
-            <div className="p-8 text-center border-b border-border">
-              <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm font-medium text-foreground">No sections created yet</p>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">
-                Architecture rule: Create a section first before lessons can be added.
-              </p>
-              <Button size="sm" onClick={() => setAddSectionModal(true)}>
-                <Plus className="w-3.5 h-3.5" />
-                Add first section
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Button variant="secondary" onClick={() => setAddSectionModal(true)}>
+                <Plus className="w-4 h-4" />
+                Add section
+              </Button>
+              <Button onClick={() => setPublishModal(true)} disabled={course?.status === "published"}>
+                <CheckCircle2 className="w-4 h-4" />
+                {course?.status === "published" ? "Course Published" : "Publish Course"}
+              </Button>
+              <Button variant="destructive" onClick={() => setDeleteCourseModal(true)}>
+                <Trash2 className="w-4 h-4" />
+                Delete Course
               </Button>
             </div>
-          ) : (
-            sections.map((section) => {
-              const expanded = expandedSections.has(section.id);
-              const lessons = section.lessons || [];
+          </div>
 
-              return (
-                <div key={section.id} className="border-b border-border last:border-0">
-                  <div className="flex items-center gap-2 px-4 sm:px-5 py-3 hover:bg-muted/20 transition-colors group">
-                    <GripVertical className="w-4 h-4 text-muted-foreground/30 cursor-grab flex-shrink-0 hidden sm:block" />
-                    <button
-                      onClick={() =>
-                        setExpandedSections((prev) => {
-                          const n = new Set(prev);
-                          n.has(section.id) ? n.delete(section.id) : n.add(section.id);
-                          return n;
-                        })
-                      }
-                      className="flex items-center gap-2 flex-1 min-w-0 text-left"
-                    >
-                      {expanded ? (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      )}
-                      <span className="text-sm font-semibold text-foreground truncate">{section.title}</span>
-                      <span className="text-xs text-muted-foreground ml-1 flex-shrink-0">({lessons.length})</span>
-                    </button>
-                    <button
-                      onClick={() => handleToggleSectionPublished(section.id)}
-                      className={cn(
-                        "ml-1 px-2 sm:px-2.5 py-1 rounded-md text-xs font-semibold transition-colors border flex-shrink-0",
-                        section.published
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
-                          : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/40"
-                      )}
-                    >
-                      {section.published ? "Published" : "Draft"}
-                    </button>
-                  </div>
+          {/* Course Container Card */}
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20">
+              <div className="flex items-center gap-3 min-w-0">
+                <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-sm font-bold text-foreground truncate">{course?.title}</span>
+              </div>
+              <Badge variant={course?.status || "draft"} />
+            </div>
 
-                  {expanded && (
-                    <div className="bg-muted/10">
-                      {lessons.length === 0 ? (
-                        <div className="pl-8 sm:pl-12 pr-4 sm:pr-5 py-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between">
-                          <span>No lessons in this section. Add a lesson first before uploading media.</span>
+            {loading ? (
+              <div className="p-8 text-center">
+                <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Loading sections and lessons...</p>
+              </div>
+            ) : sections.length === 0 ? (
+              <div className="p-8 text-center border-b border-border">
+                <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm font-bold text-foreground">No sections created yet</p>
+                <p className="text-xs text-muted-foreground mt-1 mb-4">
+                  Create a section first before lessons can be added.
+                </p>
+                <Button size="sm" onClick={() => setAddSectionModal(true)}>
+                  <Plus className="w-3.5 h-3.5" />
+                  Add first section
+                </Button>
+              </div>
+            ) : (
+              sections.map((section) => {
+                const expanded = expandedSections.has(section.id);
+                const lessons = section.lessons || [];
+
+                return (
+                  <div key={section.id} className="border-b border-border last:border-0">
+                    <div className="flex items-center gap-2 px-5 py-3.5 hover:bg-muted/20 transition-colors group">
+                      <GripVertical className="w-4 h-4 text-muted-foreground/30 cursor-grab flex-shrink-0 hidden sm:block" />
+                      <button
+                        onClick={() =>
+                          setExpandedSections((prev) => {
+                            const n = new Set(prev);
+                            n.has(section.id) ? n.delete(section.id) : n.add(section.id);
+                            return n;
+                          })
+                        }
+                        className="flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer"
+                      >
+                        {expanded ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-bold text-foreground truncate">{section.title}</span>
+                        <span className="text-xs text-muted-foreground ml-1 flex-shrink-0 font-medium">({lessons.length})</span>
+                      </button>
+                      <button
+                        onClick={() => handleToggleSectionPublished(section.id)}
+                        className={cn(
+                          "ml-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors border flex-shrink-0 cursor-pointer",
+                          section.published
+                            ? "bg-success-light text-success-foreground border-success/20 hover:bg-success-light/80"
+                            : "bg-warning-light text-warning-foreground border-warning/20 hover:bg-warning-light/80"
+                        )}
+                      >
+                        {section.published ? "Published" : "Draft"}
+                      </button>
+                    </div>
+
+                    {expanded && (
+                      <div className="bg-muted/10">
+                        {lessons.length === 0 ? (
+                          <div className="pl-12 pr-5 py-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between">
+                            <span>No lessons in this section. Add a lesson first before uploading media.</span>
+                            <button
+                              onClick={() => {
+                                setAddLessonModal({ sectionId: section.id });
+                                setNewLessonType("video");
+                              }}
+                              className="text-primary font-bold hover:underline cursor-pointer"
+                            >
+                              + Add Lesson
+                            </button>
+                          </div>
+                        ) : (
+                          lessons.map((lesson) => (
+                            <div
+                              key={lesson.id}
+                              className="flex items-center gap-2 pl-12 pr-5 py-3 border-t border-border/50 hover:bg-muted/20 transition-colors group/l"
+                            >
+                              <GripVertical className="w-3.5 h-3.5 text-muted-foreground/20 cursor-grab flex-shrink-0 hidden sm:block" />
+                              {lesson.type === "pdf" ? (
+                                <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                              ) : (
+                                <Play className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                              )}
+                              <span className="flex-1 text-sm font-semibold text-foreground truncate">{lesson.title}</span>
+                              <span className="text-xs text-muted-foreground font-semibold flex-shrink-0 hidden sm:block">
+                                {lesson.type.toUpperCase()}
+                              </span>
+
+                              {/* PDF download toggle */}
+                              {lesson.type === "pdf" && (
+                                <button
+                                  onClick={() => handleToggleDownloadPermission(section.id, lesson.id)}
+                                  title={lesson.downloadPermission ? "Disable download" : "Enable download"}
+                                  className={cn(
+                                    "px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors flex-shrink-0 hidden sm:flex items-center gap-1 cursor-pointer",
+                                    lesson.downloadPermission
+                                      ? "bg-success-light text-success-foreground border-success/20 hover:bg-success-light/80"
+                                      : "bg-muted text-muted-foreground border-border hover:bg-warning-light hover:text-warning-foreground"
+                                  )}
+                                >
+                                  <Download className="w-3 h-3" />
+                                  {lesson.downloadPermission ? "DL on" : "DL off"}
+                                </button>
+                              )}
+
+                              <div className="flex items-center gap-1 opacity-0 group-hover/l:opacity-100 transition-opacity flex-shrink-0">
+                                <button
+                                  onClick={() => {
+                                    setUploadTargetSection(section.id);
+                                    setUploadTargetLesson(lesson.id);
+                                    setUploadFileType(lesson.type);
+                                    setUploadModal(true);
+                                  }}
+                                  title="Upload/Replace Media"
+                                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Upload className="w-3 h-3" />
+                                  Upload
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      sectionId: section.id,
+                                      lessonId: lesson.id,
+                                      title: lesson.title,
+                                    })
+                                  }
+                                  className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                </button>
+                              </div>
+                              <button
+                                onClick={() => handleToggleLessonPublished(section.id, lesson.id)}
+                                className={cn(
+                                  "ml-1 px-2.5 py-0.5 rounded-md text-xs font-bold transition-colors border flex-shrink-0 cursor-pointer",
+                                  lesson.published
+                                    ? "bg-success-light text-success-foreground border-success/20 hover:bg-success-light/80"
+                                    : "bg-warning-light text-warning-foreground border-warning/20 hover:bg-warning-light/80"
+                                )}
+                              >
+                                {lesson.published ? "Published" : "Draft"}
+                              </button>
+                            </div>
+                          ))
+                        )}
+
+                        <div className="pl-12 pr-5 py-3 border-t border-border/50 flex items-center gap-3">
                           <button
                             onClick={() => {
                               setAddLessonModal({ sectionId: section.id });
                               setNewLessonType("video");
                             }}
-                            className="text-primary font-semibold hover:underline"
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-bold cursor-pointer"
                           >
-                            + Add Lesson
+                            <Plus className="w-3.5 h-3.5" />
+                            Add lesson
                           </button>
                         </div>
-                      ) : (
-                        lessons.map((lesson) => (
-                          <div
-                            key={lesson.id}
-                            className="flex items-center gap-2 pl-8 sm:pl-12 pr-4 sm:pr-5 py-2.5 border-t border-border/50 hover:bg-muted/20 transition-colors group/l"
-                          >
-                            <GripVertical className="w-3.5 h-3.5 text-muted-foreground/20 cursor-grab flex-shrink-0 hidden sm:block" />
-                            {lesson.type === "pdf" ? (
-                              <FileText className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                            ) : (
-                              <Play className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                            )}
-                            <span className="flex-1 text-sm text-foreground truncate">{lesson.title}</span>
-                            <span className="text-xs text-muted-foreground flex-shrink-0 hidden sm:block">
-                              {lesson.type.toUpperCase()}
-                            </span>
-
-                            {/* PDF download toggle */}
-                            {lesson.type === "pdf" && (
-                              <button
-                                onClick={() => handleToggleDownloadPermission(section.id, lesson.id)}
-                                title={lesson.downloadPermission ? "Disable download" : "Enable download"}
-                                className={cn(
-                                  "px-2 py-0.5 rounded text-xs font-medium border transition-colors flex-shrink-0 hidden sm:flex items-center gap-1",
-                                  lesson.downloadPermission
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
-                                    : "bg-muted text-muted-foreground border-border hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200"
-                                )}
-                              >
-                                <Download className="w-3 h-3" />
-                                {lesson.downloadPermission ? "DL on" : "DL off"}
-                              </button>
-                            )}
-
-                            <div className="flex items-center gap-1 opacity-0 group-hover/l:opacity-100 transition-opacity flex-shrink-0">
-                              <button
-                                onClick={() => {
-                                  setUploadTargetSection(section.id);
-                                  setUploadTargetLesson(lesson.id);
-                                  setUploadFileType(lesson.type);
-                                  setUploadModal(true);
-                                }}
-                                title="Upload/Replace Media"
-                                className="p-1.5 rounded hover:bg-muted transition-colors text-xs text-primary font-medium flex items-center gap-1"
-                              >
-                                <Upload className="w-3 h-3" />
-                                Upload
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    sectionId: section.id,
-                                    lessonId: lesson.id,
-                                    title: lesson.title,
-                                  })
-                                }
-                                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                              >
-                                <Trash2 className="w-3 h-3 text-destructive" />
-                              </button>
-                            </div>
-                            <button
-                              onClick={() => handleToggleLessonPublished(section.id, lesson.id)}
-                              className={cn(
-                                "ml-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors border flex-shrink-0",
-                                lesson.published
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/40"
-                                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/40"
-                              )}
-                            >
-                              {lesson.published ? "Published" : "Draft"}
-                            </button>
-                          </div>
-                        ))
-                      )}
-
-                      <div className="pl-8 sm:pl-12 pr-5 py-2.5 border-t border-border/50 flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            setAddLessonModal({ sectionId: section.id });
-                            setNewLessonType("video");
-                          }}
-                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          Add lesson
-                        </button>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+                    )}
+                  </div>
+                );
+              })
+            )}
 
-          <div className="px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 bg-muted/10">
-            <button
-              onClick={() => setAddSectionModal(true)}
-              className="flex items-center gap-2 text-sm text-primary font-semibold hover:underline"
-            >
-              <Plus className="w-4 h-4" />
-              Add section
-            </button>
+            <div className="px-5 py-4 flex items-center justify-between gap-3 bg-muted/10">
+              <button
+                onClick={() => setAddSectionModal(true)}
+                className="flex items-center gap-2 text-sm text-primary font-bold hover:underline cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Add section
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -574,10 +601,9 @@ export function AdminContent({
               onChange={handleFileSelected}
             />
 
-            {/* Test Simulation Toggle */}
-            <div className="p-3 bg-muted/30 rounded-lg border border-border flex items-center justify-between">
+            <div className="p-3 bg-muted/30 rounded-xl border border-border flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-medium">Test error state (~10% failure simulation):</span>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
                 <input
                   type="checkbox"
                   checked={simulateUploadFail}
@@ -603,17 +629,16 @@ export function AdminContent({
       </Modal>
 
       {/* Delete Lesson Modal */}
-      <ConfirmModal
-        open={!!deleteTarget}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteLesson}
         loading={deleteLoading}
-        title="Delete lesson"
+        title="Delete lesson?"
         description={`This will permanently remove "${deleteTarget?.title}" and its media file.`}
         warning="Students with progress on this lesson will lose that record. Consider setting it to draft instead if students are active."
-        confirmLabel="Delete lesson"
-        confirmVariant="destructive"
-        icon={AlertTriangle}
+        confirmText="Delete lesson"
+        variant="destructive"
       />
 
       {/* Add Section modal */}
@@ -708,7 +733,7 @@ export function AdminContent({
                   type="button"
                   onClick={() => setNewLessonType(t)}
                   className={cn(
-                    "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all",
+                    "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-bold transition-all cursor-pointer",
                     newLessonType === t
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/30"
@@ -755,22 +780,22 @@ export function AdminContent({
       >
         {publishState === "published" ? (
           <div className="flex flex-col items-center text-center py-3 gap-3">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-success-foreground" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Course published</p>
+              <p className="font-bold text-foreground">Course published</p>
               <p className="text-sm text-muted-foreground mt-1">The course is now visible to enrolled students.</p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Publishing will make <strong className="text-foreground">{course?.title}</strong> visible to all enrolled students immediately.
+              Publishing will make <strong className="text-foreground font-bold">{course?.title}</strong> visible to all enrolled students immediately.
             </p>
-            <div className="flex items-start gap-2.5 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/40">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            <div className="flex items-start gap-2.5 px-3 py-2.5 bg-warning-light rounded-xl border border-warning/30">
+              <AlertTriangle className="w-4 h-4 text-warning-foreground flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-warning-foreground leading-relaxed font-medium">
                 Only published sections and lessons will be visible. Ensure all content is ready before proceeding.
               </p>
             </div>
@@ -779,17 +804,16 @@ export function AdminContent({
       </Modal>
 
       {/* Delete Course Confirm Modal */}
-      <ConfirmModal
-        open={deleteCourseModal}
+      <ConfirmDialog
+        isOpen={deleteCourseModal}
         onClose={() => setDeleteCourseModal(false)}
         onConfirm={handleDeleteCourse}
         loading={deleteCourseLoading}
-        title="Delete course"
+        title="Delete course?"
         description={`Are you sure you want to delete "${course?.title}"?`}
         warning="This will permanently remove the course and all associated sections, lessons, and media files from both Admin and Student portals. This action cannot be undone."
-        confirmLabel="Delete Course"
-        confirmVariant="destructive"
-        icon={AlertTriangle}
+        confirmText="Delete Course"
+        variant="destructive"
       />
     </AdminLayout>
   );

@@ -6,13 +6,13 @@ const AUTH_PANEL_IMG = "https://images.unsplash.com/photo-1513258496099-48168024
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
-      <div className="hidden lg:flex w-[420px] flex-col p-10 justify-between flex-shrink-0 relative overflow-hidden bg-[#071828]">
+      <div className="hidden lg:flex w-[420px] flex-col p-10 justify-between flex-shrink-0 relative overflow-hidden bg-slate-950">
         <img
           src={AUTH_PANEL_IMG}
           alt=""
           className="absolute inset-0 w-full h-full object-cover opacity-25 select-none pointer-events-none"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071828] via-[#071828]/60 to-[#0C2040]/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-slate-950/80 pointer-events-none" />
         <div className="relative z-10">
           <Logo inverted />
         </div>

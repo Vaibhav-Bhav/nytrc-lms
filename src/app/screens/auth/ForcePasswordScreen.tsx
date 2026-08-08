@@ -18,16 +18,18 @@ export function ForcePasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =>
     setTimeout(() => {
       setLoading(false);
       onNavigate("auth-password-changed");
-    }, 1200);
+    }, 1000);
   }
 
   return (
     <AuthLayout>
-      <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-6">
-        <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+      <div className="w-10 h-10 rounded-full bg-warning-light flex items-center justify-center mb-6">
+        <Lock className="w-5 h-5 text-warning-foreground" />
       </div>
       <h1 className="text-2xl font-semibold text-foreground mb-1">Set a new password</h1>
-      <p className="text-muted-foreground text-sm mb-8">Your temporary password has expired. Set a new one to continue.</p>
+      <p className="text-muted-foreground text-sm mb-8">
+        Your temporary password has expired. Set a new one to continue.
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <FormInput
           label="New password"

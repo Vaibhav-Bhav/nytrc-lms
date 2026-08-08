@@ -1,6 +1,5 @@
-import { Course, Section, Lesson, Student, PaymentInvoice, StudentDetailApiResponse, StudentSessionsApiResponse, StudentPaymentsApiResponse } from "../data/types";
-import { INITIAL_COURSES, INITIAL_SECTIONS, INITIAL_LESSONS, INITIAL_STUDENTS, PAYMENT_HISTORY } from "../data/mockData";
-import { sessionService } from "./sessionService";
+import { Course, Section, Lesson, Student, PaymentInvoice } from "../data/types";
+import { INITIAL_COURSES, INITIAL_SECTIONS, INITIAL_LESSONS, INITIAL_STUDENTS } from "../data/mockData";
 
 const STORAGE_KEYS = {
   COURSES: "lms_courses_data",
@@ -181,7 +180,6 @@ export const lmsService = {
       locked: false,
       notPublished: false,
       downloadPermission: false,
-      allow_download: false,
       duration: data.type === "video" ? "10:00" : null,
       hasDownload: data.type === "pdf",
     };
@@ -216,10 +214,8 @@ export const lmsService = {
     await delay(200);
     const lIdx = lessonsStore.findIndex((l) => l.id === lessonId);
     if (lIdx === -1) throw new Error("Lesson not found");
-    const nextVal = !lessonsStore[lIdx].downloadPermission;
-    lessonsStore[lIdx].downloadPermission = nextVal;
-    lessonsStore[lIdx].allow_download = nextVal;
-    lessonsStore[lIdx].hasDownload = nextVal;
+    lessonsStore[lIdx].downloadPermission = !lessonsStore[lIdx].downloadPermission;
+    lessonsStore[lIdx].hasDownload = lessonsStore[lIdx].downloadPermission;
     saveStorage(STORAGE_KEYS.LESSONS, lessonsStore);
     return lessonsStore[lIdx];
   },
@@ -252,19 +248,15 @@ export const lmsService = {
     return lessonsStore[lIdx];
   },
 
-  // Upload File API (Mock with service layer provider interface for Bunny Stream & Cloudflare R2)
+  // Upload File API (Mock with simulated 10% failure rate option)
   async uploadFile(file: File, simulateFailure: boolean = false): Promise<{ url: string; fileName: string; fileType: "video" | "pdf" }> {
     await delay(400);
-    if (simulateFailure || Math.random() < 0.05) {
+    if (simulateFailure || Math.random() < 0.1) {
       throw new Error("Upload failed due to network interruption. Please try again.");
     }
     const isPdf = file.name.endsWith(".pdf") || file.type.includes("pdf");
-    
-    // Abstracted Service Layer Return (Designed for easy Bunny Stream / R2 swap)
     return {
-      url: isPdf
-        ? `https://pub-r2.learnbase.io/docs/${Date.now()}_${file.name}`
-        : `https://video.bunnycdn.com/play/${Date.now()}_${file.name}`,
+      url: `https://example.com/uploads/${Date.now()}_${file.name}`,
       fileName: file.name,
       fileType: isPdf ? "pdf" : "video",
     };
@@ -276,91 +268,6 @@ export const lmsService = {
     return [...studentsStore];
   },
 
-  /**
-   * GET /admin/students/:studentId
-   */
-  async getStudentById(studentId: string): Promise<StudentDetailApiResponse | null> {
-    await delay(150);
-    const student = studentsStore.find((s) => s.id === studentId) || studentsStore[0];
-    if (!student) return null;
-
-    const totalLessons = 15;
-    const completedLessons = Math.round((student.progress / 100) * totalLessons);
-
-    const fullStudent: Student = {
-      ...student,
-      courseName: "Modern JavaScript: From Fundamentals to Advanced",
-      enrollmentDate: student.joined,
-      accessStartDate: student.joined,
-      accessEndDate: "2025-11-03",
-      completedLessons,
-      totalLessons,
-      accessStatus: student.status === "locked" ? "locked" : "active",
-    };
-
-    return {
-      student: fullStudent,
-      enrollment: {
-        courseName: fullStudent.courseName!,
-        enrollmentDate: fullStudent.enrollmentDate!,
-        accessStartDate: fullStudent.accessStartDate!,
-        accessEndDate: fullStudent.accessEndDate!,
-        progress: student.progress,
-        completedLessons,
-        remainingLessons: totalLessons - completedLessons,
-        totalLessons,
-        lastLogin: student.lastLogin,
-      },
-    };
-  },
-
-  /**
-   * GET /admin/students/:studentId/sessions
-   */
-  async getStudentSessions(studentId: string): Promise<StudentSessionsApiResponse> {
-    await delay(150);
-    const sessionData = await sessionService.getSessions();
-    return {
-      studentId,
-      max_devices: sessionData.max_devices,
-      active_devices: sessionData.active_devices,
-      devices: sessionData.devices,
-    };
-  },
-
-  /**
-   * GET /admin/students/:studentId/payments
-   */
-  async getStudentPayments(studentId: string): Promise<StudentPaymentsApiResponse> {
-    await delay(150);
-    return {
-      studentId,
-      invoices: PAYMENT_HISTORY,
-    };
-  },
-
-  /**
-   * POST /admin/students/:studentId/lock
-   */
-  async lockStudent(studentId: string): Promise<Student> {
-    await delay(200);
-    const idx = studentsStore.findIndex((s) => s.id === studentId);
-    if (idx === -1) throw new Error("Student not found");
-    const nextStatus = studentsStore[idx].status === "locked" ? "active" : "locked";
-    studentsStore[idx] = { ...studentsStore[idx], status: nextStatus };
-    saveStorage(STORAGE_KEYS.STUDENTS, studentsStore);
-    return studentsStore[idx];
-  },
-
-  /**
-   * DELETE /admin/students/:studentId
-   */
-  async deleteStudent(studentId: string): Promise<void> {
-    await delay(250);
-    studentsStore = studentsStore.filter((s) => s.id !== studentId);
-    saveStorage(STORAGE_KEYS.STUDENTS, studentsStore);
-  },
-
   async markLessonComplete(lessonId: string): Promise<void> {
     await delay(150);
     const lIdx = lessonsStore.findIndex((l) => l.id === lessonId);
@@ -368,6 +275,111 @@ export const lmsService = {
       lessonsStore[lIdx].completed = true;
       saveStorage(STORAGE_KEYS.LESSONS, lessonsStore);
     }
+  },
+
+  // Checkout & Payment APIs (Server route architecture contracts)
+  async createCheckoutOrder(data: {
+    fullName: string;
+    email: string;
+    mobile: string;
+    state: string;
+    courseId: string;
+  }): Promise<{
+    orderId: string;
+    amount: number;
+    currency: string;
+    keyId: string;
+    customer: { fullName: string; email: string; mobile: string; state: string };
+  }> {
+    await delay(300);
+    const subtotal = 12500;
+    const isSameState = data.state.toLowerCase() === "maharashtra";
+    const gstRate = 0.18;
+    const gst = Math.round(subtotal * gstRate);
+    const total = subtotal + gst;
+
+    const orderId = `order_NYTRC_${Date.now().toString().slice(-6)}`;
+    return {
+      orderId,
+      amount: total * 100, // Amount in paise for Razorpay
+      currency: "INR",
+      keyId: "rzp_test_NYTRCPortalKeyId", // Public Razorpay Key ID
+      customer: data,
+    };
+  },
+
+  async verifyPayment(data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    customer: { fullName: string; email: string; mobile: string; state: string };
+  }): Promise<{
+    success: boolean;
+    invoice?: PaymentInvoice;
+    message?: string;
+  }> {
+    await delay(500);
+    // Server-side HMAC SHA256 signature verification simulation
+    if (!data.razorpay_payment_id || !data.razorpay_order_id) {
+      return {
+        success: false,
+        message: "Payment verification failed: Invalid transaction payload signature.",
+      };
+    }
+
+    const subtotal = 12500;
+    const isSameState = data.customer.state.toLowerCase() === "maharashtra";
+    const cgst = isSameState ? Math.round(subtotal * 0.09) : 0;
+    const sgst = isSameState ? Math.round(subtotal * 0.09) : 0;
+    const igst = !isSameState ? Math.round(subtotal * 0.18) : 0;
+    const total = subtotal + cgst + sgst + igst;
+    const invNum = `NYTRC-2025-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newInvoice: PaymentInvoice = {
+      id: `inv_${Date.now()}`,
+      date: new Date().toISOString().split("T")[0],
+      amount: `₹${total.toLocaleString("en-IN")}`,
+      status: "paid",
+      invoice: invNum,
+      invoiceNumber: invNum,
+      customerName: data.customer.fullName,
+      customerEmail: data.customer.email,
+      customerMobile: data.customer.mobile,
+      customerState: data.customer.state,
+      subtotalAmount: subtotal,
+      cgstAmount: cgst,
+      sgstAmount: sgst,
+      igstAmount: igst,
+      totalAmount: total,
+      paymentId: data.razorpay_payment_id,
+      orderId: data.razorpay_order_id,
+      hsnCode: "999299",
+      gstin: "27AAAAA0000A1Z5",
+      downloadUrl: `https://example.com/api/invoices/${invNum}/download`,
+    };
+
+    // Auto-create/grant access to student account upon verified payment
+    const existingStudentIdx = studentsStore.findIndex((s) => s.email.toLowerCase() === data.customer.email.toLowerCase());
+    if (existingStudentIdx !== -1) {
+      studentsStore[existingStudentIdx].status = "active";
+    } else {
+      studentsStore.push({
+        id: `s_${Date.now()}`,
+        name: data.customer.fullName,
+        email: data.customer.email,
+        mobile: data.customer.mobile,
+        joined: new Date().toISOString().split("T")[0],
+        lastLogin: new Date().toISOString().split("T")[0],
+        progress: 0,
+        status: "active",
+      });
+      saveStorage(STORAGE_KEYS.STUDENTS, studentsStore);
+    }
+
+    return {
+      success: true,
+      invoice: newInvoice,
+    };
   },
 
   // Helper to reset data back to default mock seeds if needed

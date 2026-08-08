@@ -38,8 +38,8 @@ export function ConfirmModal({
   const btnLabel = confirmText || confirmLabel || "Confirm";
   const btnVariant = (variant === "destructive" || confirmVariant === "destructive") ? "destructive" : "primary";
 
-  const iconBg = btnVariant === "destructive" ? "bg-red-100 dark:bg-red-900/20" : "bg-amber-100 dark:bg-amber-900/20";
-  const iconCls = btnVariant === "destructive" ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400";
+  const iconBg = btnVariant === "destructive" ? "bg-error-light" : "bg-warning-light";
+  const iconCls = btnVariant === "destructive" ? "text-error-foreground" : "text-warning-foreground";
 
   return (
     <Modal
@@ -70,9 +70,9 @@ export function ConfirmModal({
         <div className="flex-1 min-w-0">
           {description && <p className="text-sm text-muted-foreground leading-relaxed mb-3">{description}</p>}
           {warning && (
-            <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/40">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{warning}</p>
+            <div className="flex items-start gap-2 px-3 py-2.5 bg-warning-light rounded-lg border border-warning/30">
+              <AlertTriangle className="w-4 h-4 text-warning-foreground flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-warning-foreground leading-relaxed font-medium">{warning}</p>
             </div>
           )}
         </div>

@@ -6,8 +6,8 @@ import { Button } from "../../components/Button";
 export function PasswordChangedScreen({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
     <AuthLayout>
-      <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-6">
-        <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+      <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mb-6">
+        <CheckCircle2 className="w-6 h-6 text-success-foreground" />
       </div>
       <h1 className="text-2xl font-semibold text-foreground mb-2">Password changed</h1>
       <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
@@ -24,7 +24,7 @@ export function PasswordChangedScreen({ onNavigate }: { onNavigate: (s: Screen) 
       </Button>
       <p className="text-xs text-muted-foreground text-center mt-5">
         Didn't make this change?{" "}
-        <a href="#" className="text-primary hover:underline">
+        <a href="#" className="text-primary hover:underline font-semibold">
           Contact support
         </a>
       </p>

@@ -28,17 +28,18 @@ export function ForgotPasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =
         <ArrowLeft className="w-4 h-4" />
         Back to login
       </button>
+
       {sent ? (
         <>
-          <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-6">
-            <Mail className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-10 h-10 rounded-full bg-success-light flex items-center justify-center mb-6">
+            <Mail className="w-5 h-5 text-success-foreground" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground mb-2">Check your email</h1>
           <p className="text-muted-foreground text-sm mb-1">We sent a reset link to</p>
           <p className="font-semibold text-foreground text-sm mb-8">{email}</p>
           <p className="text-muted-foreground text-sm">
             Didn't get it?{" "}
-            <button onClick={() => setSent(false)} className="text-primary hover:underline">
+            <button onClick={() => setSent(false)} className="text-primary hover:underline font-semibold">
               Try again
             </button>
           </p>

@@ -138,7 +138,7 @@ export function DeviceLimitExceededScreen({ onNavigate }: { onNavigate: (s: Scre
       </div>
 
       {freedSession && (
-        <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+        <div className="mb-6 p-3 bg-success-light border border-success/20 rounded-lg flex items-center gap-2 text-xs text-success-foreground font-medium">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>Device slot freed! You can now sign in to your dashboard.</span>
         </div>

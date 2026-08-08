@@ -15,7 +15,7 @@ export type Screen =
 export type AuthStatus = "idle" | "loading" | "success" | "session-expired" | "unauthorized" | "logout-success";
 
 export type BadgeVariant =
-  | "completed" | "in-progress" | "locked" | "continue-learning" | "access-granted" | "access-locked" | "access-expired"
+  | "completed" | "in-progress" | "locked" | "continue-learning" | "access-granted" | "access-locked"
   | "draft" | "published" | "active" | "pending" | "uploading" | "upload-failed" | "upload-success"
   | "paid" | "failed" | "refunded" | "cancelled" | "delivered"
   | "not-published" | "upcoming" | "access-revoked" | "refund-requested" | "refund-pending" | "refund-complete";
@@ -56,7 +56,6 @@ export interface Lesson {
   published?: boolean;
   duration?: string | null;
   downloadPermission?: boolean;
-  allow_download?: boolean; // API contract naming alignment
   completed?: boolean;
   locked?: boolean;
   notPublished?: boolean;
@@ -72,22 +71,29 @@ export interface Student {
   lastLogin: string;
   progress: number;
   status: "active" | "locked";
-  courseName?: string;
-  enrollmentDate?: string;
-  accessStartDate?: string;
-  accessEndDate?: string;
-  completedLessons?: number;
-  totalLessons?: number;
-  accessStatus?: "active" | "expired" | "revoked" | "locked";
 }
 
 export interface PaymentInvoice {
   id: string;
   date: string;
   amount: string;
-  status: "paid" | "refunded" | "cancelled";
+  status: "paid" | "refunded" | "cancelled" | "pending";
   invoice: string;
   invoiceNumber?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerMobile?: string;
+  customerState?: string;
+  subtotalAmount?: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
+  totalAmount?: number;
+  paymentId?: string;
+  orderId?: string;
+  hsnCode?: string;
+  gstin?: string;
+  downloadUrl?: string;
 }
 
 export interface EmailLogEntry {
@@ -120,30 +126,3 @@ export interface SessionApiResponse {
   devices: DeviceSession[];
 }
 
-// Backend Contract API Response Shapes
-export interface StudentDetailApiResponse {
-  student: Student;
-  enrollment: {
-    courseName: string;
-    enrollmentDate: string;
-    accessStartDate: string;
-    accessEndDate: string;
-    progress: number;
-    completedLessons: number;
-    remainingLessons: number;
-    totalLessons: number;
-    lastLogin: string;
-  };
-}
-
-export interface StudentSessionsApiResponse {
-  studentId: string;
-  max_devices: number;
-  active_devices: number;
-  devices: DeviceSession[];
-}
-
-export interface StudentPaymentsApiResponse {
-  studentId: string;
-  invoices: PaymentInvoice[];
-}

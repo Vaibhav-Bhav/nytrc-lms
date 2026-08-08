@@ -11,16 +11,16 @@ export function PaymentFailedScreen({ onNavigate }: { onNavigate: (s: Screen) =>
         <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-6">
           <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
         </div>
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Payment failed</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Payment failed</h1>
         <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
           Your payment couldn't be processed. No charge was made. This can happen if your card was declined or the session timed out.
         </p>
-        <div className="bg-muted/50 rounded-xl px-5 py-4 mb-6 border border-border">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Error detail</p>
-          <p className="text-sm text-foreground">Card declined by issuing bank</p>
+        <div className="bg-muted/50 rounded-2xl px-5 py-4 mb-6 border border-border">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Error detail</p>
+          <p className="text-sm font-semibold text-foreground">Card declined by issuing bank</p>
           <p className="text-xs text-muted-foreground mt-0.5">Code: INSUFFICIENT_FUNDS</p>
         </div>
-        <Button className="w-full mb-3" onClick={() => onNavigate("checkout")}>
+        <Button className="w-full mb-4" onClick={() => onNavigate("checkout")}>
           <RefreshCw className="w-4 h-4" />
           Try again
         </Button>
