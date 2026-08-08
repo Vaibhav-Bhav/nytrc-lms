@@ -65,7 +65,7 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col h-full bg-[#0F172A] text-slate-300 border-r border-white/[0.06] shadow-xl shadow-black/20 transition-all duration-300 ease-in-out overflow-hidden z-30 select-none",
+        "flex flex-col h-full bg-[#0B1220] text-slate-300 border-r border-white/[0.06] shadow-xl shadow-black/20 transition-all duration-300 ease-in-out overflow-hidden z-30 select-none",
         collapsed ? "w-[72px]" : "w-[260px]"
       )}
     >

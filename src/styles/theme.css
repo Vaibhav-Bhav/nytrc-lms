@@ -11,15 +11,18 @@
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
 
-  /* Primary Brand - EdTech Deep Indigo / Blue */
-  --primary: #1E40AF;
-  --primary-hover: #1E3A8A;
+  /* Primary Brand - SaaS Professional Blue */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
   --primary-light: #EFF6FF;
   --primary-foreground: #FFFFFF;
 
+  /* Dark Navy */
+  --navy: #0F172A;
+
   /* Secondary & Muted */
   --secondary: #F1F5F9;
-  --secondary-foreground: #1E293B;
+  --secondary-foreground: #0F172A;
   --muted: #F1F5F9;
   --muted-foreground: #64748B;
   --accent: #F1F5F9;
@@ -58,18 +61,19 @@
   --font-weight-normal: 400;
 
   /* Charts */
-  --chart-1: #1E40AF;
+  --chart-1: #2563EB;
   --chart-2: #16A34A;
   --chart-3: #D97706;
-  --chart-4: #2563EB;
+  --chart-4: #0F172A;
   --chart-5: #6366F1;
 
   --radius: 0.75rem;
 
-  /* Sidebar Tokens (Unified Dark Slate Appearance) */
-  --sidebar: #0F172A;
+  /* Sidebar Tokens (#0B1220 Dark Navy Slate) */
+  --sidebar: #0B1220;
   --sidebar-foreground: #94A3B8;
-  --sidebar-primary: #1E40AF;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-hover: #1D4ED8;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #F8FAFC;
@@ -87,9 +91,9 @@
   --popover-foreground: #F8FAFC;
 
   /* Dark Primary Brand */
-  --primary: #3B82F6;
-  --primary-hover: #2563EB;
-  --primary-light: rgba(59, 130, 246, 0.15);
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: rgba(37, 99, 235, 0.15);
   --primary-foreground: #FFFFFF;
 
   /* Dark Secondary & Muted */
@@ -101,25 +105,25 @@
   --accent-foreground: #F8FAFC;
 
   /* Dark Destructive */
-  --destructive: #EF4444;
-  --destructive-hover: #DC2626;
+  --destructive: #DC2626;
+  --destructive-hover: #B91C1C;
   --destructive-foreground: #FFFFFF;
 
   /* Dark Semantics */
-  --success: #22C55E;
-  --success-light: rgba(34, 197, 94, 0.15);
+  --success: #16A34A;
+  --success-light: rgba(22, 163, 74, 0.15);
   --success-foreground: #4ADE80;
 
-  --warning: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.15);
+  --warning: #D97706;
+  --warning-light: rgba(217, 119, 6, 0.15);
   --warning-foreground: #FBBF24;
 
-  --error: #EF4444;
-  --error-light: rgba(239, 68, 68, 0.15);
+  --error: #DC2626;
+  --error-light: rgba(220, 38, 38, 0.15);
   --error-foreground: #F87171;
 
-  --info: #60A5FA;
-  --info-light: rgba(96, 165, 250, 0.15);
+  --info: #2563EB;
+  --info-light: rgba(37, 99, 235, 0.15);
   --info-foreground: #93C5FD;
 
   /* Dark Borders & Inputs */
@@ -127,24 +131,25 @@
   --input: #1E293B;
   --input-background: #131926;
   --switch-background: #334155;
-  --ring: #3B82F6;
+  --ring: #2563EB;
 
   /* Dark Charts */
-  --chart-1: #3B82F6;
-  --chart-2: #22C55E;
-  --chart-3: #F59E0B;
+  --chart-1: #2563EB;
+  --chart-2: #16A34A;
+  --chart-3: #D97706;
   --chart-4: #60A5FA;
   --chart-5: #818CF8;
 
   /* Dark Sidebar Tokens */
-  --sidebar: #090D16;
+  --sidebar: #0B1220;
   --sidebar-foreground: #94A3B8;
-  --sidebar-primary: #3B82F6;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-hover: #1D4ED8;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255, 255, 255, 0.08);
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #3B82F6;
+  --sidebar-ring: #2563EB;
 }
 
 @theme inline {
