@@ -19,6 +19,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as ApiCoursesRouteImport } from './routes/api/courses'
+import { Route as ApiAdminCoursesRouteImport } from './routes/api/admin/courses'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
 import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
 import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
@@ -34,6 +35,7 @@ import { Route as ApiPaymentsVerifyRouteImport } from './routes/api/payments/ver
 import { Route as ApiPaymentsWebhookRouteImport } from './routes/api/payments/webhook'
 import { Route as ApiStudentCoursesRouteImport } from './routes/api/student/courses'
 import { Route as ApiStudentProgressRouteImport } from './routes/api/student/progress'
+import { Route as ApiAdminCoursesIdRouteImport } from './routes/api/admin/courses.$id'
 import { Route as ApiAdminLessonsIdRouteImport } from './routes/api/admin/lessons.$id'
 import { Route as ApiAdminSectionsIdRouteImport } from './routes/api/admin/sections.$id'
 import { Route as ApiAdminUploadDocumentRouteImport } from './routes/api/admin/upload/document'
@@ -99,6 +101,11 @@ const SubscriptionRoute = SubscriptionRouteImport.update({
 const ApiCoursesRoute = ApiCoursesRouteImport.update({
   id: '/api/courses',
   path: '/api/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCoursesRoute = ApiAdminCoursesRouteImport.update({
+  id: '/api/admin/courses',
+  path: '/api/admin/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
@@ -175,6 +182,11 @@ const ApiStudentProgressRoute = ApiStudentProgressRouteImport.update({
   id: '/api/student/progress',
   path: '/api/student/progress',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCoursesIdRoute = ApiAdminCoursesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminCoursesRoute,
 } as any)
 const ApiAdminLessonsIdRoute = ApiAdminLessonsIdRouteImport.update({
   id: '/$id',
@@ -277,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -292,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
+  '/api/admin/courses/$id': typeof ApiAdminCoursesIdRoute
   '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
   '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
   '/api/admin/upload/document': typeof ApiAdminUploadDocumentRoute
@@ -320,6 +334,7 @@ export interface FileRoutesByTo {
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -335,6 +350,7 @@ export interface FileRoutesByTo {
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
+  '/api/admin/courses/$id': typeof ApiAdminCoursesIdRoute
   '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
   '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
   '/api/admin/upload/document': typeof ApiAdminUploadDocumentRoute
@@ -364,6 +380,7 @@ export interface FileRoutesById {
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -379,6 +396,7 @@ export interface FileRoutesById {
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
+  '/api/admin/courses/$id': typeof ApiAdminCoursesIdRoute
   '/api/admin/lessons/$id': typeof ApiAdminLessonsIdRouteWithChildren
   '/api/admin/sections/$id': typeof ApiAdminSectionsIdRoute
   '/api/admin/upload/document': typeof ApiAdminUploadDocumentRoute
@@ -409,6 +427,7 @@ export interface FileRouteTypes {
     | '/social-media'
     | '/subscription'
     | '/api/courses'
+    | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
     | '/api/auth/forgot-password'
@@ -424,6 +443,7 @@ export interface FileRouteTypes {
     | '/api/payments/webhook'
     | '/api/student/courses'
     | '/api/student/progress'
+    | '/api/admin/courses/$id'
     | '/api/admin/lessons/$id'
     | '/api/admin/sections/$id'
     | '/api/admin/upload/document'
@@ -452,6 +472,7 @@ export interface FileRouteTypes {
     | '/social-media'
     | '/subscription'
     | '/api/courses'
+    | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
     | '/api/auth/forgot-password'
@@ -467,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/payments/webhook'
     | '/api/student/courses'
     | '/api/student/progress'
+    | '/api/admin/courses/$id'
     | '/api/admin/lessons/$id'
     | '/api/admin/sections/$id'
     | '/api/admin/upload/document'
@@ -495,6 +517,7 @@ export interface FileRouteTypes {
     | '/social-media'
     | '/subscription'
     | '/api/courses'
+    | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
     | '/api/auth/forgot-password'
@@ -510,6 +533,7 @@ export interface FileRouteTypes {
     | '/api/payments/webhook'
     | '/api/student/courses'
     | '/api/student/progress'
+    | '/api/admin/courses/$id'
     | '/api/admin/lessons/$id'
     | '/api/admin/sections/$id'
     | '/api/admin/upload/document'
@@ -539,6 +563,7 @@ export interface RootRouteChildren {
   SocialMediaRoute: typeof SocialMediaRoute
   SubscriptionRoute: typeof SubscriptionRoute
   ApiCoursesRoute: typeof ApiCoursesRouteWithChildren
+  ApiAdminCoursesRoute: typeof ApiAdminCoursesRouteWithChildren
   ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
   ApiAdminSectionsRoute: typeof ApiAdminSectionsRouteWithChildren
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
@@ -629,6 +654,13 @@ declare module '@tanstack/react-router' {
       path: '/api/courses'
       fullPath: '/api/courses'
       preLoaderRoute: typeof ApiCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/courses': {
+      id: '/api/admin/courses'
+      path: '/api/admin/courses'
+      fullPath: '/api/admin/courses'
+      preLoaderRoute: typeof ApiAdminCoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/lessons': {
@@ -735,6 +767,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/student/progress'
       preLoaderRoute: typeof ApiStudentProgressRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/courses/$id': {
+      id: '/api/admin/courses/$id'
+      path: '/$id'
+      fullPath: '/api/admin/courses/$id'
+      preLoaderRoute: typeof ApiAdminCoursesIdRouteImport
+      parentRoute: typeof ApiAdminCoursesRoute
     }
     '/api/admin/lessons/$id': {
       id: '/api/admin/lessons/$id'
@@ -865,6 +904,18 @@ const ApiCoursesRouteWithChildren = ApiCoursesRoute._addFileChildren(
   ApiCoursesRouteChildren,
 )
 
+interface ApiAdminCoursesRouteChildren {
+  ApiAdminCoursesIdRoute: typeof ApiAdminCoursesIdRoute
+}
+
+const ApiAdminCoursesRouteChildren: ApiAdminCoursesRouteChildren = {
+  ApiAdminCoursesIdRoute: ApiAdminCoursesIdRoute,
+}
+
+const ApiAdminCoursesRouteWithChildren = ApiAdminCoursesRoute._addFileChildren(
+  ApiAdminCoursesRouteChildren,
+)
+
 interface ApiAdminLessonsIdRouteChildren {
   ApiAdminLessonsIdPublishRoute: typeof ApiAdminLessonsIdPublishRoute
   ApiAdminLessonsIdUnpublishRoute: typeof ApiAdminLessonsIdUnpublishRoute
@@ -973,6 +1024,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialMediaRoute: SocialMediaRoute,
   SubscriptionRoute: SubscriptionRoute,
   ApiCoursesRoute: ApiCoursesRouteWithChildren,
+  ApiAdminCoursesRoute: ApiAdminCoursesRouteWithChildren,
   ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,
   ApiAdminSectionsRoute: ApiAdminSectionsRouteWithChildren,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
