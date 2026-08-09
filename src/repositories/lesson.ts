@@ -122,6 +122,22 @@ export const lessonRepository = {
     return row ? toLesson(row) : null
   },
 
+  async updateStatusFromDraftToPublished(id: string): Promise<Lesson | null> {
+    const { data: row, error } = await supabase
+      .from('lessons')
+      .update({
+        status: 'published',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('status', 'draft')
+      .select()
+      .maybeSingle()
+
+    if (error) throw new Error(`lessonRepository.updateStatusFromDraftToPublished: ${error.message}`)
+    return row ? toLesson(row) : null
+  },
+
   async remove(id: string): Promise<boolean> {
     const { error, count } = await supabase
       .from('lessons')

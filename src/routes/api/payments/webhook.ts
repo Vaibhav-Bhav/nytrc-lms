@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { paymentService } from '@/services/payment'
+import { verifyRazorpayWebhookSignature } from '@/lib/razorpay'
 
 export const Route = createFileRoute('/api/payments/webhook')({
   server: {
@@ -16,20 +17,34 @@ export const Route = createFileRoute('/api/payments/webhook')({
             return Response.json({ error: 'Missing webhook signature header' }, { status: 400 })
           }
 
-          // Webhook endpoint must NOT be protected by session middleware.
-          // Razorpay does not send session cookies.
-          // Verification is handled inside paymentService.handleWebhook via HMAC check.
+          // Webhook signature validation
+          const isValid = verifyRazorpayWebhookSignature(rawBody, signature)
+          if (!isValid) {
+            return Response.json({ error: 'Webhook signature verification failed' }, { status: 400 })
+          }
 
-          await paymentService.handleWebhook(rawBody, signature)
+          let eventPayload
+          try {
+            eventPayload = JSON.parse(rawBody)
+          } catch {
+            return Response.json({ error: 'Malformed webhook payload' }, { status: 400 })
+          }
 
-          // Razorpay requires a fast 200 ACK.
-          // Must return immediately — do NOT wait for Sprint 3 side effects.
+          const event = eventPayload.event
+          if (event === 'payment.captured') {
+            await paymentService.handlePaymentCaptured(eventPayload)
+          } else if (event === 'payment.failed') {
+            await paymentService.handlePaymentFailed(eventPayload)
+          } else if (event === 'refund.processed') {
+            await paymentService.handleRefundProcessed(eventPayload)
+          } else {
+            return Response.json({ error: 'Unsupported webhook event' }, { status: 400 })
+          }
+
+          // Razorpay requires a fast 200 ACK response
           return new Response(null, { status: 200 })
         } catch (err) {
           if (err instanceof Error) {
-            if (err.message === 'INVALID_WEBHOOK_SIGNATURE') {
-              return Response.json({ error: 'Webhook signature verification failed' }, { status: 400 })
-            }
             if (err.message === 'INVALID_WEBHOOK_PAYLOAD') {
               return Response.json({ error: 'Malformed webhook payload' }, { status: 400 })
             }

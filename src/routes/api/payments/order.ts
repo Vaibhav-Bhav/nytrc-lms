@@ -29,8 +29,17 @@ export const Route = createFileRoute('/api/payments/order')({
             if (err.message === 'COURSE_NOT_FOUND') {
               return Response.json({ error: 'Course not found' }, { status: 404 })
             }
-            if (err.message === 'ALREADY_ENROLLED') {
+            if (
+              err.message === 'ALREADY_ENROLLED' ||
+              err.message === 'COURSE_ALREADY_PURCHASED'
+            ) {
               return Response.json({ error: 'Student is already enrolled in this course' }, { status: 409 })
+            }
+            if (err.message === 'COURSE_NOT_PUBLISHED') {
+              return Response.json({ error: 'Course is not published' }, { status: 400 })
+            }
+            if (err.message === 'ORDER_CREATION_FAILED') {
+              return Response.json({ error: 'Failed to create payment order' }, { status: 502 })
             }
             if (err.message.startsWith('Razorpay API error')) {
               console.error('[order] Razorpay API error:', err.message)

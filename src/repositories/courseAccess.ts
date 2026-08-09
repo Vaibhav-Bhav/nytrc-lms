@@ -89,6 +89,19 @@ export const courseAccessRepository = {
     return data ? toCourseAccess(data) : null
   },
 
+  async findActiveByCourseId(courseId: string): Promise<CourseAccess[]> {
+    const { data, error } = await supabase
+      .from('course_access')
+      .select('*')
+      .eq('course_id', courseId)
+      .eq('access_status', 'active')
+
+    if (error) {
+      throw new Error(`courseAccessRepository.findActiveByCourseId: ${error.message}`)
+    }
+    return (data ?? []).map(toCourseAccess)
+  },
+
   async create(data: NewCourseAccess): Promise<CourseAccess> {
     const now = new Date().toISOString()
 
