@@ -13,7 +13,7 @@ export function AdminCreateCourse({
   onNavigate,
   onSelectCourse,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   onSelectCourse?: (id: string) => void;
 }) {
   const [title, setTitle] = useState("");
@@ -49,10 +49,10 @@ export function AdminCreateCourse({
       });
       setLoading(false);
       if (onSelectCourse) {
-        onSelectCourse(created.id);
+        onSelectCourse?.(created.id);
       }
       toast.success("Course created — add sections and lessons now.");
-      onNavigate("admin-content");
+      onNavigate?.("admin-content");
     } catch (err: any) {
       setLoading(false);
       toast.error(err.message || "Failed to create course");
@@ -60,14 +60,14 @@ export function AdminCreateCourse({
   }
 
   return (
-    <AdminLayout current="admin-create-course" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[800px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-4">
             <Breadcrumb
               items={[
                 { label: "Admin" },
-                { label: "Dashboard", onClick: () => onNavigate("admin-dashboard") },
+                { label: "Dashboard", onClick: () => onNavigate?.("admin-dashboard") },
                 { label: "Create Course" },
               ]}
             />
@@ -75,7 +75,7 @@ export function AdminCreateCourse({
 
           <div className="flex items-center gap-3 mb-6 sm:mb-8">
             <button
-              onClick={() => onNavigate("admin-dashboard")}
+              onClick={() => onNavigate?.("admin-dashboard")}
               className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
@@ -189,7 +189,7 @@ export function AdminCreateCourse({
                 <Plus className="w-4 h-4" />
                 Create course
               </Button>
-              <Button type="button" variant="secondary" onClick={() => onNavigate("admin-dashboard")}>
+              <Button type="button" variant="secondary" onClick={() => onNavigate?.("admin-dashboard")}>
                 Cancel
               </Button>
             </div>

@@ -32,7 +32,7 @@ export function CoursePlayer({
   onNavigate,
   selectedCourseId,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   selectedCourseId?: string;
 }) {
   const [sections, setSections] = useState<Section[]>([]);
@@ -205,7 +205,7 @@ export function CoursePlayer({
   );
 
   return (
-    <StudentLayout current="course-player" onNavigate={onNavigate}>
+    <StudentLayout>
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden h-[calc(100vh-64px)]">
         {/* Main player content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">

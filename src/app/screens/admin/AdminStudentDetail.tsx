@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Mail, Phone, Clock, ChevronRight, Send, RefreshCw, UserX, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Screen, Student } from "../../../data/types";
-import { INITIAL_STUDENTS, PAYMENT_HISTORY, EMAIL_LOG } from "../../../data/mockData";
+import { INITIAL_STUDENTS } from "../../../data/mockData";
 import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Breadcrumb } from "../../components/Breadcrumb";
@@ -17,10 +17,11 @@ export function AdminStudentDetail({
   onNavigate,
   studentId,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   studentId: string;
 }) {
-  const [student, setStudent] = useState<Student | null>(null);
+  const [student, setStudent] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const [revokeModal, setRevokeModal] = useState(false);
   const [resetModal, setResetModal] = useState(false);
   const [resendModal, setResendModal] = useState(false);
@@ -31,12 +32,37 @@ export function AdminStudentDetail({
 
   useEffect(() => {
     async function loadStudent() {
-      const students = await lmsService.getStudents();
-      const s = students.find((item) => item.id === studentId) || students[0];
-      setStudent(s);
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/admin/students/${studentId}`);
+        if (!response.ok) throw new Error("Failed to load student details");
+        const data = await response.json();
+        setStudent(data);
+        if (data.access?.status === "revoked") {
+          setAccessRevoked(true);
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to load student data");
+      } finally {
+        setLoading(false);
+      }
     }
     loadStudent();
   }, [studentId]);
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <main className="flex-1 overflow-y-auto bg-background flex items-center justify-center min-h-[50vh]">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+            <p className="text-muted-foreground text-sm">Loading student details...</p>
+          </div>
+        </main>
+      </AdminLayout>
+    );
+  }
 
   const activeStudent = student || INITIAL_STUDENTS[0];
 
@@ -60,14 +86,14 @@ export function AdminStudentDetail({
   ];
 
   return (
-    <AdminLayout current="admin-student-detail" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[800px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-4">
             <Breadcrumb
               items={[
                 { label: "Admin" },
-                { label: "Students", onClick: () => onNavigate("admin-students") },
+                { label: "Students", onClick: () => onNavigate?.("admin-students") },
                 { label: activeStudent.name },
               ]}
             />
@@ -75,7 +101,7 @@ export function AdminStudentDetail({
 
           <div className="flex items-center gap-3 mb-6 sm:mb-8">
             <button
-              onClick={() => onNavigate("admin-students")}
+              onClick={() => onNavigate?.("admin-students")}
               className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
@@ -96,7 +122,7 @@ export function AdminStudentDetail({
                 <div className="flex items-center gap-4 mb-5">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-base font-extrabold text-primary">
-                      {activeStudent.name.split(" ").map((n) => n[0]).join("")}
+                      {activeStudent.name.split(" ").map((n: string) => n[0]).join("")}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -169,7 +195,7 @@ export function AdminStudentDetail({
                   <p className="text-sm font-bold text-foreground">2024-12-20</p>
                   <p className="text-xs text-muted-foreground font-medium mt-0.5">Amount: ₹14,750 · Order: ORD-2024-001</p>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => onNavigate("admin-refund")}>
+                <Button variant="secondary" size="sm" onClick={() => onNavigate?.("admin-refund")}>
                   View flow <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -180,28 +206,34 @@ export function AdminStudentDetail({
               <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20">
                 <h2 className="font-bold text-foreground text-base">Payment History</h2>
               </div>
-              {PAYMENT_HISTORY.map((inv) => (
+              {(activeStudent.invoices || []).map((inv: any) => (
                 <InvoiceCard key={inv.id} inv={inv} onDownload={() => toast.success("Invoice downloaded")} />
               ))}
+              {(!activeStudent.invoices || activeStudent.invoices.length === 0) && (
+                <div className="px-5 sm:px-6 py-4 text-sm text-muted-foreground">No invoices found.</div>
+              )}
             </div>
 
-            {/* Email log */}
+            {/* Recent Sessions */}
             <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20">
-                <h2 className="font-bold text-foreground text-base">Email Delivery Log</h2>
+                <h2 className="font-bold text-foreground text-base">Recent Sessions</h2>
               </div>
-              {EMAIL_LOG.map((entry, i) => (
+              {(activeStudent.sessions || []).map((session: any, i: number) => (
                 <div
-                  key={entry.id}
+                  key={session.id}
                   className={cn("flex items-center justify-between px-5 sm:px-6 py-3.5 gap-3", i > 0 && "border-t border-border")}
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{entry.type}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{entry.sent}</p>
+                    <p className="text-sm font-semibold text-foreground">{session.browser || "Unknown Browser"} on {session.os || "Unknown OS"}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{new Date(session.created_at).toLocaleString()} · IP: {session.ip_address}</p>
                   </div>
-                  <Badge variant={entry.status} />
+                  <Badge variant={session.is_active ? "active" : "cancelled"} />
                 </div>
               ))}
+              {(!activeStudent.sessions || activeStudent.sessions.length === 0) && (
+                <div className="px-5 sm:px-6 py-4 text-sm text-muted-foreground">No recent sessions.</div>
+              )}
             </div>
 
             {/* Actions */}

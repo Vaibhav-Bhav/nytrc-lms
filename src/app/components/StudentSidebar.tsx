@@ -18,7 +18,8 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { cn } from "./Button";
 import { Logo } from "./Logo";
 import { DarkToggle } from "./DarkToggle";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth, authQueryKey } from "../../hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 
 type NavItem = {
   to?: string;
@@ -47,6 +48,7 @@ export function StudentSidebar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { data: user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { location } = useRouterState();
   const currentPath = location.pathname;
 
@@ -92,6 +94,8 @@ export function StudentSidebar({
     } catch {
       toast.error("Network error during logout.");
     } finally {
+      queryClient.setQueryData(authQueryKey, null);
+      queryClient.invalidateQueries({ queryKey: authQueryKey });
       navigate({ to: "/login" });
     }
   }

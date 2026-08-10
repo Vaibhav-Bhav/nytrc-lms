@@ -28,7 +28,7 @@ export function PaymentSuccessScreen({ onNavigate }: { onNavigate: (s: Screen) =
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button onClick={() => onNavigate("login")} className="flex-1">
+          <Button onClick={() => onNavigate?.("login")} className="flex-1">
             Go to login
           </Button>
           <Button variant="secondary" onClick={() => toast.success("Invoice downloaded")}>

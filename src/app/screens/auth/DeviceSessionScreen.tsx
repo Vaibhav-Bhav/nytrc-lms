@@ -60,7 +60,7 @@ export function DeviceSessionScreen({ onNavigate }: { onNavigate: (s: Screen) =>
       if (selectedDevice.is_current_device) {
         await sessionService.logoutCurrentSession();
         toast.success("Current session logged out");
-        onNavigate("login");
+        onNavigate?.("login");
       } else {
         const res = await sessionService.revokeSession(selectedDevice.id);
         setSessions(res.devices);
@@ -81,7 +81,7 @@ export function DeviceSessionScreen({ onNavigate }: { onNavigate: (s: Screen) =>
       const res = await sessionService.logoutAllSessions();
       setSessions(res.devices);
       toast.success("All device sessions logged out");
-      onNavigate("login");
+      onNavigate?.("login");
     } catch (e) {
       toast.error("Failed to logout all sessions");
     } finally {
@@ -99,7 +99,7 @@ export function DeviceSessionScreen({ onNavigate }: { onNavigate: (s: Screen) =>
   return (
     <AuthLayout>
       <button
-        onClick={() => onNavigate("student-account")}
+        onClick={() => onNavigate?.("student-account")}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />

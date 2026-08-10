@@ -75,7 +75,7 @@ export function PaymentPendingScreen({ onNavigate }: { onNavigate: (s: Screen) =
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <Button variant="secondary" className="flex-1" onClick={() => onNavigate("student-dashboard")}>
+          <Button variant="secondary" className="flex-1" onClick={() => onNavigate?.("student-dashboard")}>
             <RefreshCw className="w-4 h-4" />
             Check dashboard
           </Button>

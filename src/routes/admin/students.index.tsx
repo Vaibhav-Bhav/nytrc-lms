@@ -19,7 +19,7 @@ function AdminStudentsRoute() {
   return <AdminStudents onNavigate={handleNavigate} />
 }
 
-export const Route = createFileRoute('/admin/students')({
+export const Route = createFileRoute('/admin/students/')({
   beforeLoad: async () => {
     try {
       const res = await fetch('/api/auth/me', { credentials: 'include' })

@@ -15,7 +15,7 @@ export function StudentCourses({
   onNavigate,
   onSelectCourse,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   onSelectCourse?: (id: string) => void;
 }) {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -33,7 +33,7 @@ export function StudentCourses({
 
   function handleSelectCourseCard(id: string, screen: "student-course-detail" | "course-player") {
     onSelectCourse?.(id);
-    onNavigate(screen);
+    onNavigate?.(screen);
   }
 
   const filtered = courses.filter(
@@ -44,12 +44,12 @@ export function StudentCourses({
   );
 
   return (
-    <StudentLayout current="student-courses" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-4">
           <Breadcrumb
             items={[
-              { label: "Dashboard", onClick: () => onNavigate("student-dashboard") },
+              { label: "Dashboard", onClick: () => onNavigate?.("student-dashboard") },
               { label: "My Courses" },
             ]}
           />

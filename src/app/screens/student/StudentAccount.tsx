@@ -73,7 +73,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
       if (selectedDevice.is_current_device) {
         await sessionService.logoutCurrentSession();
         toast.success("Current device logged out");
-        onNavigate("login");
+        onNavigate?.("login");
       } else {
         const res = await sessionService.revokeSession(selectedDevice.id);
         setSessions(res.devices);
@@ -96,7 +96,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
       setSessions(res.devices);
       setActiveCount(res.active_devices);
       toast.success("Logged out from all devices");
-      onNavigate("login");
+      onNavigate?.("login");
     } catch (e) {
       toast.error("Failed to logout all sessions");
     } finally {
@@ -121,7 +121,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
   }
 
   return (
-    <StudentLayout current="student-account" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-6">Account Settings</h1>
 
@@ -257,7 +257,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
 
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => onNavigate("auth-device-session")}
+                        onClick={() => onNavigate?.("auth-device-session")}
                         className="text-xs font-bold text-primary hover:underline cursor-pointer"
                       >
                         Manage Full Sessions →

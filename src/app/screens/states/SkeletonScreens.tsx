@@ -5,7 +5,7 @@ import { Skel, LoadingSpinner } from "../../components/LoadingSkeleton";
 
 export function SkeletonDashboard({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 p-4 sm:p-6 max-w-3xl mx-auto w-full">
         <div className="mb-8">
           <Skel className="h-7 w-52 mb-2" />
@@ -46,7 +46,7 @@ export function SkeletonDashboard({ onNavigate }: { onNavigate: (s: Screen) => v
 
 export function SkeletonPlayer({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <StudentLayout current="course-player" onNavigate={onNavigate}>
+    <StudentLayout>
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-[calc(100vh-64px)]">
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           <div className="bg-slate-900 relative" style={{ paddingBottom: "56.25%" }}>
@@ -85,7 +85,7 @@ export function SkeletonPlayer({ onNavigate }: { onNavigate: (s: Screen) => void
 
 export function SkeletonAdminTable({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <AdminLayout current="admin-students" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 p-4 sm:p-8">
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>

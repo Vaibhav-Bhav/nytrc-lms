@@ -33,14 +33,25 @@ export function AdminDashboard() {
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      const [fetchedCourses, fetchedStudents] = await Promise.all([
-        lmsService.getCourses(),
-        lmsService.getStudents(),
-      ]);
-      if (isMounted) {
-        setCourses(fetchedCourses);
-        setStudents(fetchedStudents);
-        setLoading(false);
+      try {
+        const [fetchedCourses, studentsRes] = await Promise.all([
+          lmsService.getCourses(),
+          fetch('/api/admin/students'),
+        ]);
+
+        let fetchedStudents = [];
+        if (studentsRes.ok) {
+          fetchedStudents = await studentsRes.json();
+        }
+
+        if (isMounted) {
+          setCourses(fetchedCourses);
+          setStudents(fetchedStudents);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+        if (isMounted) setLoading(false);
       }
     }
     loadData();
@@ -68,8 +79,8 @@ export function AdminDashboard() {
     navigate({ to: "/admin/content", search: { courseId: id } as never });
   }
 
-  const activeCount = students.filter((s) => new Date(s.lastLogin) >= new Date("2024-11-28")).length;
-  const avgProgress = students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.progress, 0) / students.length) : 0;
+  const activeCount = students.filter((s) => s.lastLogin && new Date(s.lastLogin) >= new Date("2024-11-28")).length;
+  const avgProgress = students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.progress || 0), 0) / students.length) : 0;
   const revenue = PAYMENT_HISTORY.filter((p) => p.status === "paid").length * 14750;
 
   const aCard = "bg-card rounded-2xl border border-border shadow-sm overflow-hidden";
@@ -271,41 +282,55 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {students.slice(0, 5).map((student) => (
-                    <tr
-                      key={student.id}
-                      className="hover:bg-muted/20 transition-colors cursor-pointer"
-                      onClick={() => navigate({ to: "/admin/students" })}
-                    >
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs font-bold text-primary">
-                              {student.name.split(" ").map((n) => n[0]).join("")}
-                            </span>
-                          </div>
-                          <span className="text-sm font-semibold text-foreground">{student.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell truncate max-w-[180px]">
-                        {student.email}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20">
-                            <ProgressBar value={student.progress} color={student.progress >= 75 ? "green" : "primary"} />
-                          </div>
-                          <span className="text-xs font-bold text-muted-foreground tabular-nums">{student.progress}%</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <Badge variant={student.status} />
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <ChevronRight className="w-4 h-4 text-muted-foreground inline" />
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                        Loading students...
                       </td>
                     </tr>
-                  ))}
+                  ) : students.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                        No students found.
+                      </td>
+                    </tr>
+                  ) : (
+                    students.slice(0, 5).map((student) => (
+                      <tr
+                        key={student.id}
+                        className="hover:bg-muted/20 transition-colors cursor-pointer"
+                        onClick={() => navigate({ to: `/admin/students/${student.id}` as never })}
+                      >
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold text-primary">
+                                {student.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">{student.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell truncate max-w-[180px]">
+                          {student.email}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-20">
+                              <ProgressBar value={student.progress || 0} color={(student.progress || 0) >= 75 ? "green" : "primary"} />
+                            </div>
+                            <span className="text-xs font-bold text-muted-foreground tabular-nums">{student.progress || 0}%</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <Badge variant={student.status || "active"} />
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <ChevronRight className="w-4 h-4 text-muted-foreground inline" />
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

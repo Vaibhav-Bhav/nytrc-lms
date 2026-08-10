@@ -87,7 +87,7 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
       toast.info(`Razorpay order created: ${order.orderId}`);
 
       // Step 2: Simulate Razorpay checkout verification
-      onNavigate("payment-processing");
+      onNavigate?.("payment-processing");
 
       const verifyRes = await lmsService.verifyPayment({
         razorpay_order_id: order.orderId,
@@ -98,14 +98,14 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
 
       if (verifyRes.success) {
         toast.success("Payment verified & course access granted!");
-        onNavigate("payment-success");
+        onNavigate?.("payment-success");
       } else {
         toast.error(verifyRes.message || "Payment verification failed.");
-        onNavigate("payment-failed");
+        onNavigate?.("payment-failed");
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to initiate payment.");
-      onNavigate("payment-failed");
+      onNavigate?.("payment-failed");
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
     <div className="min-h-screen bg-background">
       <header className="h-16 bg-card border-b border-border flex items-center px-4 sm:px-6 gap-3 sticky top-0 z-30 shadow-sm">
         <button
-          onClick={() => onNavigate("student-dashboard")}
+          onClick={() => onNavigate?.("student-dashboard")}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />

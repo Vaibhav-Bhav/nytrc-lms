@@ -25,7 +25,7 @@ export function StudentCourseDetail({
   onNavigate,
   selectedCourseId,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   selectedCourseId?: string;
 }) {
   const [course, setCourse] = useState<Course | null>(null);
@@ -65,12 +65,12 @@ export function StudentCourseDetail({
   }
 
   return (
-    <StudentLayout current="student-course-detail" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-4">
           <Breadcrumb
             items={[
-              { label: "Dashboard", onClick: () => onNavigate("student-dashboard") },
+              { label: "Dashboard", onClick: () => onNavigate?.("student-dashboard") },
               { label: course?.title || "Course Detail" },
             ]}
           />
@@ -106,7 +106,7 @@ export function StudentCourseDetail({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <Button onClick={() => onNavigate("course-player")} className="flex-1 sm:flex-none">
+              <Button onClick={() => onNavigate?.("course-player")} className="flex-1 sm:flex-none">
                 <Play className="w-4 h-4" />
                 {pct > 0 ? "Continue learning" : "Start course"}
               </Button>
@@ -186,7 +186,7 @@ export function StudentCourseDetail({
                         return (
                           <button
                             key={lesson.id}
-                            onClick={() => onNavigate("course-player")}
+                            onClick={() => onNavigate?.("course-player")}
                             disabled={lesson.locked || lesson.notPublished}
                             className={cn(
                               "w-full flex items-center gap-3 pl-12 pr-5 py-3 border-t border-border/40 text-left transition-colors cursor-pointer",

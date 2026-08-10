@@ -23,10 +23,10 @@ export function AccountLockedScreen({ onNavigate }: { onNavigate: (s: Screen) =>
         </ul>
       </div>
       <div className="flex flex-col gap-3">
-        <Button onClick={() => onNavigate("forgot-password")} className="w-full">
+        <Button onClick={() => onNavigate?.("forgot-password")} className="w-full">
           Reset my password
         </Button>
-        <Button variant="secondary" className="w-full" onClick={() => onNavigate("login")}>
+        <Button variant="secondary" className="w-full" onClick={() => onNavigate?.("login")}>
           <ArrowLeft className="w-4 h-4" />
           Back to login
         </Button>

@@ -25,5 +25,5 @@ function StudentDashboardRoute() {
     }
   }
 
-  return <StudentDashboard onNavigate={handleNavigate} />
+  return <StudentDashboard />
 }

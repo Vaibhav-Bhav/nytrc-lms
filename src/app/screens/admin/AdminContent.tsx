@@ -36,7 +36,7 @@ export function AdminContent({
   selectedCourseId,
   onSelectCourse,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   selectedCourseId?: string;
   onSelectCourse?: (id: string) => void;
 }) {
@@ -178,7 +178,7 @@ export function AdminContent({
       setDeleteCourseLoading(false);
       setDeleteCourseModal(false);
       toast.success("Course deleted successfully");
-      onNavigate("admin-dashboard");
+      onNavigate?.("admin-dashboard");
     } catch (err: any) {
       setDeleteCourseLoading(false);
       toast.error(err.message || "Failed to delete course");
@@ -341,7 +341,7 @@ export function AdminContent({
   }
 
   return (
-    <AdminLayout current="admin-content" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-4">

@@ -17,7 +17,7 @@ export function ForcePasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =>
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onNavigate("auth-password-changed");
+      onNavigate?.("auth-password-changed");
     }, 1000);
   }
 

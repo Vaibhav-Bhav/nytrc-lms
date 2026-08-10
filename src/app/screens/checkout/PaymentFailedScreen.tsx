@@ -20,7 +20,7 @@ export function PaymentFailedScreen({ onNavigate }: { onNavigate: (s: Screen) =>
           <p className="text-sm font-semibold text-foreground">Card declined by issuing bank</p>
           <p className="text-xs text-muted-foreground mt-0.5">Code: INSUFFICIENT_FUNDS</p>
         </div>
-        <Button className="w-full mb-4" onClick={() => onNavigate("checkout")}>
+        <Button className="w-full mb-4" onClick={() => onNavigate?.("checkout")}>
           <RefreshCw className="w-4 h-4" />
           Try again
         </Button>

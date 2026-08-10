@@ -19,7 +19,7 @@ export function SessionExpiredScreen({ onNavigate }: { onNavigate: (s: Screen) =
           Your progress is saved. You won't lose any completed lessons.
         </p>
       </div>
-      <Button onClick={() => onNavigate("login")} className="w-full">
+      <Button onClick={() => onNavigate?.("login")} className="w-full">
         Sign in again
       </Button>
       <p className="text-xs text-muted-foreground text-center mt-5">

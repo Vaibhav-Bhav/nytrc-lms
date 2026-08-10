@@ -4,7 +4,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { DarkToggle } from "./DarkToggle";
 import { cn } from "./Button";
 import { toast } from "sonner";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth, authQueryKey } from "../../hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function Header({
   onOpenMobileMenu,
@@ -19,6 +20,7 @@ export function Header({
 }) {
   const { data: user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const actualRole = user?.role === "admin" ? "Admin" : (role || "Student");
   const actualName = user?.name || (actualRole === "Admin" ? "Admin User" : "Student User");
@@ -54,6 +56,8 @@ export function Header({
     } catch {
       toast.error("Network error during logout.");
     } finally {
+      queryClient.setQueryData(authQueryKey, null);
+      queryClient.invalidateQueries({ queryKey: authQueryKey });
       navigate({ to: "/login" });
     }
   }
