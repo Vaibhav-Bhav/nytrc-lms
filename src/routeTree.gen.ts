@@ -13,12 +13,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CopyrightRouteImport } from './routes/copyright'
+import { Route as DeviceLimitRouteImport } from './routes/device-limit'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as ApiCoursesRouteImport } from './routes/api/courses'
+import { Route as StudentDashboardRouteImport } from './routes/student/dashboard'
 import { Route as ApiAdminCoursesRouteImport } from './routes/api/admin/courses'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
 import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
@@ -73,6 +78,21 @@ const CopyrightRoute = CopyrightRouteImport.update({
   path: '/copyright',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeviceLimitRoute = DeviceLimitRouteImport.update({
+  id: '/device-limit',
+  path: '/device-limit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -98,9 +118,19 @@ const SubscriptionRoute = SubscriptionRouteImport.update({
   path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCoursesRoute = ApiCoursesRouteImport.update({
   id: '/api/courses',
   path: '/api/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentDashboardRoute = StudentDashboardRouteImport.update({
+  id: '/student/dashboard',
+  path: '/student/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminCoursesRoute = ApiAdminCoursesRouteImport.update({
@@ -283,12 +313,17 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
+  '/device-limit': typeof DeviceLimitRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
@@ -328,12 +363,17 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
+  '/device-limit': typeof DeviceLimitRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
@@ -374,12 +414,17 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
+  '/device-limit': typeof DeviceLimitRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
@@ -421,12 +466,17 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/copyright'
+    | '/device-limit'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/dashboard'
     | '/api/courses'
+    | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
@@ -466,12 +516,17 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/copyright'
+    | '/device-limit'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/dashboard'
     | '/api/courses'
+    | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
@@ -511,12 +566,17 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/copyright'
+    | '/device-limit'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/dashboard'
     | '/api/courses'
+    | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
     | '/api/admin/sections'
@@ -557,12 +617,17 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
   CopyrightRoute: typeof CopyrightRoute
+  DeviceLimitRoute: typeof DeviceLimitRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialMediaRoute: typeof SocialMediaRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   ApiCoursesRoute: typeof ApiCoursesRouteWithChildren
+  StudentDashboardRoute: typeof StudentDashboardRoute
   ApiAdminCoursesRoute: typeof ApiAdminCoursesRouteWithChildren
   ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
   ApiAdminSectionsRoute: typeof ApiAdminSectionsRouteWithChildren
@@ -614,6 +679,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CopyrightRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/device-limit': {
+      id: '/device-limit'
+      path: '/device-limit'
+      fullPath: '/device-limit'
+      preLoaderRoute: typeof DeviceLimitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -649,11 +735,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/courses': {
       id: '/api/courses'
       path: '/api/courses'
       fullPath: '/api/courses'
       preLoaderRoute: typeof ApiCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/dashboard': {
+      id: '/student/dashboard'
+      path: '/student/dashboard'
+      fullPath: '/student/dashboard'
+      preLoaderRoute: typeof StudentDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/courses': {
@@ -1018,12 +1118,17 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
   CopyrightRoute: CopyrightRoute,
+  DeviceLimitRoute: DeviceLimitRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialMediaRoute: SocialMediaRoute,
   SubscriptionRoute: SubscriptionRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   ApiCoursesRoute: ApiCoursesRouteWithChildren,
+  StudentDashboardRoute: StudentDashboardRoute,
   ApiAdminCoursesRoute: ApiAdminCoursesRouteWithChildren,
   ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,
   ApiAdminSectionsRoute: ApiAdminSectionsRouteWithChildren,
