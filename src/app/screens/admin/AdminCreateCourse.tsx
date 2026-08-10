@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { ArrowLeft, BookOpen, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Screen } from "../../../data/types";
-import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import { FormInput } from "../../components/FormInput";
 import { FileUpload } from "../../components/FileUpload";
 import { Button, cn } from "../../components/Button";
+import { useAuth } from "../../../hooks/useAuth";
 
 export function AdminCreateCourse({
   onNavigate,
@@ -16,18 +16,21 @@ export function AdminCreateCourse({
   onNavigate?: (s: Screen) => void;
   onSelectCourse?: (id: string) => void;
 }) {
+  const { data: user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [instructor, setInstructor] = useState("Dr. Maya Patel");
-  const [status, setStatus] = useState<"draft" | "published">("published");
+  const [price, setPrice] = useState("999");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; description?: string; price?: string }>({});
 
   function validate() {
     const e: typeof errors = {};
     if (!title.trim()) e.title = "Course title is required.";
     if (!description.trim()) e.description = "Course description is required.";
+    const parsedPrice = Number(price);
+    if (isNaN(parsedPrice) || parsedPrice < 0) e.price = "Price must be a non-negative number.";
     return e;
   }
 
@@ -38,18 +41,36 @@ export function AdminCreateCourse({
       setErrors(validationErrors);
       return;
     }
+    if (!user?.id) {
+      toast.error("You must be logged in as an admin to create a course.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const created = await lmsService.createCourse({
-        title: title.trim(),
-        description: description.trim(),
-        instructor: instructor.trim(),
-        status,
-        thumbnail: thumbnailName || undefined,
+      const res = await fetch("/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          status,
+          price: Number(price) || 999,
+          created_by: user.id,
+          thumbnail_url: null,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Server error ${res.status}`);
+      }
+
+      const created = await res.json();
       setLoading(false);
       if (onSelectCourse) {
-        onSelectCourse?.(created.id);
+        onSelectCourse(created.id);
       }
       toast.success("Course created — add sections and lessons now.");
       onNavigate?.("admin-content");
@@ -118,10 +139,15 @@ export function AdminCreateCourse({
                   {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
                 </div>
                 <FormInput
-                  label="Instructor name"
-                  placeholder="e.g. Dr. Maya Patel"
-                  value={instructor}
-                  onChange={(e) => setInstructor(e.target.value)}
+                  label="Price (₹)"
+                  type="number"
+                  placeholder="999"
+                  value={price}
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    setErrors((prev) => ({ ...prev, price: undefined }));
+                  }}
+                  error={errors.price}
                 />
               </div>
             </div>

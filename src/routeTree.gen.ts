@@ -35,6 +35,7 @@ import { Route as AdminStudentsIndexRouteImport } from './routes/admin/students.
 import { Route as AdminStudentsStudentIdRouteImport } from './routes/admin/students.$studentId'
 import { Route as ApiAdminCoursesRouteImport } from './routes/api/admin/courses'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
+import { Route as ApiAdminPaymentsRouteImport } from './routes/api/admin/payments'
 import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
 import { Route as ApiAdminStudentsRouteImport } from './routes/api/admin/students'
 import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
@@ -198,6 +199,11 @@ const ApiAdminCoursesRoute = ApiAdminCoursesRouteImport.update({
 const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
   id: '/api/admin/lessons',
   path: '/api/admin/lessons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminPaymentsRoute = ApiAdminPaymentsRouteImport.update({
+  id: '/api/admin/payments',
+  path: '/api/admin/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminSectionsRoute = ApiAdminSectionsRouteImport.update({
@@ -406,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -468,6 +475,7 @@ export interface FileRoutesByTo {
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
+  '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
@@ -595,6 +604,7 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId'
     | '/api/admin/courses'
     | '/api/admin/lessons'
+    | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
     | '/api/auth/forgot-password'
@@ -657,6 +667,7 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId'
     | '/api/admin/courses'
     | '/api/admin/lessons'
+    | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
     | '/api/auth/forgot-password'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId'
     | '/api/admin/courses'
     | '/api/admin/lessons'
+    | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
     | '/api/auth/forgot-password'
@@ -782,6 +794,7 @@ export interface RootRouteChildren {
   AdminStudentsStudentIdRoute: typeof AdminStudentsStudentIdRoute
   ApiAdminCoursesRoute: typeof ApiAdminCoursesRouteWithChildren
   ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
+  ApiAdminPaymentsRoute: typeof ApiAdminPaymentsRoute
   ApiAdminSectionsRoute: typeof ApiAdminSectionsRouteWithChildren
   ApiAdminStudentsRoute: typeof ApiAdminStudentsRouteWithChildren
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
@@ -986,6 +999,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/lessons'
       fullPath: '/api/admin/lessons'
       preLoaderRoute: typeof ApiAdminLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/payments': {
+      id: '/api/admin/payments'
+      path: '/api/admin/payments'
+      fullPath: '/api/admin/payments'
+      preLoaderRoute: typeof ApiAdminPaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/sections': {
@@ -1389,6 +1409,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminStudentsStudentIdRoute: AdminStudentsStudentIdRoute,
   ApiAdminCoursesRoute: ApiAdminCoursesRouteWithChildren,
   ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,
+  ApiAdminPaymentsRoute: ApiAdminPaymentsRoute,
   ApiAdminSectionsRoute: ApiAdminSectionsRouteWithChildren,
   ApiAdminStudentsRoute: ApiAdminStudentsRouteWithChildren,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
