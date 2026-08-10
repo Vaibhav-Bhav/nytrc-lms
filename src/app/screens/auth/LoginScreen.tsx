@@ -42,6 +42,7 @@ export function LoginScreen({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -56,8 +57,8 @@ export function LoginScreen({
         } else if (response.status === 403) {
           toast.error("Account locked");
         } else if (response.status === 400 && data.error?.includes('device')) {
-          // Force a hard redirect to the device limit screen if router fails
-          window.location.href = '/device-limit';
+          // Navigate to the device limit screen
+          navigate({ to: '/device-limit' });
         } else {
           toast.error(data.error || "Login failed");
         }
@@ -70,9 +71,9 @@ export function LoginScreen({
 
       // Route based on the user's role returned from the API
       if (data.user?.role === 'admin') {
-        window.location.href = '/admin/dashboard';
+        navigate({ to: '/admin/dashboard' });
       } else {
-        window.location.href = '/student/dashboard';
+        navigate({ to: '/student/dashboard' });
       }
 
     } catch (err) {

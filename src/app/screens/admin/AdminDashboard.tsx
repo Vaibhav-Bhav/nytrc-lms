@@ -7,13 +7,13 @@ import {
   Pencil,
   Trash2,
   ChevronRight,
-  AlertTriangle,
   CreditCard,
   BarChart2,
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Screen, Course, Student } from "../../../data/types";
+import { useNavigate } from "@tanstack/react-router";
+import { Course, Student } from "../../../data/types";
 import { PAYMENT_HISTORY } from "../../../data/mockData";
 import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
@@ -22,13 +22,8 @@ import { Badge } from "../../components/Badge";
 import { ProgressBar } from "../../components/ProgressBar";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 
-export function AdminDashboard({
-  onNavigate,
-  onSelectCourse,
-}: {
-  onNavigate: (s: Screen) => void;
-  onSelectCourse?: (id: string) => void;
-}) {
+export function AdminDashboard() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +65,7 @@ export function AdminDashboard({
   }
 
   function handleEditCourse(id: string) {
-    onSelectCourse?.(id);
-    onNavigate("admin-content");
+    navigate({ to: "/admin/content", search: { courseId: id } as never });
   }
 
   const activeCount = students.filter((s) => new Date(s.lastLogin) >= new Date("2024-11-28")).length;
@@ -82,7 +76,7 @@ export function AdminDashboard({
   const aHead = "flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20";
 
   return (
-    <AdminLayout current="admin-dashboard" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           {/* Header */}
@@ -92,11 +86,11 @@ export function AdminDashboard({
               <p className="text-muted-foreground text-sm mt-1">Platform overview · LMS Admin Portal</p>
             </div>
             <div className="flex gap-2.5 self-start flex-shrink-0">
-              <Button variant="secondary" size="sm" onClick={() => onNavigate("admin-students")}>
+              <Button variant="secondary" size="sm" onClick={() => navigate({ to: "/admin/students" })}>
                 <Download className="w-4 h-4" />
                 Export
               </Button>
-              <Button onClick={() => onNavigate("admin-create-course")}>
+              <Button onClick={() => navigate({ to: "/admin/create-course" })}>
                 <Plus className="w-4 h-4" />
                 New course
               </Button>
@@ -165,7 +159,7 @@ export function AdminDashboard({
             <div className={aCard}>
               <div className={aHead}>
                 <h2 className="font-bold text-foreground text-sm">Courses ({courses.length})</h2>
-                <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-create-course")}>
+                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/create-course" })}>
                   <Plus className="w-3.5 h-3.5" />
                   New
                 </Button>
@@ -219,7 +213,7 @@ export function AdminDashboard({
             <div className={aCard}>
               <div className={aHead}>
                 <h2 className="font-bold text-foreground text-sm">Recent Payments</h2>
-                <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-payment-history")}>
+                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/payments" })}>
                   View all
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -252,7 +246,7 @@ export function AdminDashboard({
           <div className={aCard}>
             <div className={aHead}>
               <h2 className="font-bold text-foreground text-sm">Recent Students</h2>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-students")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/students" })}>
                 View all
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -281,7 +275,7 @@ export function AdminDashboard({
                     <tr
                       key={student.id}
                       className="hover:bg-muted/20 transition-colors cursor-pointer"
-                      onClick={() => onNavigate("admin-students")}
+                      onClick={() => navigate({ to: "/admin/students" })}
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">

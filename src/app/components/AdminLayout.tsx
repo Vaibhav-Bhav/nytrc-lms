@@ -1,17 +1,12 @@
 import React, { useState } from "react";
-import { Screen } from "../../data/types";
 import { cn } from "./Button";
 import { AdminSidebar } from "./AdminSidebar";
 import { Header } from "./Header";
 
 export function AdminLayout({
   children,
-  current,
-  onNavigate,
 }: {
   children: React.ReactNode;
-  current: Screen;
-  onNavigate: (s: Screen) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -26,8 +21,6 @@ export function AdminLayout({
         )}
       >
         <AdminSidebar
-          current={current}
-          onNavigate={onNavigate}
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed((c) => !c)}
         />
@@ -39,8 +32,6 @@ export function AdminLayout({
           <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs" onClick={() => setMobileOpen(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-[260px] animate-in slide-in-from-left duration-300">
             <AdminSidebar
-              current={current}
-              onNavigate={onNavigate}
               collapsed={false}
               onClose={() => setMobileOpen(false)}
             />
@@ -57,7 +48,6 @@ export function AdminLayout({
       >
         {/* Top Header */}
         <Header
-          onNavigate={onNavigate}
           onOpenMobileMenu={() => setMobileOpen(true)}
           role="Admin"
         />

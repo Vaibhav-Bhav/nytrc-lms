@@ -1,23 +1,29 @@
 import React, { useState } from "react";
-import { Search, Bell, User, LogOut, Menu, ChevronDown, Check, Sparkles } from "lucide-react";
-import { Screen } from "../../data/types";
+import { Search, Bell, User, LogOut, Menu, ChevronDown, Sparkles, Check } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { DarkToggle } from "./DarkToggle";
 import { cn } from "./Button";
 import { toast } from "sonner";
+import { useAuth } from "../../hooks/useAuth";
 
 export function Header({
-  onNavigate,
   onOpenMobileMenu,
   role = "Student",
-  userName = role === "Admin" ? "Admin User" : "Sarah Chen",
-  userEmail = role === "Admin" ? "admin@nytrc.org" : "sarah.chen@example.com",
+  userName,
+  userEmail,
 }: {
-  onNavigate: (s: Screen) => void;
   onOpenMobileMenu?: () => void;
   role?: "Student" | "Admin";
   userName?: string;
   userEmail?: string;
 }) {
+  const { data: user } = useAuth();
+  const navigate = useNavigate();
+
+  const actualRole = user?.role === "admin" ? "Admin" : (role || "Student");
+  const actualName = user?.name || (actualRole === "Admin" ? "Admin User" : "Student User");
+  const actualEmail = user?.email || (actualRole === "Admin" ? "admin@nytrc.org" : "student@example.com");
+  const initials = actualName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || (actualRole === "Admin" ? "AD" : "ST");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -28,6 +34,29 @@ export function Header({
     { id: 2, title: "Invoice Paid", desc: "Receipt #INV-2026-004 generated successfully", time: "1h ago" },
     { id: 3, title: "Welcome to NYTRC", desc: "Your enrollment is complete. Start learning now!", time: "1d ago" },
   ];
+
+  async function handleLogout() {
+    setShowProfileMenu(false);
+    setShowNotifications(false);
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        if (res.status !== 404) {
+          toast.error(d.error ?? "Logout failed. Please try again.");
+          return;
+        }
+      }
+      toast.success("Signed out successfully.");
+    } catch {
+      toast.error("Network error during logout.");
+    } finally {
+      navigate({ to: "/login" });
+    }
+  }
 
   return (
     <header className="h-[68px] bg-card border-b border-border px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs transition-colors duration-200">
@@ -107,8 +136,8 @@ export function Header({
                     className="p-3.5 hover:bg-muted/50 transition-colors cursor-pointer group"
                     onClick={() => {
                       setShowNotifications(false);
-                      if (role === "Student") onNavigate("student-courses");
-                      else onNavigate("admin-email-log");
+                      if (role === "Student") navigate({ to: "/student/courses" as "/" });
+                      else navigate({ to: "/admin/email-log" as "/" });
                     }}
                   >
                     <div className="flex justify-between items-start mb-1">
@@ -126,8 +155,8 @@ export function Header({
                 <button
                   onClick={() => {
                     setShowNotifications(false);
-                    if (role === "Student") onNavigate("student-account");
-                    else onNavigate("admin-email-log");
+                    if (role === "Student") navigate({ to: "/student/account" as "/" });
+                    else navigate({ to: "/admin/email-log" as "/" });
                   }}
                   className="text-xs font-medium text-muted-foreground hover:text-primary cursor-pointer"
                 >
@@ -151,15 +180,13 @@ export function Header({
             className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-muted transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shadow-xs">
-              {role === "Admin" ? "AD" : "SC"}
+              {initials}
             </div>
             <div className="hidden lg:flex flex-col text-left">
-              <span className="text-xs font-semibold text-foreground leading-tight">
-                {userName}
-              </span>
+              <span className="text-xs font-semibold text-foreground leading-tight">{actualName}</span>
               <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5 text-primary" />
-                {role}
+                {actualRole}
               </span>
             </div>
             <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200" />
@@ -168,56 +195,48 @@ export function Header({
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-60 bg-card border border-border rounded-2xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-3 py-2.5 mb-1 border-b border-border">
-                <p className="text-xs font-semibold text-foreground">{userName}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
+                <p className="text-xs font-semibold text-foreground">{actualName}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{actualEmail}</p>
               </div>
 
               <div className="space-y-0.5">
-                {role === "Student" ? (
+                {actualRole === "Student" ? (
                   <>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        onNavigate("student-account");
-                      }}
+                    <Link
+                      to="/student/account"
+                      onClick={() => setShowProfileMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer text-left"
                     >
                       <User className="w-4 h-4 text-primary" />
                       Account & Invoices
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        onNavigate("student-courses");
-                      }}
+                    </Link>
+                    <Link
+                      to="/student/courses"
+                      onClick={() => setShowProfileMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer text-left"
                     >
                       <Sparkles className="w-4 h-4 text-warning-foreground" />
                       My Learning Path
-                    </button>
+                    </Link>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        onNavigate("admin-dashboard");
-                      }}
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setShowProfileMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer text-left"
                     >
                       <User className="w-4 h-4 text-primary" />
                       Admin Control Panel
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        onNavigate("admin-create-course");
-                      }}
+                    </Link>
+                    <Link
+                      to="/admin/create-course"
+                      onClick={() => setShowProfileMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer text-left"
                     >
                       <Sparkles className="w-4 h-4 text-success-foreground" />
                       Create New Course
-                    </button>
+                    </Link>
                   </>
                 )}
               </div>
@@ -225,10 +244,7 @@ export function Header({
               <div className="my-1 border-t border-border" />
 
               <button
-                onClick={() => {
-                  setShowProfileMenu(false);
-                  onNavigate("login");
-                }}
+                onClick={handleLogout}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-error-foreground hover:bg-error-light rounded-xl transition-colors cursor-pointer text-left"
               >
                 <LogOut className="w-4 h-4" />

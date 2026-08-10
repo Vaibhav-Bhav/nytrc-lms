@@ -21,8 +21,16 @@ import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as AdminCreateCourseRouteImport } from './routes/admin/create-course'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminEmailLogRouteImport } from './routes/admin/email-log'
+import { Route as AdminPaymentsRouteImport } from './routes/admin/payments'
+import { Route as AdminStudentsRouteImport } from './routes/admin/students'
 import { Route as ApiCoursesRouteImport } from './routes/api/courses'
+import { Route as StudentAccountRouteImport } from './routes/student/account'
+import { Route as StudentCourseRouteImport } from './routes/student/course'
+import { Route as StudentCoursesRouteImport } from './routes/student/courses'
 import { Route as StudentDashboardRouteImport } from './routes/student/dashboard'
 import { Route as ApiAdminCoursesRouteImport } from './routes/api/admin/courses'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
@@ -118,14 +126,54 @@ const SubscriptionRoute = SubscriptionRouteImport.update({
   path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/admin/content',
+  path: '/admin/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCreateCourseRoute = AdminCreateCourseRouteImport.update({
+  id: '/admin/create-course',
+  path: '/admin/create-course',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEmailLogRoute = AdminEmailLogRouteImport.update({
+  id: '/admin/email-log',
+  path: '/admin/email-log',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/admin/payments',
+  path: '/admin/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminStudentsRoute = AdminStudentsRouteImport.update({
+  id: '/admin/students',
+  path: '/admin/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCoursesRoute = ApiCoursesRouteImport.update({
   id: '/api/courses',
   path: '/api/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentAccountRoute = StudentAccountRouteImport.update({
+  id: '/student/account',
+  path: '/student/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentCourseRoute = StudentCourseRouteImport.update({
+  id: '/student/course',
+  path: '/student/course',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentCoursesRoute = StudentCoursesRouteImport.update({
+  id: '/student/courses',
+  path: '/student/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudentDashboardRoute = StudentDashboardRouteImport.update({
@@ -321,8 +369,16 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/account': typeof StudentAccountRoute
+  '/student/course': typeof StudentCourseRoute
+  '/student/courses': typeof StudentCoursesRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
@@ -371,8 +427,16 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/account': typeof StudentAccountRoute
+  '/student/course': typeof StudentCourseRoute
+  '/student/courses': typeof StudentCoursesRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
@@ -422,8 +486,16 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/student/account': typeof StudentAccountRoute
+  '/student/course': typeof StudentCourseRoute
+  '/student/courses': typeof StudentCoursesRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
@@ -474,8 +546,16 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/content'
+    | '/admin/create-course'
     | '/admin/dashboard'
+    | '/admin/email-log'
+    | '/admin/payments'
+    | '/admin/students'
     | '/api/courses'
+    | '/student/account'
+    | '/student/course'
+    | '/student/courses'
     | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
@@ -524,8 +604,16 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/content'
+    | '/admin/create-course'
     | '/admin/dashboard'
+    | '/admin/email-log'
+    | '/admin/payments'
+    | '/admin/students'
     | '/api/courses'
+    | '/student/account'
+    | '/student/course'
+    | '/student/courses'
     | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
@@ -574,8 +662,16 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/admin/content'
+    | '/admin/create-course'
     | '/admin/dashboard'
+    | '/admin/email-log'
+    | '/admin/payments'
+    | '/admin/students'
     | '/api/courses'
+    | '/student/account'
+    | '/student/course'
+    | '/student/courses'
     | '/student/dashboard'
     | '/api/admin/courses'
     | '/api/admin/lessons'
@@ -625,8 +721,16 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialMediaRoute: typeof SocialMediaRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  AdminContentRoute: typeof AdminContentRoute
+  AdminCreateCourseRoute: typeof AdminCreateCourseRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminEmailLogRoute: typeof AdminEmailLogRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminStudentsRoute: typeof AdminStudentsRoute
   ApiCoursesRoute: typeof ApiCoursesRouteWithChildren
+  StudentAccountRoute: typeof StudentAccountRoute
+  StudentCourseRoute: typeof StudentCourseRoute
+  StudentCoursesRoute: typeof StudentCoursesRoute
   StudentDashboardRoute: typeof StudentDashboardRoute
   ApiAdminCoursesRoute: typeof ApiAdminCoursesRouteWithChildren
   ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
@@ -735,6 +839,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/create-course': {
+      id: '/admin/create-course'
+      path: '/admin/create-course'
+      fullPath: '/admin/create-course'
+      preLoaderRoute: typeof AdminCreateCourseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/admin/dashboard'
@@ -742,11 +860,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/email-log': {
+      id: '/admin/email-log'
+      path: '/admin/email-log'
+      fullPath: '/admin/email-log'
+      preLoaderRoute: typeof AdminEmailLogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/admin/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/students': {
+      id: '/admin/students'
+      path: '/admin/students'
+      fullPath: '/admin/students'
+      preLoaderRoute: typeof AdminStudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/courses': {
       id: '/api/courses'
       path: '/api/courses'
       fullPath: '/api/courses'
       preLoaderRoute: typeof ApiCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/account': {
+      id: '/student/account'
+      path: '/student/account'
+      fullPath: '/student/account'
+      preLoaderRoute: typeof StudentAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/course': {
+      id: '/student/course'
+      path: '/student/course'
+      fullPath: '/student/course'
+      preLoaderRoute: typeof StudentCourseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/courses': {
+      id: '/student/courses'
+      path: '/student/courses'
+      fullPath: '/student/courses'
+      preLoaderRoute: typeof StudentCoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/student/dashboard': {
@@ -1126,8 +1286,16 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialMediaRoute: SocialMediaRoute,
   SubscriptionRoute: SubscriptionRoute,
+  AdminContentRoute: AdminContentRoute,
+  AdminCreateCourseRoute: AdminCreateCourseRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminEmailLogRoute: AdminEmailLogRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminStudentsRoute: AdminStudentsRoute,
   ApiCoursesRoute: ApiCoursesRouteWithChildren,
+  StudentAccountRoute: StudentAccountRoute,
+  StudentCourseRoute: StudentCourseRoute,
+  StudentCoursesRoute: StudentCoursesRoute,
   StudentDashboardRoute: StudentDashboardRoute,
   ApiAdminCoursesRoute: ApiAdminCoursesRouteWithChildren,
   ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,

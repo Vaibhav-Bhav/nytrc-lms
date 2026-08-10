@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
   Play,
@@ -20,6 +21,7 @@ import { Button, cn } from "../../components/Button";
 import { ProgressBar } from "../../components/ProgressBar";
 import { Badge } from "../../components/Badge";
 import { SupportCard } from "../../components/SupportCard";
+import { useAuth } from "../../../hooks/useAuth";
 
 const COURSE_IMG_WIDE = "https://images.unsplash.com/photo-1523437113738-bbd3cc89fb19?w=1200&h=500&fit=crop&auto=format";
 
@@ -63,13 +65,9 @@ function CircularProgress({
   );
 }
 
-export function StudentDashboard({
-  onNavigate,
-  onSelectCourse,
-}: {
-  onNavigate: (s: Screen) => void;
-  onSelectCourse?: (id: string) => void;
-}) {
+export function StudentDashboard() {
+  const navigate = useNavigate();
+  const { data: user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,10 +83,11 @@ export function StudentDashboard({
   const visibleCourses = courses.filter((c) => c.status === "published" || true);
 
   function handleOpenCourse(id: string, screen: "course-player" | "student-course-detail") {
-    if (onSelectCourse) {
-      onSelectCourse(id);
+    if (screen === "course-player") {
+      navigate({ to: "/student/course", search: { id } as never });
+    } else {
+      navigate({ to: "/student/courses" });
     }
-    onNavigate(screen);
   }
 
   const primaryCourse = visibleCourses[0];
@@ -101,7 +100,7 @@ export function StudentDashboard({
   const wHead = "text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest";
 
   return (
-    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="bg-card rounded-2xl border border-border p-8 text-center animate-pulse">
@@ -128,7 +127,7 @@ export function StudentDashboard({
                 <div className="flex-1 min-w-0">
                   <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.12em] mb-2">Welcome back</p>
                   <h1 className="text-[22px] font-extrabold text-white leading-none mb-1 tracking-tight">
-                    Sarah Chen <span className="font-normal">👋</span>
+                    {user?.name || "Student"} <span className="font-normal">👋</span>
                   </h1>
                   <p className="text-white/60 text-sm mb-6">Continue your learning journey.</p>
 
