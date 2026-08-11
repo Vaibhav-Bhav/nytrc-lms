@@ -73,6 +73,60 @@ interface LessonProgress {
   completed_at: string | null;
 }
 
+// ── Progress persistence helpers (Phase 4) ───────────────────────────────────
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
+
+async function saveProgressApi(
+  lessonId: string | null,
+  payload: { videoProgressSeconds?: number; documentProgressPage?: number; completed?: boolean },
+) {
+  if (!lessonId) return null;
+  try {
+    const response = await fetch("/api/student/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        lessonId,
+        videoProgressSeconds: payload.videoProgressSeconds,
+        documentProgressPage: payload.documentProgressPage,
+        completed: payload.completed,
+      }),
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    if (response.status === 401) {
+      console.warn("[Progress] No active session found.");
+      return null;
+    }
+    toast.error("Failed to save progress to the server.");
+    throw new Error(`Server returned status ${response.status}`);
+  } catch (e) {
+    console.error("Progress save failed:", e);
+    toast.error("Network error: Progress could not be saved to server.");
+    throw e;
+  }
+}
+
+async function loadProgressApi(lessonId: string | null) {
+  if (!lessonId) return null;
+  try {
+    const response = await fetch(`/api/student/progress/${lessonId}`, { credentials: "include" });
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn("Real API load progress failed:", e);
+  }
+  return null;
+}
+
 export function CoursePlayer({
   onNavigate,
   selectedCourseId,
@@ -92,10 +146,18 @@ export function CoursePlayer({
   const [videoError, setVideoError] = useState(false);
   const [pdfError, setPdfError] = useState(false);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  // Main branch: media URL state for Bunny Stream / PDF signed URLs
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [mediaLoading, setMediaLoading] = useState(false);
   const markingComplete = useRef(false);
+
+  // Phase 4: progress tracking state
+  const [currentTime, setCurrentTime] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(5);
+  const lastSavedTimeRef = useRef<number>(0);
 
   useEffect(() => {
     async function loadPlayerData() {
@@ -150,7 +212,7 @@ export function CoursePlayer({
     loadPlayerData();
   }, [selectedCourseId]);
 
-  // Load media URL when current lesson changes
+  // Main branch: Load media URL when current lesson changes
   useEffect(() => {
     if (!currentLessonId) return;
     setVideoUrl(null);
@@ -176,6 +238,64 @@ export function CoursePlayer({
       }
     }
   }, [currentLessonId, sections]);
+
+  // Phase 4: Sync progress when lesson changes
+  useEffect(() => {
+    if (!currentLessonId) return;
+    async function syncProgress() {
+      const progress = await loadProgressApi(currentLessonId);
+      if (progress) {
+        const seconds = progress.video_progress_seconds || 0;
+        setCurrentTime(seconds);
+        setCurrentPage(progress.document_progress_page || 1);
+        lastSavedTimeRef.current = seconds;
+        if (progress.completed) {
+          setCompletedIds((prev) => new Set([...prev, currentLessonId!]));
+        }
+      } else {
+        setCurrentTime(0);
+        setCurrentPage(1);
+        lastSavedTimeRef.current = 0;
+      }
+      const lesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
+      if (lesson) {
+        setTotalPages(lesson.page_count || 5);
+      }
+    }
+    syncProgress();
+  }, [currentLessonId, sections]);
+
+  // Phase 4: Video completion handler
+  // TODO (Phase 5 — Bunny Stream SDK): When Bunny Player.js SDK is integrated,
+  // call this from the player's 'ended' event to persist video completion.
+  function handleVideoEnded() {
+    setPlaying(false);
+    if (!currentLessonId) return;
+    saveProgressApi(currentLessonId, {
+      videoProgressSeconds: Math.floor(currentTime),
+      completed: true,
+    }).then(() => {
+      setCompletedIds((prev) => new Set([...prev, currentLessonId!]));
+      toast.success("Lesson completed!");
+    }).catch(() => {
+      // save error already toasted by saveProgressApi
+    });
+  }
+
+  // Phase 4: PDF page change handler with progress persistence
+  async function handlePdfPageChange(nextPage: number) {
+    if (nextPage < 1 || nextPage > totalPages || !currentLesson) return;
+    setCurrentPage(nextPage);
+    const isCompleted = nextPage === totalPages;
+    await saveProgressApi(currentLesson.id, {
+      documentProgressPage: nextPage,
+      completed: isCompleted,
+    });
+    if (isCompleted) {
+      setCompletedIds((prev) => new Set([...prev, currentLesson.id]));
+      toast.success("PDF Lesson completed!");
+    }
+  }
 
   const allLessons = sections.flatMap((s) => s.lessons || []);
   const currentIdx = allLessons.findIndex((l) => l.id === currentLessonId);
@@ -326,6 +446,11 @@ export function CoursePlayer({
                     </div>
                   ) : videoUrl ? (
                     // Real Bunny Stream embed
+                    // TODO (Phase 5 — Bunny Player.js SDK): Replace this basic iframe with
+                    // the Bunny Stream Player.js embed to gain access to playback events
+                    // (timeupdate, ended, seeked) for real-time 15-second progress autosave.
+                    // Currently, video progress can only be persisted via the manual
+                    // "Mark as complete" button since the iframe doesn't expose currentTime.
                     <iframe
                       src={videoUrl}
                       className="absolute inset-0 w-full h-full"
@@ -448,12 +573,38 @@ export function CoursePlayer({
                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : pdfUrl ? (
-                    <iframe
-                      src={pdfUrl}
-                      className="w-full"
-                      style={{ height: "72vh" }}
-                      title={currentLesson?.title || "PDF Document"}
-                    />
+                    <div>
+                      <iframe
+                        src={pdfUrl}
+                        className="w-full"
+                        style={{ height: "72vh" }}
+                        title={currentLesson?.title || "PDF Document"}
+                      />
+                      {/* Phase 4: PDF page navigation for progress tracking */}
+                      <div className="flex items-center justify-center gap-3 px-4 py-3 border-t border-border bg-muted/20">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={currentPage <= 1}
+                          onClick={() => handlePdfPageChange(currentPage - 1)}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Previous Page
+                        </Button>
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={currentPage >= totalPages}
+                          onClick={() => handlePdfPageChange(currentPage + 1)}
+                        >
+                          Next Page
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="h-72 flex items-center justify-center bg-muted/10">
                       <div className="text-center">
@@ -496,6 +647,13 @@ export function CoursePlayer({
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-3">
                   <h3 className="font-bold text-foreground text-base">{currentLesson?.title}</h3>
+                  {/* Phase 4: Resume position indicator for video lessons */}
+                  {currentLesson && currentLessonId && !completedIds.has(currentLessonId) && currentLesson.hasVideo && currentTime > 0 && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400 flex-shrink-0">
+                      <Clock className="w-3.5 h-3.5" />
+                      Resume from {formatTime(currentTime)}
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {currentLesson?.description || "In this lesson you'll explore core technical concepts, step-by-step demonstrations, and hands-on exercises tailored for this course module."}

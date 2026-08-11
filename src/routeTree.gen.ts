@@ -50,6 +50,7 @@ import { Route as ApiCoursesIdRouteImport } from './routes/api/courses.$id'
 import { Route as ApiPaymentsOrderRouteImport } from './routes/api/payments/order'
 import { Route as ApiPaymentsVerifyRouteImport } from './routes/api/payments/verify'
 import { Route as ApiPaymentsWebhookRouteImport } from './routes/api/payments/webhook'
+import { Route as ApiSectionsIdRouteImport } from './routes/api/sections.$id'
 import { Route as ApiStudentCoursesRouteImport } from './routes/api/student/courses'
 import { Route as ApiStudentProgressRouteImport } from './routes/api/student/progress'
 import { Route as ApiAdminCoursesIdRouteImport } from './routes/api/admin/courses.$id'
@@ -276,6 +277,11 @@ const ApiPaymentsWebhookRoute = ApiPaymentsWebhookRouteImport.update({
   path: '/api/payments/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSectionsIdRoute = ApiSectionsIdRouteImport.update({
+  id: '/api/sections/$id',
+  path: '/api/sections/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStudentCoursesRoute = ApiStudentCoursesRouteImport.update({
   id: '/api/student/courses',
   path: '/api/student/courses',
@@ -427,6 +433,7 @@ export interface FileRoutesByFullPath {
   '/api/payments/order': typeof ApiPaymentsOrderRoute
   '/api/payments/verify': typeof ApiPaymentsVerifyRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/sections/$id': typeof ApiSectionsIdRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
   '/admin/students/': typeof AdminStudentsIndexRoute
@@ -490,6 +497,7 @@ export interface FileRoutesByTo {
   '/api/payments/order': typeof ApiPaymentsOrderRoute
   '/api/payments/verify': typeof ApiPaymentsVerifyRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/sections/$id': typeof ApiSectionsIdRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
   '/admin/students': typeof AdminStudentsIndexRoute
@@ -554,6 +562,7 @@ export interface FileRoutesById {
   '/api/payments/order': typeof ApiPaymentsOrderRoute
   '/api/payments/verify': typeof ApiPaymentsVerifyRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/sections/$id': typeof ApiSectionsIdRoute
   '/api/student/courses': typeof ApiStudentCoursesRouteWithChildren
   '/api/student/progress': typeof ApiStudentProgressRouteWithChildren
   '/admin/students/': typeof AdminStudentsIndexRoute
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/api/payments/order'
     | '/api/payments/verify'
     | '/api/payments/webhook'
+    | '/api/sections/$id'
     | '/api/student/courses'
     | '/api/student/progress'
     | '/admin/students/'
@@ -682,6 +692,7 @@ export interface FileRouteTypes {
     | '/api/payments/order'
     | '/api/payments/verify'
     | '/api/payments/webhook'
+    | '/api/sections/$id'
     | '/api/student/courses'
     | '/api/student/progress'
     | '/admin/students'
@@ -745,6 +756,7 @@ export interface FileRouteTypes {
     | '/api/payments/order'
     | '/api/payments/verify'
     | '/api/payments/webhook'
+    | '/api/sections/$id'
     | '/api/student/courses'
     | '/api/student/progress'
     | '/admin/students/'
@@ -808,6 +820,7 @@ export interface RootRouteChildren {
   ApiPaymentsOrderRoute: typeof ApiPaymentsOrderRoute
   ApiPaymentsVerifyRoute: typeof ApiPaymentsVerifyRoute
   ApiPaymentsWebhookRoute: typeof ApiPaymentsWebhookRoute
+  ApiSectionsIdRoute: typeof ApiSectionsIdRoute
   ApiStudentCoursesRoute: typeof ApiStudentCoursesRouteWithChildren
   ApiStudentProgressRoute: typeof ApiStudentProgressRouteWithChildren
   AdminStudentsIndexRoute: typeof AdminStudentsIndexRoute
@@ -1104,6 +1117,13 @@ declare module '@tanstack/react-router' {
       path: '/api/payments/webhook'
       fullPath: '/api/payments/webhook'
       preLoaderRoute: typeof ApiPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sections/$id': {
+      id: '/api/sections/$id'
+      path: '/api/sections/$id'
+      fullPath: '/api/sections/$id'
+      preLoaderRoute: typeof ApiSectionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/student/courses': {
@@ -1423,6 +1443,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentsOrderRoute: ApiPaymentsOrderRoute,
   ApiPaymentsVerifyRoute: ApiPaymentsVerifyRoute,
   ApiPaymentsWebhookRoute: ApiPaymentsWebhookRoute,
+  ApiSectionsIdRoute: ApiSectionsIdRoute,
   ApiStudentCoursesRoute: ApiStudentCoursesRouteWithChildren,
   ApiStudentProgressRoute: ApiStudentProgressRouteWithChildren,
   AdminStudentsIndexRoute: AdminStudentsIndexRoute,

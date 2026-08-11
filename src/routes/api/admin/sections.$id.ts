@@ -21,8 +21,13 @@ export const Route = createFileRoute('/api/admin/sections/$id')({
           const updated = await sectionService.update(params.id, parsed.data)
           return Response.json(updated)
         } catch (err) {
-          if (err instanceof Error && err.message === 'SECTION_NOT_FOUND') {
-            return Response.json({ error: 'Section not found' }, { status: 404 })
+          if (err instanceof Error) {
+            if (err.message === 'TITLE_REQUIRED') {
+              return Response.json({ error: 'Title is required' }, { status: 400 })
+            }
+            if (err.message === 'SECTION_NOT_FOUND') {
+              return Response.json({ error: 'Section not found' }, { status: 404 })
+            }
           }
           return Response.json({ error: 'Internal server error' }, { status: 500 })
         }

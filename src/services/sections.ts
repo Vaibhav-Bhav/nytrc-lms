@@ -16,15 +16,28 @@ export const sectionService = {
   },
 
   async create(data: NewSection) {
+    if (!data.title || data.title.trim().length === 0) {
+      throw new Error('TITLE_REQUIRED')
+    }
     const course = await courseRepository.findById(data.course_id)
     if (!course) {
       throw new Error('COURSE_NOT_FOUND')
     }
-    return sectionRepository.create(data)
+    return sectionRepository.create({
+      ...data,
+      title: data.title.trim(),
+    })
   },
 
   async update(id: string, data: UpdateSection) {
-    const updated = await sectionRepository.update(id, data)
+    const { course_id, ...updateData } = data
+    if (updateData.title !== undefined) {
+      if (updateData.title === null || updateData.title.trim().length === 0) {
+        throw new Error('TITLE_REQUIRED')
+      }
+      updateData.title = updateData.title.trim()
+    }
+    const updated = await sectionRepository.update(id, updateData)
     if (!updated) {
       throw new Error('SECTION_NOT_FOUND')
     }
