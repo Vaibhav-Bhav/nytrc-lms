@@ -37,6 +37,8 @@ interface ApiLesson {
   lesson_order: number;
   hasVideo: boolean;
   hasDocument: boolean;
+  video_id?: string | null;
+  pdf_url?: string | null;
   allow_download: boolean;
   page_count: number | null;
 }
@@ -160,23 +162,20 @@ export function CoursePlayer({
     const currentLesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
     if (!currentLesson) return;
 
-    setMediaLoading(true);
     if (currentLesson.hasVideo) {
-      fetch(`/api/student/lessons/${currentLessonId}/video`, { credentials: "include" })
-        .then((r) => r.ok ? r.json() : Promise.reject(r))
-        .then((data) => { setVideoUrl(data.embedUrl || data.url || null); })
-        .catch(() => setVideoError(true))
-        .finally(() => setMediaLoading(false));
+      if (currentLesson.video_id) {
+        setVideoUrl(currentLesson.video_id);
+      } else {
+        setVideoError(true);
+      }
     } else if (currentLesson.hasDocument) {
-      fetch(`/api/student/lessons/${currentLessonId}/document`, { credentials: "include" })
-        .then((r) => r.ok ? r.json() : Promise.reject(r))
-        .then((data) => { setPdfUrl(data.url || null); })
-        .catch(() => setPdfError(true))
-        .finally(() => setMediaLoading(false));
-    } else {
-      setMediaLoading(false);
+      if (currentLesson.pdf_url) {
+        setPdfUrl(currentLesson.pdf_url);
+      } else {
+        setPdfError(true);
+      }
     }
-  }, [currentLessonId]);
+  }, [currentLessonId, sections]);
 
   const allLessons = sections.flatMap((s) => s.lessons || []);
   const currentIdx = allLessons.findIndex((l) => l.id === currentLessonId);

@@ -98,6 +98,8 @@ function toUiLesson(l: DbLesson) {
     locked: false,
     notPublished: l.status === "draft",
     description: l.description,
+    videoId: l.video_id,
+    pdfUrl: l.pdf_url,
   };
 }
 
@@ -150,11 +152,13 @@ export function AdminContent({
   const [newSectionDesc, setNewSectionDesc] = useState("");
   const [sectionLoading, setSectionLoading] = useState(false);
 
-  // Add Lesson modal state
-  const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string } | null>(null);
+  // Add/Edit Lesson modal state
+  const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string; lessonId?: string } | null>(null);
   const [newLessonTitle, setNewLessonTitle] = useState("");
   const [newLessonDesc, setNewLessonDesc] = useState("");
   const [newLessonType, setNewLessonType] = useState<"video" | "pdf">("video");
+  const [newLessonVideoId, setNewLessonVideoId] = useState("");
+  const [newLessonPdfUrl, setNewLessonPdfUrl] = useState("");
   const [lessonLoading, setLessonLoading] = useState(false);
 
   // Publish Course modal state
@@ -267,30 +271,73 @@ export function AdminContent({
 
   async function handleAddLesson() {
     if (!newLessonTitle.trim() || !addLessonModal) return;
+    
+    if (newLessonType === "video" && !newLessonVideoId.trim()) {
+      toast.error("Video ID or URL is required");
+      return;
+    }
+    if (newLessonType === "pdf" && !newLessonPdfUrl.trim()) {
+      toast.error("PDF URL is required");
+      return;
+    }
+
     setLessonLoading(true);
     try {
-      const created: DbLesson = await apiAdmin("/api/admin/lessons", {
-        method: "POST",
-        body: JSON.stringify({
-          section_id: addLessonModal.sectionId,
-          title: newLessonTitle.trim(),
-          description: newLessonDesc.trim() || null,
-          status: "draft",
-        }),
-      });
-      const newLesson = toUiLesson(created);
-      setSections((prev) =>
-        prev.map((s) =>
-          s.id === addLessonModal.sectionId
-            ? { ...s, lessons: [...(s.lessons || []), newLesson] }
-            : s
-        )
-      );
+      if (addLessonModal.lessonId) {
+        // Edit existing
+        const updated: DbLesson = await apiAdmin(`/api/admin/lessons/${addLessonModal.lessonId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            title: newLessonTitle.trim(),
+            description: newLessonDesc.trim() || undefined,
+            video_id: newLessonType === "video" ? newLessonVideoId.trim() : null,
+            pdf_url: newLessonType === "pdf" ? newLessonPdfUrl.trim() : null,
+          }),
+        });
+        const updatedLesson = toUiLesson(updated);
+        setSections((prev) =>
+          prev.map((s) =>
+            s.id === addLessonModal.sectionId
+              ? {
+                  ...s,
+                  lessons: s.lessons?.map((l) => (l.id === addLessonModal.lessonId ? updatedLesson : l)),
+                }
+              : s
+          )
+        );
+        toast.success("Lesson updated successfully.");
+      } else {
+        // Create new
+        const created: DbLesson = await apiAdmin("/api/admin/lessons", {
+          method: "POST",
+          body: JSON.stringify({
+            section_id: addLessonModal.sectionId,
+            title: newLessonTitle.trim(),
+            description: newLessonDesc.trim() || undefined,
+            status: "draft",
+            video_id: newLessonType === "video" ? newLessonVideoId.trim() : undefined,
+            pdf_url: newLessonType === "pdf" ? newLessonPdfUrl.trim() : undefined,
+          }),
+        });
+        const newLesson = toUiLesson(created);
+        setSections((prev) =>
+          prev.map((s) =>
+            s.id === addLessonModal.sectionId
+              ? { ...s, lessons: [...(s.lessons || []), newLesson] }
+              : s
+          )
+        );
+        toast.success("Lesson added successfully.");
+      }
+      
       setAddLessonModal(null);
       setNewLessonTitle("");
       setNewLessonDesc("");
-      toast.success("Lesson added — ready for media upload.");
+      setNewLessonVideoId("");
+      setNewLessonPdfUrl("");
+      toast.success("Lesson added successfully.");
     } catch (err: any) {
+      console.error("Backend error adding lesson:", err);
       toast.error(err.message || "Failed to add lesson");
     } finally {
       setLessonLoading(false);
@@ -653,6 +700,21 @@ export function AdminContent({
                               <div className="flex items-center gap-1 opacity-0 group-hover/l:opacity-100 transition-opacity flex-shrink-0">
                                 <button
                                   onClick={() => {
+                                    setAddLessonModal({ sectionId: section.id, lessonId: lesson.id });
+                                    setNewLessonTitle(lesson.title);
+                                    setNewLessonDesc(lesson.description || "");
+                                    setNewLessonType(lesson.type);
+                                    setNewLessonVideoId(lesson.videoId || "");
+                                    setNewLessonPdfUrl(lesson.pdfUrl || "");
+                                  }}
+                                  title="Edit Lesson"
+                                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <FileText className="w-3 h-3" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
                                     setUploadTargetSection(section.id);
                                     setUploadTargetLesson(lesson.id);
                                     setUploadFileType(lesson.type);
@@ -823,16 +885,16 @@ export function AdminContent({
         </div>
       </Modal>
 
-      {/* Add Lesson modal */}
+      {/* Add/Edit Lesson modal */}
       <Modal
         open={!!addLessonModal}
-        onClose={() => { setAddLessonModal(null); setNewLessonTitle(""); setNewLessonDesc(""); }}
-        title="Add lesson"
+        onClose={() => { setAddLessonModal(null); setNewLessonTitle(""); setNewLessonDesc(""); setNewLessonVideoId(""); setNewLessonPdfUrl(""); }}
+        title={addLessonModal?.lessonId ? "Edit lesson" : "Add lesson"}
         actions={
           <>
             <Button variant="secondary" size="sm" onClick={() => setAddLessonModal(null)}>Cancel</Button>
             <Button size="sm" loading={lessonLoading} disabled={!newLessonTitle.trim()} onClick={handleAddLesson}>
-              Add lesson
+              {addLessonModal?.lessonId ? "Save changes" : "Add lesson"}
             </Button>
           </>
         }
@@ -878,6 +940,24 @@ export function AdminContent({
               ))}
             </div>
           </div>
+          {newLessonType === "video" && (
+            <FormInput
+              label="Video ID / URL"
+              placeholder="e.g. YouTube URL or ID"
+              value={newLessonVideoId}
+              onChange={(e) => setNewLessonVideoId(e.target.value)}
+              required
+            />
+          )}
+          {newLessonType === "pdf" && (
+            <FormInput
+              label="PDF URL"
+              placeholder="e.g. https://example.com/file.pdf"
+              value={newLessonPdfUrl}
+              onChange={(e) => setNewLessonPdfUrl(e.target.value)}
+              required
+            />
+          )}
         </div>
       </Modal>
 

@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Mail, Phone, Clock, ChevronRight, Send, RefreshCw, UserX, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Screen, Student } from "../../../data/types";
-import { INITIAL_STUDENTS } from "../../../data/mockData";
-import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import { Badge } from "../../components/Badge";
@@ -64,7 +62,23 @@ export function AdminStudentDetail({
     );
   }
 
-  const activeStudent = student || INITIAL_STUDENTS[0];
+  if (!student) {
+    return (
+      <AdminLayout>
+        <main className="flex-1 overflow-y-auto bg-background flex items-center justify-center min-h-[50vh]">
+          <div className="flex flex-col items-center gap-3">
+            <UserX className="w-10 h-10 text-muted-foreground/30" />
+            <p className="text-muted-foreground text-sm font-medium">Student not found</p>
+            <Button variant="secondary" onClick={() => onNavigate?.("admin-students")}>
+              Back to Students
+            </Button>
+          </div>
+        </main>
+      </AdminLayout>
+    );
+  }
+
+  const activeStudent = student;
 
   function runAction(key: string, close: () => void, msg: string, onSuccess?: () => void) {
     setActionLoading(key);

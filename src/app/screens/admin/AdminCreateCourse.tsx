@@ -8,6 +8,7 @@ import { FormInput } from "../../components/FormInput";
 import { FileUpload } from "../../components/FileUpload";
 import { Button, cn } from "../../components/Button";
 import { useAuth } from "../../../hooks/useAuth";
+import { useNavigate } from "@tanstack/react-router";
 
 export function AdminCreateCourse({
   onNavigate,
@@ -17,6 +18,7 @@ export function AdminCreateCourse({
   onSelectCourse?: (id: string) => void;
 }) {
   const { data: user } = useAuth();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("999");
@@ -55,16 +57,16 @@ export function AdminCreateCourse({
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
-          status,
-          price: Number(price) || 999,
+          status: status.toLowerCase(),
+          price: Number(price) || 0,
           created_by: user.id,
-          thumbnail_url: null,
         }),
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Server error ${res.status}`);
+        const errData = await res.json().catch(() => ({}));
+        console.error('Backend 400 Error Details:', errData);
+        throw new Error(errData.message || errData.error || `Server error ${res.status}`);
       }
 
       const created = await res.json();
@@ -73,9 +75,10 @@ export function AdminCreateCourse({
         onSelectCourse(created.id);
       }
       toast.success("Course created — add sections and lessons now.");
-      onNavigate?.("admin-content");
+      navigate({ to: '/admin/content' });
     } catch (err: any) {
       setLoading(false);
+      console.error("Course creation failed:", err);
       toast.error(err.message || "Failed to create course");
     }
   }

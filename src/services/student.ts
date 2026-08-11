@@ -56,6 +56,8 @@ export const studentService = {
           lesson_order: l.lesson_order,
           hasVideo: !!l.video_id,
           hasDocument: !!l.pdf_url,
+          video_id: l.video_id,
+          pdf_url: l.pdf_url,
           allow_download: l.allow_download,
           page_count: l.page_count,
         }))

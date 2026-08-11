@@ -22,13 +22,20 @@ export const Route = createFileRoute('/api/admin/courses')({
 
             POST: async ({ request }) => {
                 await requireAdmin(request)
+                const user = (request as any).user
 
                 try {
                     const body = await request.json()
+                    
+                    // Assign the authenticated user as the creator
+                    if (user && user.id) {
+                        body.created_by = user.id
+                    }
+
                     const parsed = newCourseSchema.safeParse(body)
                     if (!parsed.success) {
                         return Response.json(
-                            { error: 'Validation failed', issues: parsed.error.issues },
+                            { error: 'Validation failed', details: parsed.error.issues },
                             { status: 400 },
                         )
                     }

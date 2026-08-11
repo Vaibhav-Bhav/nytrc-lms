@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Play, Layers } from "lucide-react";
 import { Screen, Course } from "../../../data/types";
-import { lmsService } from "../../../services/lmsService";
 import { StudentLayout } from "../../components/StudentNav";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import { SearchInput } from "../../components/SearchInput";
@@ -24,9 +23,28 @@ export function StudentCourses({
 
   useEffect(() => {
     async function loadCourses() {
-      const data = await lmsService.getCourses();
-      setCourses(data);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/student/courses", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch courses");
+        const data = await res.json();
+        
+        const mapped: Course[] = data.map((c: any) => ({
+          id: c.id,
+          title: c.title,
+          description: c.description || "",
+          instructor: "Instructor", // Placeholder until instructor names are returned by API
+          status: c.status,
+          thumbnail: c.thumbnail_url || COURSE_IMG,
+          progress: c.progress || 0,
+          sectionCount: c.sectionCount || 0,
+          lessonCount: c.lessonCount || 0,
+        }));
+        setCourses(mapped);
+      } catch (err) {
+        console.error("Failed to load student courses:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     loadCourses();
   }, []);
@@ -92,8 +110,7 @@ export function StudentCourses({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             {filtered.map((c) => {
-              const isPrimary = c.id === "c1";
-              const pct = isPrimary ? 60 : 0;
+              const pct = c.progress || 0;
 
               return (
                 <div

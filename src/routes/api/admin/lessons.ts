@@ -14,7 +14,7 @@ export const Route = createFileRoute('/api/admin/lessons')({
           const parsed = newLessonSchema.safeParse(body)
           if (!parsed.success) {
             return Response.json(
-              { error: 'Validation failed', issues: parsed.error.issues },
+              { error: 'Validation failed', details: parsed.error.issues },
               { status: 400 },
             )
           }

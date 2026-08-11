@@ -30,6 +30,7 @@ export interface Course {
   instructor: string;
   thumbnail?: string;
   status: "draft" | "published";
+  progress?: number;
   sectionCount?: number;
   lessonCount?: number;
   studentCount?: number;
