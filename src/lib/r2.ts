@@ -30,13 +30,8 @@ export function getR2Config() {
   const accessKeyId = getRequiredEnv('R2_ACCESS_KEY_ID')
   const secretAccessKey = getRequiredEnv('R2_SECRET_ACCESS_KEY')
   const bucket = getRequiredEnv('R2_BUCKET')
-  const publicUrlEnv = process.env['R2_PUBLIC_URL'] || process.env['R2_PUBLIC_BASE_URL']
-
-  if (!publicUrlEnv || publicUrlEnv.trim() === '') {
-    throw new Error('Missing required environment variable: R2_PUBLIC_URL')
-  }
-
-  const publicUrl = publicUrlEnv.trim().replace(/\/$/, '')
+  const publicUrlEnv = process.env['R2_PUBLIC_URL'] || process.env['R2_PUBLIC_BASE_URL'] || ''
+  const publicUrl = publicUrlEnv.trim().replace(/\/$/, '') || null
 
   return {
     accountId,
@@ -109,7 +104,8 @@ export async function uploadR2File(
   }
 
   return {
-    publicUrl: `${config.publicUrl}/${cleanKey}`,
+    key: cleanKey,
+    publicUrl: config.publicUrl ? `${config.publicUrl}/${cleanKey}` : cleanKey,
   }
 }
 

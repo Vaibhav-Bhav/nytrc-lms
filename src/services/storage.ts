@@ -100,16 +100,17 @@ export const storageService = {
       const uniqueKey = `lessons/${lessonId}/${Date.now()}-${filename}`
 
       // 4. Upload to Cloudflare R2
-      const { publicUrl } = await uploadR2File(uniqueKey, fileData, contentType)
+      const { key } = await uploadR2File(uniqueKey, fileData, contentType)
 
-      // 5. Persist document URL to the lesson metadata
-      await lessonRepository.update(lessonId, { pdf_url: publicUrl })
+      // 5. Persist the R2 object key to the lesson metadata
+      //    We store the key (not the public URL) so we can always generate presigned URLs
+      await lessonRepository.update(lessonId, { pdf_url: key })
 
       return {
         lessonId,
         filename,
         contentType,
-        url: publicUrl,
+        key,
         status: 'uploaded',
       }
     } catch (err) {
@@ -167,16 +168,40 @@ export const storageService = {
     }
 
     try {
-      const config = getR2Config()
+      // The pdf_url might be:
+      //   1. An R2 object key like 'lessons/{id}/{timestamp}-file.pdf'
+      //   2. A full public URL like 'https://pub-xxx.r2.dev/lessons/...'
+      //   3. An external URL like 'https://example.com/file.pdf'
       let key = lesson.pdf_url
-      if (lesson.pdf_url.startsWith(config.publicUrl)) {
-        key = lesson.pdf_url.substring(config.publicUrl.length).replace(/^\//, '')
+
+      // If it's an external URL (not R2), return it directly
+      if (key.startsWith('http://') || key.startsWith('https://')) {
+        try {
+          const config = getR2Config()
+          if (config.publicUrl && key.startsWith(config.publicUrl)) {
+            key = key.substring(config.publicUrl.length).replace(/^\//, '')
+          } else {
+            // It's an external URL, return as-is
+            return {
+              lessonId,
+              url: lesson.pdf_url,
+              downloadUrl: lesson.pdf_url,
+            }
+          }
+        } catch {
+          // Config error, treat as external URL
+          return {
+            lessonId,
+            url: lesson.pdf_url,
+            downloadUrl: lesson.pdf_url,
+          }
+        }
       }
 
       const { downloadUrl } = await getSignedDownloadUrl(key)
       return {
         lessonId,
-        pdfUrl: lesson.pdf_url,
+        url: lesson.pdf_url,
         downloadUrl,
       }
     } catch (err) {

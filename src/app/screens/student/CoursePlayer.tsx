@@ -269,7 +269,18 @@ export function CoursePlayer({
       }
     } else if (currentLesson.hasDocument) {
       if (currentLesson.pdf_url) {
-        setPdfUrl(currentLesson.pdf_url);
+        // If it's already a full external URL, use it directly
+        if (currentLesson.pdf_url.startsWith('http://') || currentLesson.pdf_url.startsWith('https://')) {
+          setPdfUrl(currentLesson.pdf_url);
+        } else {
+          // It's an R2 key — fetch a presigned download URL from the backend
+          setMediaLoading(true);
+          fetch(`/api/student/lessons/${currentLessonId}/document`, { credentials: "include" })
+            .then((r) => r.ok ? r.json() : Promise.reject(r))
+            .then((data) => { setPdfUrl(data.downloadUrl || data.url || null); })
+            .catch(() => setPdfError(true))
+            .finally(() => setMediaLoading(false));
+        }
       } else {
         setPdfError(true);
       }
