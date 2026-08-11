@@ -48,5 +48,5 @@ function StudentDashboardRoute() {
     return <CoursePlayer onNavigate={handleNavigate} selectedCourseId={selectedCourseId} />
   }
 
-  return <StudentDashboard onNavigate={handleNavigate} onSelectCourse={handleSelectCourse} />
+  return <StudentDashboard />
 }

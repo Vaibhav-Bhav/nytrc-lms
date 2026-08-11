@@ -95,5 +95,5 @@ function AdminDashboardRoute() {
     return <AdminEmailLog onNavigate={handleNavigate} />
   }
 
-  return <AdminDashboard onNavigate={handleNavigate} onSelectCourse={handleSelectCourse} />
+  return <AdminDashboard />
 }

@@ -61,6 +61,9 @@ export interface Lesson {
   locked?: boolean;
   notPublished?: boolean;
   hasDownload?: boolean;
+  description?: string | null;
+  videoId?: string | null;
+  pdfUrl?: string | null;
 }
 
 export interface Student {
