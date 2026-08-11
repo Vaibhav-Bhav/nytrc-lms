@@ -34,6 +34,17 @@ export const authService = {
     // Expire old inactive sessions first to get an accurate count
     await sessionRepository.deactivateExpiredSessions()
 
+    // Check if there is an existing active session for this device and deactivate it
+    const existingSessions = await sessionRepository.findActiveByUserId(user.id)
+    const existingDeviceSession = existingSessions.find(
+      (s) => s.device_identifier === deviceInfo.device_identifier
+    )
+
+    if (existingDeviceSession) {
+      console.log(`[authService] Found existing session for device ${deviceInfo.device_identifier}. Deactivating old session.`)
+      await sessionRepository.deactivate(existingDeviceSession.id)
+    }
+
     // Enforce max 2 active devices limit
     const activeSessionCount = await sessionRepository.countActiveByUserId(user.id)
     if (activeSessionCount >= 2) {

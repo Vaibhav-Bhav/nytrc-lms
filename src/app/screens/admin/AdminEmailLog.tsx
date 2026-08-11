@@ -16,13 +16,13 @@ export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void 
   );
 
   return (
-    <AdminLayout current="admin-email-log" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => onNavigate("admin-dashboard")}
+                onClick={() => onNavigate?.("admin-dashboard")}
                 className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 text-muted-foreground" />

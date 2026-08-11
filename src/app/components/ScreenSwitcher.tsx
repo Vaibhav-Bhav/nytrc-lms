@@ -61,7 +61,7 @@ export const SCREEN_GROUPS = [
   },
 ];
 
-export function ScreenSwitcher({ current, onNavigate }: { current: Screen; onNavigate: (s: Screen) => void }) {
+export function ScreenSwitcher({ current, onNavigate }: { current?: Screen; onNavigate: (s: Screen) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="fixed bottom-5 right-5 z-50">
@@ -76,7 +76,7 @@ export function ScreenSwitcher({ current, onNavigate }: { current: Screen; onNav
                   <button
                     key={s.id}
                     onClick={() => {
-                      onNavigate(s.id);
+                      onNavigate?.(s.id);
                       setOpen(false);
                     }}
                     className={cn(

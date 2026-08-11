@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ShieldAlert, Laptop, Smartphone, Tablet, RefreshCw, LogOut, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Screen, DeviceSession } from "../../../data/types";
-import { sessionService } from "../../../services/sessionService";
+import { pendingAuth } from "../../../store/pendingAuth";
 import { AuthLayout } from "../../components/AuthLayout";
 import { Button, cn } from "../../components/Button";
 import { Modal } from "../../components/Modal";
@@ -17,31 +17,63 @@ export function DeviceLimitExceededScreen({ onNavigate }: { onNavigate: (s: Scre
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [freedSession, setFreedSession] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
 
   useEffect(() => {
     fetchActiveSessions();
   }, []);
 
+  function handleContinue() {
+    if (!pendingAuth.email) return;
+    const email = pendingAuth.email;
+    pendingAuth.clear();
+    toast.success("Device slot freed! Please sign in now.");
+    // We use window.location.href because we want to force a clean reload and pass the email
+    // Or we could use navigate, but since we are changing routes and want it fast, let's just use href.
+    // Wait, since we are in a SPA, we can just use router navigate if we have it.
+    // But we don't have navigate here, we only have onNavigate.
+    // We can just use window.location.href.
+    window.location.href = `/login?email=${encodeURIComponent(email)}`;
+  }
+
   async function fetchActiveSessions() {
+    if (!pendingAuth.email) {
+      toast.error("No pending login found, returning to login.");
+      onNavigate?.("login");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await sessionService.getSessions();
-      setSessions(res.devices);
-    } catch (e) {
-      toast.error("Failed to load active sessions");
+      const res = await fetch("/api/auth/pending-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingAuth.email, password: pendingAuth.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load active sessions");
+      setSessions(data.devices || []);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load active sessions");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleRefresh() {
+    if (!pendingAuth.email) return;
     setRefreshing(true);
     try {
-      const res = await sessionService.getSessions();
-      setSessions(res.devices);
+      const res = await fetch("/api/auth/pending-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingAuth.email, password: pendingAuth.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to refresh sessions");
+      setSessions(data.devices || []);
       toast.success("Session info updated");
-    } catch (e) {
-      toast.error("Failed to refresh sessions");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to refresh sessions");
     } finally {
       setRefreshing(false);
     }
@@ -53,17 +85,28 @@ export function DeviceLimitExceededScreen({ onNavigate }: { onNavigate: (s: Scre
   }
 
   async function handleConfirmRevokeDevice() {
-    if (!selectedDeviceToLogout) return;
+    if (!selectedDeviceToLogout || !pendingAuth.email) return;
     setRevoking(true);
     try {
-      await sessionService.revokeSession(selectedDeviceToLogout.id);
+      const res = await fetch("/api/auth/pending-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "revoke",
+          sessionId: selectedDeviceToLogout.id,
+          email: pendingAuth.email,
+          password: pendingAuth.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to logout device");
+      
       toast.success(`Logged out ${selectedDeviceToLogout.device_name}`);
       setFreedSession(true);
       setLogoutConfirmOpen(false);
-      const res = await sessionService.getSessions();
-      setSessions(res.devices);
-    } catch (e) {
-      toast.error("Failed to logout device");
+      setSessions(data.devices || []);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to logout device");
     } finally {
       setRevoking(false);
     }
@@ -147,7 +190,7 @@ export function DeviceLimitExceededScreen({ onNavigate }: { onNavigate: (s: Scre
       {/* Action buttons as specified */}
       <div className="flex flex-col gap-3">
         {freedSession ? (
-          <Button onClick={() => onNavigate("student-dashboard")} className="w-full">
+          <Button onClick={handleContinue} loading={loggingIn} className="w-full">
             Continue to Dashboard
           </Button>
         ) : (
@@ -179,7 +222,10 @@ export function DeviceLimitExceededScreen({ onNavigate }: { onNavigate: (s: Scre
 
         <Button
           variant="ghost"
-          onClick={() => onNavigate("login")}
+          onClick={() => {
+            pendingAuth.clear();
+            onNavigate?.("login");
+          }}
           className="w-full flex justify-center items-center gap-2 text-muted-foreground"
         >
           <ArrowLeft className="w-4 h-4" />

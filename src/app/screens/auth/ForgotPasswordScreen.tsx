@@ -22,7 +22,7 @@ export function ForgotPasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =
   return (
     <AuthLayout>
       <button
-        onClick={() => onNavigate("login")}
+        onClick={() => onNavigate?.("login")}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />

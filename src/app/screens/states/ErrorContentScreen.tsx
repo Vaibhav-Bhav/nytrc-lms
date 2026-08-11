@@ -5,7 +5,7 @@ import { Button } from "../../components/Button";
 
 export function ErrorContentScreen({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center min-h-[calc(100vh-64px)]">
         <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-5">
           <WifiOff className="w-8 h-8 text-red-500 dark:text-red-400" />
@@ -15,7 +15,7 @@ export function ErrorContentScreen({ onNavigate }: { onNavigate: (s: Screen) => 
           We couldn't reach the server. Check your connection and try again.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button onClick={() => onNavigate("student-dashboard")}>
+          <Button onClick={() => onNavigate?.("student-dashboard")}>
             <RefreshCw className="w-4 h-4" />
             Try again
           </Button>

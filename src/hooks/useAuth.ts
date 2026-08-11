@@ -23,5 +23,7 @@ export function useAuth() {
     queryFn: fetchCurrentUser,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   })
 }

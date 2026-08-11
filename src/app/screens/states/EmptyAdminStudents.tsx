@@ -5,7 +5,7 @@ import { EmptyState } from "../../components/EmptyState";
 
 export function EmptyAdminStudents({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <AdminLayout current="admin-students" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 flex items-center justify-center">
         <EmptyState
           icon={Users}

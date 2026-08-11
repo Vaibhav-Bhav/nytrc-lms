@@ -19,7 +19,7 @@ export function PasswordChangedScreen({ onNavigate }: { onNavigate: (s: Screen) 
           A confirmation has been sent to <strong className="font-semibold">sarah.chen@example.com</strong>.
         </p>
       </div>
-      <Button onClick={() => onNavigate("student-dashboard")} className="w-full">
+      <Button onClick={() => onNavigate?.("student-dashboard")} className="w-full">
         Continue to dashboard
       </Button>
       <p className="text-xs text-muted-foreground text-center mt-5">

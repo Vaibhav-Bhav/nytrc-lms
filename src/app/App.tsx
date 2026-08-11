@@ -70,7 +70,7 @@ export default function App() {
   return (
     <DarkCtx.Provider value={{ dark, toggle: () => setDark((d) => !d) }}>
       <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-        {screen === "login"                  && <LoginScreen onNavigate={setScreen} />}
+        {screen === "login"                  && <LoginScreen />}
         {screen === "force-password"         && <ForcePasswordScreen onNavigate={setScreen} />}
         {screen === "forgot-password"        && <ForgotPasswordScreen onNavigate={setScreen} />}
         {screen === "auth-locked"            && <AccountLockedScreen onNavigate={setScreen} />}
@@ -83,12 +83,12 @@ export default function App() {
         {screen === "payment-success"        && <PaymentSuccessScreen onNavigate={setScreen} />}
         {screen === "payment-failed"         && <PaymentFailedScreen onNavigate={setScreen} />}
         {screen === "payment-pending"        && <PaymentPendingScreen onNavigate={setScreen} />}
-        {screen === "student-dashboard"      && <StudentDashboard onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "student-dashboard"      && <StudentDashboard />}
         {screen === "student-courses"        && <StudentCourses onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
         {screen === "student-course-detail"  && <StudentCourseDetail onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
         {screen === "course-player"          && <CoursePlayer onNavigate={setScreen} selectedCourseId={selectedCourseId} />}
         {screen === "student-account"        && <StudentAccount onNavigate={setScreen} />}
-        {screen === "admin-dashboard"        && <AdminDashboard onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
+        {screen === "admin-dashboard"        && <AdminDashboard />}
         {screen === "admin-create-course"    && <AdminCreateCourse onNavigate={setScreen} onSelectCourse={handleSelectCourse} />}
         {screen === "admin-content"          && <AdminContent onNavigate={setScreen} selectedCourseId={selectedCourseId} onSelectCourse={handleSelectCourse} />}
         {screen === "admin-students"         && <AdminStudents onNavigate={setScreen} onSelectStudent={(id) => setSelectedStudentId(id)} />}

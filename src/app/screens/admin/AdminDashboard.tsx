@@ -7,13 +7,13 @@ import {
   Pencil,
   Trash2,
   ChevronRight,
-  AlertTriangle,
   CreditCard,
   BarChart2,
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Screen, Course, Student } from "../../../data/types";
+import { useNavigate } from "@tanstack/react-router";
+import { Course, Student } from "../../../data/types";
 import { PAYMENT_HISTORY } from "../../../data/mockData";
 import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
@@ -22,13 +22,8 @@ import { Badge } from "../../components/Badge";
 import { ProgressBar } from "../../components/ProgressBar";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 
-export function AdminDashboard({
-  onNavigate,
-  onSelectCourse,
-}: {
-  onNavigate: (s: Screen) => void;
-  onSelectCourse?: (id: string) => void;
-}) {
+export function AdminDashboard() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +33,25 @@ export function AdminDashboard({
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      const [fetchedCourses, fetchedStudents] = await Promise.all([
-        lmsService.getCourses(),
-        lmsService.getStudents(),
-      ]);
-      if (isMounted) {
-        setCourses(fetchedCourses);
-        setStudents(fetchedStudents);
-        setLoading(false);
+      try {
+        const [fetchedCourses, studentsRes] = await Promise.all([
+          lmsService.getCourses(),
+          fetch('/api/admin/students'),
+        ]);
+
+        let fetchedStudents = [];
+        if (studentsRes.ok) {
+          fetchedStudents = await studentsRes.json();
+        }
+
+        if (isMounted) {
+          setCourses(fetchedCourses);
+          setStudents(fetchedStudents);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+        if (isMounted) setLoading(false);
       }
     }
     loadData();
@@ -70,19 +76,18 @@ export function AdminDashboard({
   }
 
   function handleEditCourse(id: string) {
-    onSelectCourse?.(id);
-    onNavigate("admin-content");
+    navigate({ to: "/admin/content", search: { courseId: id } as never });
   }
 
-  const activeCount = students.filter((s) => new Date(s.lastLogin) >= new Date("2024-11-28")).length;
-  const avgProgress = students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.progress, 0) / students.length) : 0;
+  const activeCount = students.filter((s) => s.lastLogin && new Date(s.lastLogin) >= new Date("2024-11-28")).length;
+  const avgProgress = students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.progress || 0), 0) / students.length) : 0;
   const revenue = PAYMENT_HISTORY.filter((p) => p.status === "paid").length * 14750;
 
   const aCard = "bg-card rounded-2xl border border-border shadow-sm overflow-hidden";
   const aHead = "flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20";
 
   return (
-    <AdminLayout current="admin-dashboard" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           {/* Header */}
@@ -92,11 +97,11 @@ export function AdminDashboard({
               <p className="text-muted-foreground text-sm mt-1">Platform overview · LMS Admin Portal</p>
             </div>
             <div className="flex gap-2.5 self-start flex-shrink-0">
-              <Button variant="secondary" size="sm" onClick={() => onNavigate("admin-students")}>
+              <Button variant="secondary" size="sm" onClick={() => navigate({ to: "/admin/students" })}>
                 <Download className="w-4 h-4" />
                 Export
               </Button>
-              <Button onClick={() => onNavigate("admin-create-course")}>
+              <Button onClick={() => navigate({ to: "/admin/create-course" })}>
                 <Plus className="w-4 h-4" />
                 New course
               </Button>
@@ -165,7 +170,7 @@ export function AdminDashboard({
             <div className={aCard}>
               <div className={aHead}>
                 <h2 className="font-bold text-foreground text-sm">Courses ({courses.length})</h2>
-                <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-create-course")}>
+                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/create-course" })}>
                   <Plus className="w-3.5 h-3.5" />
                   New
                 </Button>
@@ -219,7 +224,7 @@ export function AdminDashboard({
             <div className={aCard}>
               <div className={aHead}>
                 <h2 className="font-bold text-foreground text-sm">Recent Payments</h2>
-                <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-payment-history")}>
+                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/payments" })}>
                   View all
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -252,7 +257,7 @@ export function AdminDashboard({
           <div className={aCard}>
             <div className={aHead}>
               <h2 className="font-bold text-foreground text-sm">Recent Students</h2>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-students")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/students" })}>
                 View all
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -277,41 +282,55 @@ export function AdminDashboard({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {students.slice(0, 5).map((student) => (
-                    <tr
-                      key={student.id}
-                      className="hover:bg-muted/20 transition-colors cursor-pointer"
-                      onClick={() => onNavigate("admin-students")}
-                    >
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs font-bold text-primary">
-                              {student.name.split(" ").map((n) => n[0]).join("")}
-                            </span>
-                          </div>
-                          <span className="text-sm font-semibold text-foreground">{student.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell truncate max-w-[180px]">
-                        {student.email}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20">
-                            <ProgressBar value={student.progress} color={student.progress >= 75 ? "green" : "primary"} />
-                          </div>
-                          <span className="text-xs font-bold text-muted-foreground tabular-nums">{student.progress}%</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <Badge variant={student.status} />
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <ChevronRight className="w-4 h-4 text-muted-foreground inline" />
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                        Loading students...
                       </td>
                     </tr>
-                  ))}
+                  ) : students.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                        No students found.
+                      </td>
+                    </tr>
+                  ) : (
+                    students.slice(0, 5).map((student) => (
+                      <tr
+                        key={student.id}
+                        className="hover:bg-muted/20 transition-colors cursor-pointer"
+                        onClick={() => navigate({ to: `/admin/students/${student.id}` as never })}
+                      >
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold text-primary">
+                                {student.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">{student.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell truncate max-w-[180px]">
+                          {student.email}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-20">
+                              <ProgressBar value={student.progress || 0} color={(student.progress || 0) >= 75 ? "green" : "primary"} />
+                            </div>
+                            <span className="text-xs font-bold text-muted-foreground tabular-nums">{student.progress || 0}%</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <Badge variant={student.status || "active"} />
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <ChevronRight className="w-4 h-4 text-muted-foreground inline" />
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

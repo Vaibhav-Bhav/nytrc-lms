@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { authQueryKey } from "../../../hooks/useAuth";
 import { AuthLayout } from "../../components/AuthLayout";
 import { AuthStatusBanner } from "../../components/ErrorBanner";
 import { FormInput } from "../../components/FormInput";
@@ -21,16 +23,19 @@ interface LoginApiResponse {
 
 export function LoginScreen({
   initialAuthStatus = "idle",
+  initialEmail = "",
   onNavigate,
 }: {
   initialAuthStatus?: AuthStatus;
+  initialEmail?: string;
   onNavigate?: (s: any) => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState<AuthStatus>(initialAuthStatus);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -44,6 +49,7 @@ export function LoginScreen({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -58,8 +64,11 @@ export function LoginScreen({
         } else if (response.status === 403) {
           toast.error("Account locked");
         } else if (response.status === 400 && data.error?.includes('device')) {
-          // Force a hard redirect to the device limit screen if router fails
-          window.location.href = '/device-limit';
+          // Navigate to the device limit screen
+          const { pendingAuth } = await import('@/store/pendingAuth');
+          pendingAuth.email = email;
+          pendingAuth.password = password;
+          navigate({ to: '/device-limit' });
         } else {
           toast.error(data.error || "Login failed");
         }
@@ -70,11 +79,15 @@ export function LoginScreen({
       toast.success("Signed in successfully!");
       setAuthStatus("success");
 
+      // Invalidate and prepopulate the auth query cache
+      queryClient.setQueryData(authQueryKey, data.user);
+      queryClient.invalidateQueries({ queryKey: authQueryKey });
+
       // Route based on the user's role returned from the API
       if (data.user?.role === 'admin') {
-        window.location.href = '/admin/dashboard';
+        navigate({ to: '/admin/dashboard' });
       } else {
-        window.location.href = '/student/dashboard';
+        navigate({ to: '/student/dashboard' });
       }
 
     } catch (err) {

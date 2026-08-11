@@ -44,15 +44,15 @@ export function AdminRefundFlow({ onNavigate }: { onNavigate: (s: Screen) => voi
   }
 
   return (
-    <AdminLayout current="admin-refund" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[800px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-4">
             <Breadcrumb
               items={[
                 { label: "Admin" },
-                { label: "Students", onClick: () => onNavigate("admin-students") },
-                { label: student.name, onClick: () => onNavigate("admin-student-detail") },
+                { label: "Students", onClick: () => onNavigate?.("admin-students") },
+                { label: student.name, onClick: () => onNavigate?.("admin-student-detail") },
                 { label: "Refund Flow" },
               ]}
             />
@@ -60,7 +60,7 @@ export function AdminRefundFlow({ onNavigate }: { onNavigate: (s: Screen) => voi
 
           <div className="flex items-center gap-3 mb-6 sm:mb-8">
             <button
-              onClick={() => onNavigate("admin-student-detail")}
+              onClick={() => onNavigate?.("admin-student-detail")}
               className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
@@ -182,7 +182,7 @@ export function AdminRefundFlow({ onNavigate }: { onNavigate: (s: Screen) => voi
                   <Button loading={advancing} onClick={advanceStep} className="flex-1 sm:flex-none">
                     {stepActions[currentStep] ?? "Advance"} <ArrowRight className="w-4 h-4" />
                   </Button>
-                  <Button variant="secondary" onClick={() => onNavigate("admin-student-detail")}>
+                  <Button variant="secondary" onClick={() => onNavigate?.("admin-student-detail")}>
                     Cancel
                   </Button>
                 </div>

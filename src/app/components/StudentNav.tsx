@@ -1,54 +1,12 @@
 import React, { useState } from "react";
-import { Screen } from "../../data/types";
 import { cn } from "./Button";
 import { StudentSidebar } from "./StudentSidebar";
 import { Header } from "./Header";
 
-export function StudentNav({
-  current,
-  onNavigate,
-}: {
-  current: Screen;
-  onNavigate: (s: Screen) => void;
-}) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  return (
-    <>
-      <Header
-        onNavigate={onNavigate}
-        onOpenMobileMenu={() => setMobileOpen(true)}
-        role="Student"
-      />
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden animate-in fade-in duration-200">
-          <div
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs"
-            onClick={() => setMobileOpen(false)}
-          />
-
-          <div className="absolute left-0 top-0 bottom-0 w-[260px] animate-in slide-in-from-left duration-300">
-            <StudentSidebar
-              current={current}
-              onNavigate={onNavigate}
-              onClose={() => setMobileOpen(false)}
-            />
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
 export function StudentLayout({
   children,
-  current,
-  onNavigate,
 }: {
   children: React.ReactNode;
-  current: Screen;
-  onNavigate: (s: Screen) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -63,8 +21,6 @@ export function StudentLayout({
         )}
       >
         <StudentSidebar
-          current={current}
-          onNavigate={onNavigate}
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed((c) => !c)}
         />
@@ -80,8 +36,6 @@ export function StudentLayout({
 
           <div className="absolute left-0 top-0 bottom-0 w-[260px] animate-in slide-in-from-left duration-300">
             <StudentSidebar
-              current={current}
-              onNavigate={onNavigate}
               collapsed={false}
               onClose={() => setMobileOpen(false)}
             />
@@ -98,7 +52,6 @@ export function StudentLayout({
       >
         {/* Top Header */}
         <Header
-          onNavigate={onNavigate}
           onOpenMobileMenu={() => setMobileOpen(true)}
           role="Student"
         />

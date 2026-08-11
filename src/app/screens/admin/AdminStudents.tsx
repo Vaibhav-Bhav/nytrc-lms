@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Download, Search, ArrowUpDown, ChevronRight } from "lucide-react";
 import { Screen, Student } from "../../../data/types";
 import { lmsService } from "../../../services/lmsService";
@@ -15,10 +16,12 @@ export function AdminStudents({
   onNavigate,
   onSelectStudent,
 }: {
-  onNavigate: (s: Screen) => void;
-  onSelectStudent: (id: string) => void;
+  onNavigate?: (s: Screen) => void;
+  onSelectStudent?: (id: string) => void;
 }) {
+  const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState("joined");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -26,8 +29,17 @@ export function AdminStudents({
 
   useEffect(() => {
     async function fetchStudents() {
-      const data = await lmsService.getStudents();
-      setStudents(data);
+      try {
+        setLoading(true);
+        const response = await fetch('/api/admin/students');
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        setStudents(data);
+      } catch (e) {
+        console.error("Error fetching students:", e);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchStudents();
   }, []);
@@ -77,7 +89,7 @@ export function AdminStudents({
   }
 
   return (
-    <AdminLayout current="admin-students" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
@@ -119,11 +131,20 @@ export function AdminStudents({
                   </tr>
                 </thead>
                 <tbody>
-                  {paged.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-12 text-center">
+                        <div className="w-8 h-8 mx-auto mb-3 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        <p className="text-sm text-muted-foreground">Loading students...</p>
+                      </td>
+                    </tr>
+                  ) : paged.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-5 py-12 text-center">
                         <Search className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
-                        <p className="text-sm text-muted-foreground">No students match "{search}"</p>
+                        <p className="text-sm text-muted-foreground">
+                          {search ? `No students match "${search}"` : "No students found"}
+                        </p>
                       </td>
                     </tr>
                   ) : (
@@ -132,8 +153,7 @@ export function AdminStudents({
                         key={student.id}
                         className="border-t border-border hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => {
-                          onSelectStudent(student.id);
-                          onNavigate("admin-student-detail");
+                          navigate({ to: `/admin/students/$studentId`, params: { studentId: student.id } });
                         }}
                       >
                         <td className="px-5 py-3.5">
@@ -146,8 +166,7 @@ export function AdminStudents({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onSelectStudent(student.id);
-                                onNavigate("admin-student-detail");
+                                navigate({ to: `/admin/students/$studentId`, params: { studentId: student.id } });
                               }}
                               className="text-sm font-bold text-foreground hover:text-primary transition-colors text-left whitespace-nowrap cursor-pointer"
                             >

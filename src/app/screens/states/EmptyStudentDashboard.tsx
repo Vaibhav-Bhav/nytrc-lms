@@ -5,7 +5,7 @@ import { EmptyState } from "../../components/EmptyState";
 
 export function EmptyStudentDashboard({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   return (
-    <StudentLayout current="student-dashboard" onNavigate={onNavigate}>
+    <StudentLayout>
       <main className="flex-1 flex items-center justify-center min-h-[calc(100vh-64px)]">
         <EmptyState
           icon={BookOpen}

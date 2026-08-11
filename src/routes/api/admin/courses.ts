@@ -8,6 +8,18 @@ import { requireAdmin } from '@/middleware/auth'
 export const Route = createFileRoute('/api/admin/courses')({
     server: {
         handlers: {
+            GET: async ({ request }) => {
+                await requireAdmin(request)
+
+                try {
+                    const courses = await courseService.findAll()
+                    return Response.json(courses)
+                } catch (err) {
+                    console.error('[admin/courses GET] Unexpected error:', err)
+                    return Response.json({ error: 'Internal server error' }, { status: 500 })
+                }
+            },
+
             POST: async ({ request }) => {
                 await requireAdmin(request)
 
@@ -23,6 +35,10 @@ export const Route = createFileRoute('/api/admin/courses')({
                     const course = await courseService.create(parsed.data)
                     return Response.json(course, { status: 201 })
                 } catch (err) {
+                    if (err instanceof Error && err.message === 'TITLE_REQUIRED') {
+                        return Response.json({ error: 'Course title is required' }, { status: 400 })
+                    }
+                    console.error('[admin/courses POST] Unexpected error:', err)
                     return Response.json({ error: 'Internal server error' }, { status: 500 })
                 }
             },

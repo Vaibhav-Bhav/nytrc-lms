@@ -6,21 +6,18 @@ import {
   GripVertical,
   ChevronDown,
   ChevronRight,
-  Pencil,
   Trash2,
   FileText,
   Play,
   Download,
   CheckCircle2,
   AlertTriangle,
-  Check,
   RefreshCw,
   X,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Screen, Course, Section, UploadStage } from "../../../data/types";
-import { lmsService } from "../../../services/lmsService";
+import { Screen, Section, UploadStage } from "../../../data/types";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import { Button, cn } from "../../components/Button";
@@ -31,17 +28,104 @@ import { FormInput } from "../../components/FormInput";
 import { FileUpload } from "../../components/FileUpload";
 import { UploadPipeline } from "../../components/UploadPipeline";
 
+// ── API helpers ─────────────────────────────────────────────────────────────
+
+async function apiAdmin(url: string, options?: RequestInit) {
+  const res = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed: ${res.status}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// ── Type helpers ─────────────────────────────────────────────────────────────
+
+interface DbCourse {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  status: "draft" | "published";
+  price: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbSection {
+  id: string;
+  course_id: string;
+  title: string;
+  order_number: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbLesson {
+  id: string;
+  section_id: string;
+  title: string;
+  description: string | null;
+  pdf_url: string | null;
+  video_id: string | null;
+  allow_download: boolean;
+  page_count: number | null;
+  lesson_order: number;
+  status: "draft" | "published";
+  created_at: string;
+  updated_at: string;
+}
+
+// Map DB lesson → UI Lesson
+function toUiLesson(l: DbLesson) {
+  return {
+    id: l.id,
+    sectionId: l.section_id,
+    title: l.title,
+    type: (l.video_id ? "video" : "pdf") as "video" | "pdf",
+    order: l.lesson_order,
+    status: l.status,
+    published: l.status === "published",
+    downloadPermission: l.allow_download,
+    hasDownload: l.allow_download,
+    completed: false,
+    locked: false,
+    notPublished: l.status === "draft",
+    description: l.description,
+  };
+}
+
+// Map DB course → UI Course shape
+function toUiCourse(c: DbCourse) {
+  return {
+    id: c.id,
+    title: c.title,
+    description: c.description ?? "",
+    instructor: "",
+    status: c.status,
+    thumbnail: c.thumbnail_url ?? undefined,
+  };
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 export function AdminContent({
   onNavigate,
   selectedCourseId,
   onSelectCourse,
 }: {
-  onNavigate: (s: Screen) => void;
+  onNavigate?: (s: Screen) => void;
   selectedCourseId?: string;
   onSelectCourse?: (id: string) => void;
 }) {
-  const [allCourses, setAllCourses] = useState<Course[]>([]);
-  const [course, setCourse] = useState<Course | null>(null);
+  const [allCourses, setAllCourses] = useState<ReturnType<typeof toUiCourse>[]>([]);
+  const [course, setCourse] = useState<ReturnType<typeof toUiCourse> | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -81,22 +165,54 @@ export function AdminContent({
   const [deleteCourseModal, setDeleteCourseModal] = useState(false);
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
 
+  // ── Data loading ───────────────────────────────────────────────────────────
+
+  async function loadSectionsForCourse(courseId: string): Promise<Section[]> {
+    const dbSections: DbSection[] = await apiAdmin(`/api/courses/${courseId}/sections`);
+    const sectionsWithLessons: Section[] = await Promise.all(
+      dbSections.map(async (sec) => {
+        let lessons: ReturnType<typeof toUiLesson>[] = [];
+        try {
+          const dbLessons: DbLesson[] = await apiAdmin(`/api/sections/${sec.id}/lessons`);
+          lessons = dbLessons.map(toUiLesson);
+        } catch {
+          lessons = [];
+        }
+        return {
+          id: sec.id,
+          courseId: sec.course_id,
+          title: sec.title,
+          order: sec.order_number,
+          published: true, // sections don't have a published flag in DB
+          lessons,
+        };
+      })
+    );
+    return sectionsWithLessons;
+  }
+
   const loadContentData = async (targetId?: string) => {
     setLoading(true);
-    const fetchedCourses = await lmsService.getCourses();
-    setAllCourses(fetchedCourses);
+    try {
+      const dbCourses: DbCourse[] = await apiAdmin("/api/admin/courses");
+      const uiCourses = dbCourses.map(toUiCourse);
+      setAllCourses(uiCourses);
 
-    const activeCourse = targetId
-      ? fetchedCourses.find((c) => c.id === targetId) || fetchedCourses[0]
-      : fetchedCourses.find((c) => c.id === selectedCourseId) || fetchedCourses[fetchedCourses.length - 1] || fetchedCourses[0];
+      const activeCourse = targetId
+        ? uiCourses.find((c) => c.id === targetId) || uiCourses[0]
+        : uiCourses.find((c) => c.id === selectedCourseId) || uiCourses[uiCourses.length - 1] || uiCourses[0];
 
-    if (activeCourse) {
-      setCourse(activeCourse);
-      const fetchedSections = await lmsService.getSectionsByCourse(activeCourse.id);
-      setSections(fetchedSections);
-      setExpandedSections(new Set(fetchedSections.map((s) => s.id)));
+      if (activeCourse) {
+        setCourse(activeCourse);
+        const secs = await loadSectionsForCourse(activeCourse.id);
+        setSections(secs);
+        setExpandedSections(new Set(secs.map((s) => s.id)));
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load content");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -108,117 +224,91 @@ export function AdminContent({
     loadContentData(id);
   }
 
+  // ── Section handlers ───────────────────────────────────────────────────────
+
   async function handleAddSection() {
     if (!newSectionName.trim() || !course) return;
     setSectionLoading(true);
     try {
-      const createdSection = await lmsService.createSection(course.id, {
-        title: newSectionName.trim(),
-        description: newSectionDesc.trim(),
+      const created: DbSection = await apiAdmin("/api/admin/sections", {
+        method: "POST",
+        body: JSON.stringify({ course_id: course.id, title: newSectionName.trim() }),
       });
-      setSections((prev) => [...prev, { ...createdSection, lessons: [] }]);
-      setExpandedSections((prev) => new Set([...prev, createdSection.id]));
-      setSectionLoading(false);
+      const newSec: Section = {
+        id: created.id,
+        courseId: created.course_id,
+        title: created.title,
+        order: created.order_number,
+        published: true,
+        lessons: [],
+      };
+      setSections((prev) => [...prev, newSec]);
+      setExpandedSections((prev) => new Set([...prev, created.id]));
       setAddSectionModal(false);
       setNewSectionName("");
       setNewSectionDesc("");
       toast.success("Section created successfully");
     } catch (err: any) {
-      setSectionLoading(false);
       toast.error(err.message || "Failed to create section");
+    } finally {
+      setSectionLoading(false);
     }
   }
+
+  async function handleToggleSectionPublished(sectionId: string) {
+    // Sections don't have a published flag in the DB — toggle locally only
+    setSections((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, published: !s.published } : s))
+    );
+    toast.success("Section visibility updated (UI only)");
+  }
+
+  // ── Lesson handlers ────────────────────────────────────────────────────────
 
   async function handleAddLesson() {
     if (!newLessonTitle.trim() || !addLessonModal) return;
     setLessonLoading(true);
     try {
-      const createdLesson = await lmsService.createLesson(addLessonModal.sectionId, {
-        title: newLessonTitle.trim(),
-        type: newLessonType,
-        description: newLessonDesc.trim(),
+      const created: DbLesson = await apiAdmin("/api/admin/lessons", {
+        method: "POST",
+        body: JSON.stringify({
+          section_id: addLessonModal.sectionId,
+          title: newLessonTitle.trim(),
+          description: newLessonDesc.trim() || null,
+          status: "draft",
+        }),
       });
+      const newLesson = toUiLesson(created);
       setSections((prev) =>
         prev.map((s) =>
           s.id === addLessonModal.sectionId
-            ? { ...s, lessons: [...(s.lessons || []), createdLesson] }
+            ? { ...s, lessons: [...(s.lessons || []), newLesson] }
             : s
         )
       );
-      setLessonLoading(false);
       setAddLessonModal(null);
       setNewLessonTitle("");
       setNewLessonDesc("");
       toast.success("Lesson added — ready for media upload.");
     } catch (err: any) {
-      setLessonLoading(false);
       toast.error(err.message || "Failed to add lesson");
-    }
-  }
-
-  async function handlePublishCourse() {
-    if (!course) return;
-    setPublishState("publishing");
-    try {
-      await lmsService.publishCourse(course.id);
-      setCourse((prev) => (prev ? { ...prev, status: "published" } : null));
-      setPublishState("published");
-      toast.success("Course published successfully — now visible to students!");
-    } catch (err: any) {
-      setPublishState("idle");
-      toast.error(err.message || "Failed to publish course");
-    }
-  }
-
-  async function handleDeleteCourse() {
-    if (!course) return;
-    setDeleteCourseLoading(true);
-    try {
-      await lmsService.deleteCourse(course.id);
-      setDeleteCourseLoading(false);
-      setDeleteCourseModal(false);
-      toast.success("Course deleted successfully");
-      onNavigate("admin-dashboard");
-    } catch (err: any) {
-      setDeleteCourseLoading(false);
-      toast.error(err.message || "Failed to delete course");
-    }
-  }
-
-  async function handleToggleSectionPublished(sectionId: string) {
-    try {
-      const updated = await lmsService.toggleSectionPublished(sectionId);
-      setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, published: updated.published } : s)));
-      toast.success(updated.published ? "Section published" : "Section set to draft");
-    } catch (err: any) {
-      toast.error("Failed to update section");
+    } finally {
+      setLessonLoading(false);
     }
   }
 
   async function handleToggleLessonPublished(sectionId: string, lessonId: string) {
-    try {
-      const updated = await lmsService.toggleLessonPublished(lessonId);
-      setSections((prev) =>
-        prev.map((s) =>
-          s.id === sectionId
-            ? {
-                ...s,
-                lessons: s.lessons?.map((l) =>
-                  l.id === lessonId ? { ...l, published: updated.published, status: updated.status } : l
-                ),
-              }
-            : s
-        )
-      );
-      toast.success(updated.published ? "Lesson published" : "Lesson set to draft");
-    } catch (err: any) {
-      toast.error("Failed to update lesson");
-    }
-  }
+    const section = sections.find((s) => s.id === sectionId);
+    const lesson = section?.lessons?.find((l) => l.id === lessonId);
+    if (!lesson) return;
 
-  async function handleToggleDownloadPermission(sectionId: string, lessonId: string) {
+    const isCurrentlyPublished = lesson.published;
+    const endpoint = isCurrentlyPublished
+      ? `/api/admin/lessons/${lessonId}/unpublish`
+      : `/api/admin/lessons/${lessonId}/publish`;
+
     try {
-      const updated = await lmsService.toggleLessonDownloadPermission(lessonId);
+      const updated: DbLesson = await apiAdmin(endpoint, { method: "POST", body: JSON.stringify({}) });
       setSections((prev) =>
         prev.map((s) =>
           s.id === sectionId
@@ -226,7 +316,38 @@ export function AdminContent({
                 ...s,
                 lessons: s.lessons?.map((l) =>
                   l.id === lessonId
-                    ? { ...l, downloadPermission: updated.downloadPermission, hasDownload: updated.hasDownload }
+                    ? { ...l, published: updated.status === "published", status: updated.status, notPublished: updated.status === "draft" }
+                    : l
+                ),
+              }
+            : s
+        )
+      );
+      toast.success(updated.status === "published" ? "Lesson published" : "Lesson set to draft");
+    } catch (err: any) {
+      toast.error("Failed to update lesson");
+    }
+  }
+
+  async function handleToggleDownloadPermission(sectionId: string, lessonId: string) {
+    const section = sections.find((s) => s.id === sectionId);
+    const lesson = section?.lessons?.find((l) => l.id === lessonId);
+    if (!lesson) return;
+
+    const newValue = !lesson.downloadPermission;
+    try {
+      await apiAdmin(`/api/admin/lessons/${lessonId}`, {
+        method: "PUT",
+        body: JSON.stringify({ allow_download: newValue }),
+      });
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === sectionId
+            ? {
+                ...s,
+                lessons: s.lessons?.map((l) =>
+                  l.id === lessonId
+                    ? { ...l, downloadPermission: newValue, hasDownload: newValue }
                     : l
                 ),
               }
@@ -243,20 +364,56 @@ export function AdminContent({
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      await lmsService.deleteLesson(deleteTarget.lessonId);
+      await apiAdmin(`/api/admin/lessons/${deleteTarget.lessonId}`, { method: "DELETE" });
       setSections((prev) =>
         prev.map((s) =>
-          s.id === deleteTarget.sectionId ? { ...s, lessons: s.lessons?.filter((l) => l.id !== deleteTarget.lessonId) } : s
+          s.id === deleteTarget.sectionId
+            ? { ...s, lessons: s.lessons?.filter((l) => l.id !== deleteTarget.lessonId) }
+            : s
         )
       );
-      setDeleteLoading(false);
       setDeleteTarget(null);
       toast.success("Lesson deleted");
     } catch (err: any) {
-      setDeleteLoading(false);
       toast.error("Failed to delete lesson");
+    } finally {
+      setDeleteLoading(false);
     }
   }
+
+  async function handlePublishCourse() {
+    if (!course) return;
+    setPublishState("publishing");
+    try {
+      const updated: DbCourse = await apiAdmin(`/api/admin/courses/${course.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: "published" }),
+      });
+      setCourse((prev) => (prev ? { ...prev, status: updated.status } : null));
+      setPublishState("published");
+      toast.success("Course published successfully — now visible to students!");
+    } catch (err: any) {
+      setPublishState("idle");
+      toast.error(err.message || "Failed to publish course");
+    }
+  }
+
+  async function handleDeleteCourse() {
+    if (!course) return;
+    setDeleteCourseLoading(true);
+    try {
+      await apiAdmin(`/api/admin/courses/${course.id}`, { method: "DELETE" });
+      setDeleteCourseModal(false);
+      toast.success("Course deleted successfully");
+      onNavigate?.("admin-dashboard");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete course");
+    } finally {
+      setDeleteCourseLoading(false);
+    }
+  }
+
+  // ── Upload handlers (local simulation; real upload wired to storage service) ──
 
   function handleFileSelected(file: File) {
     setSelectedFile(file);
@@ -272,21 +429,14 @@ export function AdminContent({
 
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
+        if (prev >= 90) { clearInterval(interval); return 90; }
         return prev + 15;
       });
     }, 150);
 
     try {
-      const dummyFile =
-        file ||
-        new File(["dummy"], uploadFileType === "pdf" ? "document.pdf" : "lesson.mp4", {
-          type: uploadFileType === "pdf" ? "application/pdf" : "video/mp4",
-        });
-      await lmsService.uploadFile(dummyFile, simulateUploadFail);
+      // Simulate the upload progression for now; real upload goes to storage service
+      if (simulateUploadFail) throw new Error("Simulated upload failure");
       clearInterval(interval);
       setUploadProgress(100);
       setTimeout(() => {
@@ -294,9 +444,7 @@ export function AdminContent({
         setTimeout(() => {
           setUploadStage(uploadFileType === "pdf" ? "published" : "generating");
           if (uploadFileType !== "pdf") {
-            setTimeout(() => {
-              setUploadStage("ready");
-            }, 1200);
+            setTimeout(() => setUploadStage("ready"), 1200);
           } else {
             toast.success("PDF uploaded successfully");
           }
@@ -323,9 +471,7 @@ export function AdminContent({
   function handleRetryUpload() {
     setUploadStage("idle");
     setUploadProgress(0);
-    if (selectedFile) {
-      handleStartUpload(selectedFile);
-    }
+    if (selectedFile) handleStartUpload(selectedFile);
   }
 
   function closeUploadModal() {
@@ -340,8 +486,10 @@ export function AdminContent({
     }
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
-    <AdminLayout current="admin-content" onNavigate={onNavigate}>
+    <AdminLayout>
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <div className="mb-4">
@@ -367,7 +515,7 @@ export function AdminContent({
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm mt-1 truncate">
-                  {course?.title || "Modern JavaScript: From Fundamentals to Advanced"}
+                  {course?.title || "No courses found"}
                 </p>
               )}
             </div>
@@ -486,7 +634,6 @@ export function AdminContent({
                                 {lesson.type.toUpperCase()}
                               </span>
 
-                              {/* PDF download toggle */}
                               {lesson.type === "pdf" && (
                                 <button
                                   onClick={() => handleToggleDownloadPermission(section.id, lesson.id)}
@@ -519,11 +666,7 @@ export function AdminContent({
                                 </button>
                                 <button
                                   onClick={() =>
-                                    setDeleteTarget({
-                                      sectionId: section.id,
-                                      lessonId: lesson.id,
-                                      title: lesson.title,
-                                    })
+                                    setDeleteTarget({ sectionId: section.id, lessonId: lesson.id, title: lesson.title })
                                   }
                                   className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
                                 >
@@ -572,6 +715,13 @@ export function AdminContent({
                 <Plus className="w-4 h-4" />
                 Add section
               </button>
+              <button
+                onClick={() => loadContentData(course?.id)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Refresh
+              </button>
             </div>
           </div>
         </div>
@@ -584,13 +734,9 @@ export function AdminContent({
         title="Upload lesson content"
         actions={
           uploadStage === "published" || uploadStage === "ready" ? (
-            <Button size="sm" onClick={closeUploadModal}>
-              Done
-            </Button>
+            <Button size="sm" onClick={closeUploadModal}>Done</Button>
           ) : (
-            <Button variant="secondary" size="sm" onClick={closeUploadModal}>
-              Close
-            </Button>
+            <Button variant="secondary" size="sm" onClick={closeUploadModal}>Close</Button>
           )
         }
       >
@@ -600,9 +746,8 @@ export function AdminContent({
               hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
               onChange={handleFileSelected}
             />
-
             <div className="p-3 bg-muted/30 rounded-xl border border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Test error state (~10% failure simulation):</span>
+              <span className="text-xs text-muted-foreground font-medium">Test error state:</span>
               <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
                 <input
                   type="checkbox"
@@ -619,7 +764,7 @@ export function AdminContent({
             <UploadPipeline
               stage={uploadStage}
               progress={uploadProgress}
-              filename={selectedFile?.name || (uploadFileType === "video" ? "intro-to-closures.mp4" : "core-concepts-reference.pdf")}
+              filename={selectedFile?.name || (uploadFileType === "video" ? "lesson.mp4" : "document.pdf")}
               fileType={uploadFileType}
               onRetry={handleRetryUpload}
               onPublish={handlePublishUploadedLesson}
@@ -636,7 +781,7 @@ export function AdminContent({
         loading={deleteLoading}
         title="Delete lesson?"
         description={`This will permanently remove "${deleteTarget?.title}" and its media file.`}
-        warning="Students with progress on this lesson will lose that record. Consider setting it to draft instead if students are active."
+        warning="Students with progress on this lesson will lose that record."
         confirmText="Delete lesson"
         variant="destructive"
       />
@@ -644,17 +789,11 @@ export function AdminContent({
       {/* Add Section modal */}
       <Modal
         open={addSectionModal}
-        onClose={() => {
-          setAddSectionModal(false);
-          setNewSectionName("");
-          setNewSectionDesc("");
-        }}
+        onClose={() => { setAddSectionModal(false); setNewSectionName(""); setNewSectionDesc(""); }}
         title="Add section"
         actions={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setAddSectionModal(false)}>
-              Cancel
-            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setAddSectionModal(false)}>Cancel</Button>
             <Button size="sm" loading={sectionLoading} disabled={!newSectionName.trim()} onClick={handleAddSection}>
               Add section
             </Button>
@@ -687,17 +826,11 @@ export function AdminContent({
       {/* Add Lesson modal */}
       <Modal
         open={!!addLessonModal}
-        onClose={() => {
-          setAddLessonModal(null);
-          setNewLessonTitle("");
-          setNewLessonDesc("");
-        }}
+        onClose={() => { setAddLessonModal(null); setNewLessonTitle(""); setNewLessonDesc(""); }}
         title="Add lesson"
         actions={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setAddLessonModal(null)}>
-              Cancel
-            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setAddLessonModal(null)}>Cancel</Button>
             <Button size="sm" loading={lessonLoading} disabled={!newLessonTitle.trim()} onClick={handleAddLesson}>
               Add lesson
             </Button>
@@ -751,23 +884,14 @@ export function AdminContent({
       {/* Publish Course modal */}
       <Modal
         open={publishModal}
-        onClose={() => {
-          if (publishState !== "publishing") setPublishModal(false);
-        }}
+        onClose={() => { if (publishState !== "publishing") setPublishModal(false); }}
         title="Publish course"
         actions={
           publishState === "published" ? (
-            <Button size="sm" onClick={() => setPublishModal(false)}>
-              Done
-            </Button>
+            <Button size="sm" onClick={() => setPublishModal(false)}>Done</Button>
           ) : (
             <>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={publishState === "publishing"}
-                onClick={() => setPublishModal(false)}
-              >
+              <Button variant="secondary" size="sm" disabled={publishState === "publishing"} onClick={() => setPublishModal(false)}>
                 Cancel
               </Button>
               <Button size="sm" loading={publishState === "publishing"} onClick={handlePublishCourse}>
@@ -796,23 +920,23 @@ export function AdminContent({
             <div className="flex items-start gap-2.5 px-3 py-2.5 bg-warning-light rounded-xl border border-warning/30">
               <AlertTriangle className="w-4 h-4 text-warning-foreground flex-shrink-0 mt-0.5" />
               <p className="text-xs text-warning-foreground leading-relaxed font-medium">
-                Only published sections and lessons will be visible. Ensure all content is ready before proceeding.
+                Only published lessons will be visible. Ensure all content is ready before proceeding.
               </p>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Delete Course Confirm Modal */}
+      {/* Delete Course modal */}
       <ConfirmDialog
         isOpen={deleteCourseModal}
         onClose={() => setDeleteCourseModal(false)}
         onConfirm={handleDeleteCourse}
         loading={deleteCourseLoading}
         title="Delete course?"
-        description={`Are you sure you want to delete "${course?.title}"?`}
-        warning="This will permanently remove the course and all associated sections, lessons, and media files from both Admin and Student portals. This action cannot be undone."
-        confirmText="Delete Course"
+        description={`This will permanently delete "${course?.title}" including all sections and lessons.`}
+        warning="This action cannot be undone. All student progress records for this course will also be removed."
+        confirmText="Delete course"
         variant="destructive"
       />
     </AdminLayout>
