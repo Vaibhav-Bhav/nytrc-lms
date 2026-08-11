@@ -123,7 +123,7 @@ export function StudentDashboard({
                 alt={primaryCourse?.title || "Course"}
                 className="absolute inset-0 w-full h-full object-cover opacity-[0.18] select-none pointer-events-none"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,#0F172A,#1E3A8A)] pointer-events-none" />
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_45%,#5C2410_100%)] pointer-events-none" />
               <div className="relative p-6 sm:p-8 flex gap-6 items-start">
                 <div className="flex-1 min-w-0">
                   <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.12em] mb-2">Welcome back</p>

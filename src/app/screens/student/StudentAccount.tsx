@@ -133,7 +133,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
             </div>
             <div className="px-5 sm:px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-amber-700 flex items-center justify-center flex-shrink-0 shadow-sm">
                   <span className="text-base font-extrabold text-white">SC</span>
                 </div>
                 <div className="min-w-0">

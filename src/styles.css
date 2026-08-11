@@ -5,9 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * GramUdyam design system — Terracotta Field Ledger.
- * Anchor: clay/terracotta. Accent: indigo. Highlight: harvest gold, used sparingly.
- * Paper background, ink foreground. All tokens in hex per the direction.
+ * NYtrc LMS design system.
+ * Anchor: Terracotta (#A04020). Accent: Dark Slate / Indigo (#0F172A).
  */
 
 @theme {
@@ -24,8 +23,7 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Shadcn compatibility layer — mapped onto our earth palette so any shadcn
-   component in the codebase inherits the field-ledger look. */
+/* Shadcn & Tailwind CSS custom property mappings */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -53,41 +51,95 @@
 }
 
 :root {
-  --radius: 0.125rem; /* Sharp corners — paper, not glass. */
-  --background: #FCF9F5;
-  --foreground: #2D2926;
-  --card: #FCF9F5;
-  --card-foreground: #2D2926;
-  --popover: #FCF9F5;
-  --popover-foreground: #2D2926;
-  --primary: #8E3E1F;
-  --primary-foreground: #FCF9F5;
-  --secondary: #F5EFE4;
-  --secondary-foreground: #2D2926;
-  --muted: #F5EFE4;
-  --muted-foreground: #6b625a;
-  --accent: #1E2F40;
-  --accent-foreground: #FCF9F5;
-  --destructive: #a1321e;
-  --destructive-foreground: #FCF9F5;
-  --border: rgba(45, 41, 38, 0.12);
-  --input: rgba(45, 41, 38, 0.16);
-  --ring: #8E3E1F;
+  --radius: 0.75rem;
+
+  /* Light Theme Neutrals */
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+
+  /* Terracotta Brand Primary */
+  --primary: #A04020;
+  --primary-hover: #8E3E1F;
+  --primary-light: #FFF7F5;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary & Muted */
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
+
+  /* Destructive & Semantics */
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #A04020;
+
+  --color-paper: var(--background);
+  --color-ink: var(--foreground);
+}
+
+.dark {
+  /* Dark Theme Neutrals */
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #131926;
+  --card-foreground: #F8FAFC;
+  --popover: #131926;
+  --popover-foreground: #F8FAFC;
+
+  /* Dark Terracotta Brand Primary */
+  --primary: #C85A32;
+  --primary-hover: #A04020;
+  --primary-light: rgba(200, 90, 50, 0.18);
+  --primary-foreground: #FFFFFF;
+
+  /* Dark Secondary & Muted */
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+
+  /* Dark Destructive & Borders */
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #C85A32;
+
+  --color-paper: var(--background);
+  --color-ink: var(--foreground);
 }
 
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: var(--border);
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
-    background-color: var(--color-paper);
-    color: var(--color-ink);
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   ::selection {
-    background-color: color-mix(in srgb, var(--color-clay) 18%, transparent);
+    background-color: color-mix(in srgb, var(--primary) 22%, transparent);
   }
 }
 
@@ -95,7 +147,7 @@
   background-image: linear-gradient(
     to bottom,
     transparent 31px,
-    color-mix(in srgb, var(--color-ink) 8%, transparent) 32px
+    color-mix(in srgb, var(--foreground) 8%, transparent) 32px
   );
   background-size: 100% 32px;
 }

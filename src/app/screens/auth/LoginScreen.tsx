@@ -21,8 +21,10 @@ interface LoginApiResponse {
 
 export function LoginScreen({
   initialAuthStatus = "idle",
+  onNavigate,
 }: {
   initialAuthStatus?: AuthStatus;
+  onNavigate?: (s: any) => void;
 }) {
   const navigate = useNavigate();
   const [showPw, setShowPw] = useState(false);
