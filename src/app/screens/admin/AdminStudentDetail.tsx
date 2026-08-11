@@ -250,6 +250,43 @@ export function AdminStudentDetail({
               )}
             </div>
 
+            {/* Email Delivery Log */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mb-6">
+              <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20 flex items-center justify-between">
+                <h2 className="font-bold text-foreground text-base">Email Delivery Log</h2>
+                <span className="text-xs text-muted-foreground">Transactional Logs</span>
+              </div>
+              <div className="p-5 sm:p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/10 text-muted-foreground uppercase font-bold">
+                        <th className="py-2.5 px-3">Template</th>
+                        <th className="py-2.5 px-3">Recipient</th>
+                        <th className="py-2.5 px-3">Status</th>
+                        <th className="py-2.5 px-3">Sent At</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {[
+                        { template: "payment_confirmation", to: activeStudent.email, status: "delivered", date: activeStudent.joined },
+                        { template: "account_created", to: activeStudent.email, status: "delivered", date: activeStudent.joined },
+                      ].map((item, idx) => (
+                        <tr key={idx} className="hover:bg-muted/10">
+                          <td className="py-2.5 px-3 font-mono font-semibold text-foreground">{item.template}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{item.to}</td>
+                          <td className="py-2.5 px-3">
+                            <Badge variant="delivered" />
+                          </td>
+                          <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">{item.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20">

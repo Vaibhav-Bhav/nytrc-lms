@@ -55,7 +55,7 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
     fullName?: string; email?: string; mobile?: string; state?: string; consent?: string;
   }>({});
 
-  // Pre-fill form from authenticated user
+  // Pre-fill form from authenticated user if logged in
   useEffect(() => {
     if (user) {
       setFullName(user.name || "");
@@ -63,12 +63,11 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
     }
   }, [user]);
 
-  // Load the first available published course from the student's context
+  // Load the first available published course
   useEffect(() => {
     async function loadCourse() {
       setCourseLoading(true);
       try {
-        // Fetch all published courses (public endpoint – no auth required for course list)
         const res = await fetch("/api/admin/courses", { credentials: "include" });
         if (res.ok) {
           const courses: EnrolledCourse[] = await res.json();
@@ -76,7 +75,7 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
           if (published) setCourse(published);
         }
       } catch {
-        // If fetch fails, fall back to mock price
+        // If fetch fails, fall back to default
       } finally {
         setCourseLoading(false);
       }
@@ -114,10 +113,6 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
       toast.error("Please correct the form errors before proceeding.");
       return;
     }
-    if (!user?.id) {
-      toast.error("You must be logged in to proceed with payment.");
-      return;
-    }
     if (!course) {
       toast.error("No course found to purchase.");
       return;
@@ -132,14 +127,17 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
         throw new Error("Failed to load Razorpay SDK. Please check your internet connection.");
       }
 
-      // Step 2: Create Razorpay order on our backend
+      // Step 2: Create Razorpay order on backend (supports guest or authenticated user)
       const orderRes = await fetch("/api/payments/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           course_id: course.id,
-          student_id: user.id,
+          student_id: user?.id || undefined,
+          name: fullName,
+          email: email,
+          mobile: mobile,
           gst_state: state,
         }),
       });
@@ -149,29 +147,31 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
         throw new Error(body.error || `Order creation failed: ${orderRes.status}`);
       }
 
-      const { orderId, amount, currency } = await orderRes.json();
-      toast.info(`Order created: ${orderId}`);
+      const { order_id, amount, currency, key } = await orderRes.json();
+      toast.info(`Order created successfully.`);
 
       // Step 3: Open Razorpay checkout modal
       onNavigate?.("payment-processing");
 
       await new Promise<void>((resolve, reject) => {
         const rzp = new window.Razorpay({
-          key: RAZORPAY_KEY_ID,
+          key: key || RAZORPAY_KEY_ID,
           amount,
           currency: currency || "INR",
           name: "NYTRC",
           description: course.title,
-          order_id: orderId,
+          order_id: order_id,
           prefill: {
             name: fullName,
             email: email,
             contact: mobile,
           },
           notes: {
-            student_id: user.id,
+            student_id: user?.id || "",
             course_id: course.id,
             gst_state: state,
+            name: fullName,
+            email: email,
           },
           theme: { color: "#4F46E5" },
 
@@ -194,7 +194,7 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
               });
 
               if (verifyRes.ok) {
-                toast.success("Payment verified & course access granted!");
+                toast.success("Payment received! Account setup & access are being processed.");
                 onNavigate?.("payment-success");
               } else {
                 const body = await verifyRes.json().catch(() => ({}));
@@ -232,10 +232,12 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
     checked,
     onChange,
     label,
+    href,
   }: {
     checked: boolean;
     onChange: () => void;
     label: string;
+    href: string;
   }) => (
     <label className="flex items-start gap-3 cursor-pointer group">
       <div
@@ -249,7 +251,13 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
       </div>
       <span className="text-sm text-muted-foreground leading-snug">
         I agree to the{" "}
-        <a href="#" className="text-primary hover:underline font-medium">
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+          onClick={(e) => e.stopPropagation()}
+        >
           {label}
         </a>
       </span>
@@ -354,9 +362,9 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
             <div className="bg-card rounded-2xl border border-border shadow-sm p-5 sm:p-6">
               <h2 className="font-bold text-foreground text-base mb-4">Agreement & Policies</h2>
               <div className="flex flex-col gap-3.5">
-                <Checkbox checked={agreeTC} onChange={() => setAgreeTC((v) => !v)} label="Terms & Conditions" />
-                <Checkbox checked={agreePrivacy} onChange={() => setAgreePrivacy((v) => !v)} label="Privacy Policy" />
-                <Checkbox checked={agreeRefund} onChange={() => setAgreeRefund((v) => !v)} label="Refund Policy" />
+                <Checkbox checked={agreeTC} onChange={() => setAgreeTC((v) => !v)} label="Terms & Conditions" href="/terms" />
+                <Checkbox checked={agreePrivacy} onChange={() => setAgreePrivacy((v) => !v)} label="Privacy Policy" href="/privacy" />
+                <Checkbox checked={agreeRefund} onChange={() => setAgreeRefund((v) => !v)} label="Refund Policy" href="/refund-policy" />
               </div>
               {errors.consent ? (
                 <p className="text-xs text-destructive mt-3 font-medium flex items-center gap-1">
@@ -419,17 +427,11 @@ export function CheckoutScreen({ onNavigate }: { onNavigate: (s: Screen) => void
                 </span>
               </div>
 
-              <Button type="submit" loading={loading} className="w-full" disabled={!user}>
+              <Button type="submit" loading={loading} className="w-full">
                 <CreditCard className="w-4 h-4" />
                 Proceed to payment
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Button>
-
-              {!user && (
-                <p className="text-xs text-destructive mt-2 text-center font-medium">
-                  Please log in to proceed with payment.
-                </p>
-              )}
 
               <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-muted-foreground font-medium">
                 <Lock className="w-3.5 h-3.5" />

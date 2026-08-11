@@ -1,35 +1,10 @@
 // src/repositories/lesson.ts
 //
 // Supabase-backed repository for the `lessons` table.
-//
-// Public method signatures are identical to the in-memory version so that
-// services/lessons.ts requires zero changes.
-//
-// Expected Supabase table DDL (run once in Supabase SQL editor):
-//
-//   create table public.lessons (
-//     id               uuid primary key default gen_random_uuid(),
-//     section_id       uuid not null references public.sections(id) on delete cascade,
-//     title            text not null,
-//     description      text,
-//     pdf_url          text,
-//     video_id         text,
-//     allow_download   boolean not null default false,
-//     page_count       integer,
-//     lesson_order     integer not null default 0,
-//     status           text not null default 'draft' check (status in ('draft','published')),
-//     created_at       timestamptz not null default now(),
-//     updated_at       timestamptz not null default now()
-//   );
-//
-//   create index lessons_section_id_idx on public.lessons (section_id, lesson_order);
 
 import { supabase } from '@/lib/supabase'
 import type { Lesson, NewLesson, UpdateLesson } from '@/schemas/lessons'
 
-// -----------------------------------------------------------------------
-// Internal helper — maps a raw Supabase row to the Lesson type.
-// -----------------------------------------------------------------------
 function toLesson(row: Record<string, unknown>): Lesson {
   return {
     id: row.id as string,
@@ -42,14 +17,13 @@ function toLesson(row: Record<string, unknown>): Lesson {
     page_count: (row.page_count as number | null) ?? null,
     lesson_order: row.lesson_order as number,
     status: row.status as 'draft' | 'published',
+    published_at: (row.published_at as string | null) ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   }
 }
 
 export const lessonRepository = {
-  // Returns lessons ordered by lesson_order ascending — mirrors the
-  // original .sort((a, b) => a.lesson_order - b.lesson_order).
   async findBySectionId(sectionId: string): Promise<Lesson[]> {
     const { data, error } = await supabase
       .from('lessons')
@@ -73,8 +47,6 @@ export const lessonRepository = {
   },
 
   async create(data: NewLesson): Promise<Lesson> {
-    // If lesson_order is not supplied, derive it as the current lesson count
-    // for this section — same logic as the previous in-memory implementation.
     let lessonOrder = data.lesson_order
 
     if (lessonOrder === undefined) {
@@ -99,6 +71,7 @@ export const lessonRepository = {
         page_count: data.page_count ?? null,
         lesson_order: lessonOrder,
         status: data.status ?? 'draft',
+        published_at: data.published_at ?? (data.status === 'published' ? new Date().toISOString() : null),
       })
       .select()
       .single()
@@ -123,11 +96,13 @@ export const lessonRepository = {
   },
 
   async updateStatusFromDraftToPublished(id: string): Promise<Lesson | null> {
+    const nowIso = new Date().toISOString()
     const { data: row, error } = await supabase
       .from('lessons')
       .update({
         status: 'published',
-        updated_at: new Date().toISOString(),
+        published_at: nowIso,
+        updated_at: nowIso,
       })
       .eq('id', id)
       .eq('status', 'draft')
@@ -148,17 +123,13 @@ export const lessonRepository = {
     return (count ?? 0) > 0
   },
 
-  // Updates lesson_order for each lesson ID in the array to match its index
-  // position — equivalent to the original in-memory forEach loop.
-  // Uses individual updates instead of a single RPC call to avoid introducing
-  // a custom SQL function dependency at this stage.
   async reorder(sectionId: string, orderedIds: string[]): Promise<Lesson[]> {
     const updates = orderedIds.map((id, index) =>
       supabase
         .from('lessons')
         .update({ lesson_order: index, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .eq('section_id', sectionId), // Safety: only update lessons that belong to this section
+        .eq('section_id', sectionId),
     )
 
     const results = await Promise.all(updates)

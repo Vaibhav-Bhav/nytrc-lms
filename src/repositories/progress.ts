@@ -183,4 +183,14 @@ export const progressRepository = {
     if (error) throw new Error(`progressRepository.upsert: ${error.message}`)
     return toProgress(row)
   },
+
+  async countByLesson(lessonId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('lesson_id', lessonId)
+
+    if (error) throw new Error(`progressRepository.countByLesson: ${error.message}`)
+    return count ?? 0
+  },
 }

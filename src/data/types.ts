@@ -30,6 +30,7 @@ export interface Course {
   instructor: string;
   thumbnail?: string;
   status: "draft" | "published";
+  price?: number;
   progress?: number;
   sectionCount?: number;
   lessonCount?: number;
@@ -43,6 +44,7 @@ export interface Section {
   title: string;
   order: number;
   published: boolean;
+  status?: "draft" | "published";
   lessons?: Lesson[];
 }
 
@@ -55,6 +57,7 @@ export interface Lesson {
   order: number;
   status: "draft" | "published";
   published?: boolean;
+  publishedAt?: string | null;
   duration?: string | null;
   downloadPermission?: boolean;
   completed?: boolean;
@@ -71,6 +74,7 @@ export interface Student {
   name: string;
   email: string;
   mobile: string;
+  state?: string;
   joined: string;
   lastLogin: string;
   progress: number;
@@ -129,4 +133,3 @@ export interface SessionApiResponse {
   active_devices: number;
   devices: DeviceSession[];
 }
-

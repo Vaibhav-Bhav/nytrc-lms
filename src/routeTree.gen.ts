@@ -14,13 +14,16 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as DeviceLimitRouteImport } from './routes/device-limit'
+import { Route as ForcePasswordRouteImport } from './routes/force-password'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
 import { Route as AdminCreateCourseRouteImport } from './routes/admin/create-course'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -34,10 +37,12 @@ import { Route as StudentDashboardRouteImport } from './routes/student/dashboard
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin/students.index'
 import { Route as AdminStudentsStudentIdRouteImport } from './routes/admin/students.$studentId'
 import { Route as ApiAdminCoursesRouteImport } from './routes/api/admin/courses'
+import { Route as ApiAdminEmailLogRouteImport } from './routes/api/admin/email-log'
 import { Route as ApiAdminLessonsRouteImport } from './routes/api/admin/lessons'
 import { Route as ApiAdminPaymentsRouteImport } from './routes/api/admin/payments'
 import { Route as ApiAdminSectionsRouteImport } from './routes/api/admin/sections'
 import { Route as ApiAdminStudentsRouteImport } from './routes/api/admin/students'
+import { Route as ApiAuthChangePasswordRouteImport } from './routes/api/auth/change-password'
 import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -65,10 +70,12 @@ import { Route as ApiSectionsSectionIdLessonsRouteImport } from './routes/api/se
 import { Route as ApiStudentCoursesIdRouteImport } from './routes/api/student/courses.$id'
 import { Route as ApiStudentLessonsIdRouteImport } from './routes/api/student/lessons.$id'
 import { Route as ApiStudentProgressLessonIdRouteImport } from './routes/api/student/progress.$lessonId'
+import { Route as ApiAdminLessonsIdProgressCheckRouteImport } from './routes/api/admin/lessons.$id.progress-check'
 import { Route as ApiAdminLessonsIdPublishRouteImport } from './routes/api/admin/lessons.$id.publish'
 import { Route as ApiAdminLessonsIdUnpublishRouteImport } from './routes/api/admin/lessons.$id.unpublish'
 import { Route as ApiStudentCoursesIdProgressRouteImport } from './routes/api/student/courses.$id.progress'
 import { Route as ApiStudentLessonsIdDocumentRouteImport } from './routes/api/student/lessons.$id.document'
+import { Route as ApiStudentLessonsIdProgressRouteImport } from './routes/api/student/lessons.$id.progress'
 import { Route as ApiStudentLessonsIdVideoRouteImport } from './routes/api/student/lessons.$id.video'
 import { Route as ApiAdminSectionsSectionIdLessonsReorderRouteImport } from './routes/api/admin/sections.$sectionId.lessons.reorder'
 
@@ -97,6 +104,11 @@ const DeviceLimitRoute = DeviceLimitRouteImport.update({
   path: '/device-limit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForcePasswordRoute = ForcePasswordRouteImport.update({
+  id: '/force-password',
+  path: '/force-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -110,6 +122,11 @@ const LoginRoute = LoginRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRoute = RefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -130,6 +147,11 @@ const SocialMediaRoute = SocialMediaRouteImport.update({
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminContentRoute = AdminContentRouteImport.update({
@@ -197,6 +219,11 @@ const ApiAdminCoursesRoute = ApiAdminCoursesRouteImport.update({
   path: '/api/admin/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminEmailLogRoute = ApiAdminEmailLogRouteImport.update({
+  id: '/api/admin/email-log',
+  path: '/api/admin/email-log',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminLessonsRoute = ApiAdminLessonsRouteImport.update({
   id: '/api/admin/lessons',
   path: '/api/admin/lessons',
@@ -215,6 +242,11 @@ const ApiAdminSectionsRoute = ApiAdminSectionsRouteImport.update({
 const ApiAdminStudentsRoute = ApiAdminStudentsRouteImport.update({
   id: '/api/admin/students',
   path: '/api/admin/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthChangePasswordRoute = ApiAuthChangePasswordRouteImport.update({
+  id: '/api/auth/change-password',
+  path: '/api/auth/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthForgotPasswordRoute = ApiAuthForgotPasswordRouteImport.update({
@@ -355,6 +387,12 @@ const ApiStudentProgressLessonIdRoute =
     path: '/$lessonId',
     getParentRoute: () => ApiStudentProgressRoute,
   } as any)
+const ApiAdminLessonsIdProgressCheckRoute =
+  ApiAdminLessonsIdProgressCheckRouteImport.update({
+    id: '/progress-check',
+    path: '/progress-check',
+    getParentRoute: () => ApiAdminLessonsIdRoute,
+  } as any)
 const ApiAdminLessonsIdPublishRoute =
   ApiAdminLessonsIdPublishRouteImport.update({
     id: '/publish',
@@ -379,6 +417,12 @@ const ApiStudentLessonsIdDocumentRoute =
     path: '/document',
     getParentRoute: () => ApiStudentLessonsIdRoute,
   } as any)
+const ApiStudentLessonsIdProgressRoute =
+  ApiStudentLessonsIdProgressRouteImport.update({
+    id: '/progress',
+    path: '/progress',
+    getParentRoute: () => ApiStudentLessonsIdRoute,
+  } as any)
 const ApiStudentLessonsIdVideoRoute =
   ApiStudentLessonsIdVideoRouteImport.update({
     id: '/video',
@@ -398,13 +442,16 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
   '/device-limit': typeof DeviceLimitRoute
+  '/force-password': typeof ForcePasswordRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/terms': typeof TermsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -417,10 +464,12 @@ export interface FileRoutesByFullPath {
   '/student/dashboard': typeof StudentDashboardRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
+  '/api/admin/email-log': typeof ApiAdminEmailLogRoute
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
+  '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -449,10 +498,12 @@ export interface FileRoutesByFullPath {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
   '/api/student/courses/$id/progress': typeof ApiStudentCoursesIdProgressRoute
   '/api/student/lessons/$id/document': typeof ApiStudentLessonsIdDocumentRoute
+  '/api/student/lessons/$id/progress': typeof ApiStudentLessonsIdProgressRoute
   '/api/student/lessons/$id/video': typeof ApiStudentLessonsIdVideoRoute
   '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
@@ -462,13 +513,16 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
   '/device-limit': typeof DeviceLimitRoute
+  '/force-password': typeof ForcePasswordRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/terms': typeof TermsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -481,10 +535,12 @@ export interface FileRoutesByTo {
   '/student/dashboard': typeof StudentDashboardRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
+  '/api/admin/email-log': typeof ApiAdminEmailLogRoute
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
+  '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -513,10 +569,12 @@ export interface FileRoutesByTo {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
   '/api/student/courses/$id/progress': typeof ApiStudentCoursesIdProgressRoute
   '/api/student/lessons/$id/document': typeof ApiStudentLessonsIdDocumentRoute
+  '/api/student/lessons/$id/progress': typeof ApiStudentLessonsIdProgressRoute
   '/api/student/lessons/$id/video': typeof ApiStudentLessonsIdVideoRoute
   '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
@@ -527,13 +585,16 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/copyright': typeof CopyrightRoute
   '/device-limit': typeof DeviceLimitRoute
+  '/force-password': typeof ForcePasswordRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/social-media': typeof SocialMediaRoute
   '/subscription': typeof SubscriptionRoute
+  '/terms': typeof TermsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -546,10 +607,12 @@ export interface FileRoutesById {
   '/student/dashboard': typeof StudentDashboardRoute
   '/admin/students/$studentId': typeof AdminStudentsStudentIdRoute
   '/api/admin/courses': typeof ApiAdminCoursesRouteWithChildren
+  '/api/admin/email-log': typeof ApiAdminEmailLogRoute
   '/api/admin/lessons': typeof ApiAdminLessonsRouteWithChildren
   '/api/admin/payments': typeof ApiAdminPaymentsRoute
   '/api/admin/sections': typeof ApiAdminSectionsRouteWithChildren
   '/api/admin/students': typeof ApiAdminStudentsRouteWithChildren
+  '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -578,10 +641,12 @@ export interface FileRoutesById {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
   '/api/student/courses/$id/progress': typeof ApiStudentCoursesIdProgressRoute
   '/api/student/lessons/$id/document': typeof ApiStudentLessonsIdDocumentRoute
+  '/api/student/lessons/$id/progress': typeof ApiStudentLessonsIdProgressRoute
   '/api/student/lessons/$id/video': typeof ApiStudentLessonsIdVideoRoute
   '/api/admin/sections/$sectionId/lessons/reorder': typeof ApiAdminSectionsSectionIdLessonsReorderRoute
 }
@@ -593,13 +658,16 @@ export interface FileRouteTypes {
     | '/contact'
     | '/copyright'
     | '/device-limit'
+    | '/force-password'
     | '/forgot-password'
     | '/login'
     | '/privacy'
+    | '/refund-policy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/terms'
     | '/admin/content'
     | '/admin/create-course'
     | '/admin/dashboard'
@@ -612,10 +680,12 @@ export interface FileRouteTypes {
     | '/student/dashboard'
     | '/admin/students/$studentId'
     | '/api/admin/courses'
+    | '/api/admin/email-log'
     | '/api/admin/lessons'
     | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
+    | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -644,10 +714,12 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
     | '/api/student/courses/$id/progress'
     | '/api/student/lessons/$id/document'
+    | '/api/student/lessons/$id/progress'
     | '/api/student/lessons/$id/video'
     | '/api/admin/sections/$sectionId/lessons/reorder'
   fileRoutesByTo: FileRoutesByTo
@@ -657,13 +729,16 @@ export interface FileRouteTypes {
     | '/contact'
     | '/copyright'
     | '/device-limit'
+    | '/force-password'
     | '/forgot-password'
     | '/login'
     | '/privacy'
+    | '/refund-policy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/terms'
     | '/admin/content'
     | '/admin/create-course'
     | '/admin/dashboard'
@@ -676,10 +751,12 @@ export interface FileRouteTypes {
     | '/student/dashboard'
     | '/admin/students/$studentId'
     | '/api/admin/courses'
+    | '/api/admin/email-log'
     | '/api/admin/lessons'
     | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
+    | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -708,10 +785,12 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
     | '/api/student/courses/$id/progress'
     | '/api/student/lessons/$id/document'
+    | '/api/student/lessons/$id/progress'
     | '/api/student/lessons/$id/video'
     | '/api/admin/sections/$sectionId/lessons/reorder'
   id:
@@ -721,13 +800,16 @@ export interface FileRouteTypes {
     | '/contact'
     | '/copyright'
     | '/device-limit'
+    | '/force-password'
     | '/forgot-password'
     | '/login'
     | '/privacy'
+    | '/refund-policy'
     | '/services'
     | '/sitemap.xml'
     | '/social-media'
     | '/subscription'
+    | '/terms'
     | '/admin/content'
     | '/admin/create-course'
     | '/admin/dashboard'
@@ -740,10 +822,12 @@ export interface FileRouteTypes {
     | '/student/dashboard'
     | '/admin/students/$studentId'
     | '/api/admin/courses'
+    | '/api/admin/email-log'
     | '/api/admin/lessons'
     | '/api/admin/payments'
     | '/api/admin/sections'
     | '/api/admin/students'
+    | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -772,10 +856,12 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
     | '/api/student/courses/$id/progress'
     | '/api/student/lessons/$id/document'
+    | '/api/student/lessons/$id/progress'
     | '/api/student/lessons/$id/video'
     | '/api/admin/sections/$sectionId/lessons/reorder'
   fileRoutesById: FileRoutesById
@@ -786,13 +872,16 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CopyrightRoute: typeof CopyrightRoute
   DeviceLimitRoute: typeof DeviceLimitRoute
+  ForcePasswordRoute: typeof ForcePasswordRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
+  RefundPolicyRoute: typeof RefundPolicyRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SocialMediaRoute: typeof SocialMediaRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  TermsRoute: typeof TermsRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCreateCourseRoute: typeof AdminCreateCourseRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
@@ -805,10 +894,12 @@ export interface RootRouteChildren {
   StudentDashboardRoute: typeof StudentDashboardRoute
   AdminStudentsStudentIdRoute: typeof AdminStudentsStudentIdRoute
   ApiAdminCoursesRoute: typeof ApiAdminCoursesRouteWithChildren
+  ApiAdminEmailLogRoute: typeof ApiAdminEmailLogRoute
   ApiAdminLessonsRoute: typeof ApiAdminLessonsRouteWithChildren
   ApiAdminPaymentsRoute: typeof ApiAdminPaymentsRoute
   ApiAdminSectionsRoute: typeof ApiAdminSectionsRouteWithChildren
   ApiAdminStudentsRoute: typeof ApiAdminStudentsRouteWithChildren
+  ApiAuthChangePasswordRoute: typeof ApiAuthChangePasswordRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
@@ -867,6 +958,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeviceLimitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/force-password': {
+      id: '/force-password'
+      path: '/force-password'
+      fullPath: '/force-password'
+      preLoaderRoute: typeof ForcePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -886,6 +984,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -914,6 +1019,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/content': {
@@ -1007,6 +1119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/email-log': {
+      id: '/api/admin/email-log'
+      path: '/api/admin/email-log'
+      fullPath: '/api/admin/email-log'
+      preLoaderRoute: typeof ApiAdminEmailLogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/lessons': {
       id: '/api/admin/lessons'
       path: '/api/admin/lessons'
@@ -1033,6 +1152,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/students'
       fullPath: '/api/admin/students'
       preLoaderRoute: typeof ApiAdminStudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/change-password': {
+      id: '/api/auth/change-password'
+      path: '/api/auth/change-password'
+      fullPath: '/api/auth/change-password'
+      preLoaderRoute: typeof ApiAuthChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/forgot-password': {
@@ -1224,6 +1350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudentProgressLessonIdRouteImport
       parentRoute: typeof ApiStudentProgressRoute
     }
+    '/api/admin/lessons/$id/progress-check': {
+      id: '/api/admin/lessons/$id/progress-check'
+      path: '/progress-check'
+      fullPath: '/api/admin/lessons/$id/progress-check'
+      preLoaderRoute: typeof ApiAdminLessonsIdProgressCheckRouteImport
+      parentRoute: typeof ApiAdminLessonsIdRoute
+    }
     '/api/admin/lessons/$id/publish': {
       id: '/api/admin/lessons/$id/publish'
       path: '/publish'
@@ -1250,6 +1383,13 @@ declare module '@tanstack/react-router' {
       path: '/document'
       fullPath: '/api/student/lessons/$id/document'
       preLoaderRoute: typeof ApiStudentLessonsIdDocumentRouteImport
+      parentRoute: typeof ApiStudentLessonsIdRoute
+    }
+    '/api/student/lessons/$id/progress': {
+      id: '/api/student/lessons/$id/progress'
+      path: '/progress'
+      fullPath: '/api/student/lessons/$id/progress'
+      preLoaderRoute: typeof ApiStudentLessonsIdProgressRouteImport
       parentRoute: typeof ApiStudentLessonsIdRoute
     }
     '/api/student/lessons/$id/video': {
@@ -1296,11 +1436,13 @@ const ApiAdminCoursesRouteWithChildren = ApiAdminCoursesRoute._addFileChildren(
 )
 
 interface ApiAdminLessonsIdRouteChildren {
+  ApiAdminLessonsIdProgressCheckRoute: typeof ApiAdminLessonsIdProgressCheckRoute
   ApiAdminLessonsIdPublishRoute: typeof ApiAdminLessonsIdPublishRoute
   ApiAdminLessonsIdUnpublishRoute: typeof ApiAdminLessonsIdUnpublishRoute
 }
 
 const ApiAdminLessonsIdRouteChildren: ApiAdminLessonsIdRouteChildren = {
+  ApiAdminLessonsIdProgressCheckRoute: ApiAdminLessonsIdProgressCheckRoute,
   ApiAdminLessonsIdPublishRoute: ApiAdminLessonsIdPublishRoute,
   ApiAdminLessonsIdUnpublishRoute: ApiAdminLessonsIdUnpublishRoute,
 }
@@ -1392,11 +1534,13 @@ const ApiStudentProgressRouteWithChildren =
 
 interface ApiStudentLessonsIdRouteChildren {
   ApiStudentLessonsIdDocumentRoute: typeof ApiStudentLessonsIdDocumentRoute
+  ApiStudentLessonsIdProgressRoute: typeof ApiStudentLessonsIdProgressRoute
   ApiStudentLessonsIdVideoRoute: typeof ApiStudentLessonsIdVideoRoute
 }
 
 const ApiStudentLessonsIdRouteChildren: ApiStudentLessonsIdRouteChildren = {
   ApiStudentLessonsIdDocumentRoute: ApiStudentLessonsIdDocumentRoute,
+  ApiStudentLessonsIdProgressRoute: ApiStudentLessonsIdProgressRoute,
   ApiStudentLessonsIdVideoRoute: ApiStudentLessonsIdVideoRoute,
 }
 
@@ -1409,13 +1553,16 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CopyrightRoute: CopyrightRoute,
   DeviceLimitRoute: DeviceLimitRoute,
+  ForcePasswordRoute: ForcePasswordRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
+  RefundPolicyRoute: RefundPolicyRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SocialMediaRoute: SocialMediaRoute,
   SubscriptionRoute: SubscriptionRoute,
+  TermsRoute: TermsRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCreateCourseRoute: AdminCreateCourseRoute,
   AdminDashboardRoute: AdminDashboardRoute,
@@ -1428,10 +1575,12 @@ const rootRouteChildren: RootRouteChildren = {
   StudentDashboardRoute: StudentDashboardRoute,
   AdminStudentsStudentIdRoute: AdminStudentsStudentIdRoute,
   ApiAdminCoursesRoute: ApiAdminCoursesRouteWithChildren,
+  ApiAdminEmailLogRoute: ApiAdminEmailLogRoute,
   ApiAdminLessonsRoute: ApiAdminLessonsRouteWithChildren,
   ApiAdminPaymentsRoute: ApiAdminPaymentsRoute,
   ApiAdminSectionsRoute: ApiAdminSectionsRouteWithChildren,
   ApiAdminStudentsRoute: ApiAdminStudentsRouteWithChildren,
+  ApiAuthChangePasswordRoute: ApiAuthChangePasswordRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,

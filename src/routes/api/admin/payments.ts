@@ -21,7 +21,9 @@ export const Route = createFileRoute('/api/admin/payments')({
           const enriched = await Promise.all(
             payments.map(async (payment) => {
               const [student, course, invoice] = await Promise.all([
-                userRepository.findById(payment.student_id).catch(() => null),
+                payment.student_id
+                  ? userRepository.findById(payment.student_id).catch(() => null)
+                  : Promise.resolve(null),
                 courseRepository.findById(payment.course_id).catch(() => null),
                 payment.invoice_id
                   ? invoiceRepository.findById(payment.invoice_id).catch(() => null)
@@ -32,7 +34,7 @@ export const Route = createFileRoute('/api/admin/payments')({
                 id: payment.id,
                 student_id: payment.student_id,
                 course_id: payment.course_id,
-                student_name: student?.name ?? 'Unknown Student',
+                student_name: student?.name ?? 'Guest / Pending Resolution',
                 student_email: student?.email ?? '',
                 course_title: course?.title ?? 'Unknown Course',
                 razorpay_order_id: payment.razorpay_order_id,

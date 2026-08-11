@@ -73,7 +73,7 @@ interface LessonProgress {
   completed_at: string | null;
 }
 
-// ── Progress persistence helpers (Phase 4) ───────────────────────────────────
+// ── Progress persistence helpers ───────────────────────────────────
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -83,46 +83,40 @@ function formatTime(seconds: number): string {
 
 async function saveProgressApi(
   lessonId: string | null,
-  payload: { videoProgressSeconds?: number; documentProgressPage?: number; completed?: boolean },
+  payload: { position_seconds?: number; videoProgressSeconds?: number; documentProgressPage?: number; completed?: boolean },
 ) {
   if (!lessonId) return null;
+  const position_seconds = payload.position_seconds ?? payload.videoProgressSeconds;
   try {
-    const response = await fetch("/api/student/progress", {
-      method: "POST",
+    const response = await fetch(`/api/student/lessons/${lessonId}/progress`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        lessonId,
-        videoProgressSeconds: payload.videoProgressSeconds,
-        documentProgressPage: payload.documentProgressPage,
+        position_seconds,
+        video_progress_seconds: position_seconds,
+        document_progress_page: payload.documentProgressPage,
         completed: payload.completed,
       }),
     });
     if (response.ok) {
       return await response.json();
     }
-    if (response.status === 401) {
-      console.warn("[Progress] No active session found.");
-      return null;
-    }
-    toast.error("Failed to save progress to the server.");
-    throw new Error(`Server returned status ${response.status}`);
   } catch (e) {
-    console.error("Progress save failed:", e);
-    toast.error("Network error: Progress could not be saved to server.");
-    throw e;
+    console.warn("[Progress] Autosave attempt failed quietly:", e);
   }
+  return null;
 }
 
 async function loadProgressApi(lessonId: string | null) {
   if (!lessonId) return null;
   try {
-    const response = await fetch(`/api/student/progress/${lessonId}`, { credentials: "include" });
+    const response = await fetch(`/api/student/lessons/${lessonId}/progress`, { credentials: "include" });
     if (response.ok) {
       return await response.json();
     }
   } catch (e) {
-    console.warn("Real API load progress failed:", e);
+    console.warn("Load progress failed:", e);
   }
   return null;
 }
@@ -131,75 +125,113 @@ export function CoursePlayer({
   onNavigate,
   selectedCourseId,
 }: {
-  onNavigate?: (s: Screen) => void;
+  onNavigate: (screen: Screen, params?: { courseId?: string }) => void;
   selectedCourseId?: string;
 }) {
-  const [courseData, setCourseData] = useState<ApiCourse | null>(null);
-  const [sections, setSections] = useState<ApiSection[]>([]);
+  const [courseData, setCourseData] = useState<CourseDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "materials">("overview");
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
-  const [mobileLessonsOpen, setMobileLessonsOpen] = useState(false);
-  const [videoError, setVideoError] = useState(false);
-  const [pdfError, setPdfError] = useState(false);
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-
-  // Main branch: media URL state for Bunny Stream / PDF signed URLs
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
   const [mediaLoading, setMediaLoading] = useState(false);
-  const markingComplete = useRef(false);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
-  // Phase 4: progress tracking state
+  // Player state
+  const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(5);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [mobileLessonsOpen, setMobileLessonsOpen] = useState(false);
+
+  // Refs for state persistence, auto-save timing, and Bunny iframe seek
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const currentTimeRef = useRef<number>(currentTime);
   const lastSavedTimeRef = useRef<number>(0);
+  const currentLessonIdRef = useRef<string | null>(currentLessonId);
+  const targetSeekPositionRef = useRef<number>(0);
+  const hasResumedRef = useRef<boolean>(false);
+  const markingComplete = useRef(false);
 
   useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
+  useEffect(() => {
+    currentLessonIdRef.current = currentLessonId;
+  }, [currentLessonId]);
+
+  const sections = courseData?.sections || [];
+  const allLessonsFlat = sections.flatMap((s) => s.lessons || []);
+
+  // Bunny Stream Player Control Abstraction
+  const bunnyPlayer = {
+    play: () => {
+      if (!iframeRef.current?.contentWindow) return;
+      try {
+        iframeRef.current.contentWindow.postMessage(JSON.stringify({ method: "play" }), "*");
+      } catch (err) {
+        console.warn("[CoursePlayer] Bunny play command warning:", err);
+      }
+    },
+    pause: () => {
+      if (!iframeRef.current?.contentWindow) return;
+      try {
+        iframeRef.current.contentWindow.postMessage(JSON.stringify({ method: "pause" }), "*");
+      } catch (err) {
+        console.warn("[CoursePlayer] Bunny pause command warning:", err);
+      }
+    },
+    seek: (targetSeconds: number) => {
+      if (!iframeRef.current?.contentWindow || targetSeconds <= 0) return;
+      try {
+        const msg1 = JSON.stringify({ method: "setCurrentTime", value: targetSeconds });
+        const msg2 = JSON.stringify({ method: "seek", value: targetSeconds });
+        iframeRef.current.contentWindow.postMessage(msg1, "*");
+        iframeRef.current.contentWindow.postMessage(msg2, "*");
+      } catch (err) {
+        console.warn("[CoursePlayer] Bunny seek command warning:", err);
+      }
+    },
+  };
+
+  function performBunnySeek(targetSeconds: number) {
+    bunnyPlayer.seek(targetSeconds);
+  }
+
+  // Fetch course details and initial progress map on mount
+  useEffect(() => {
+    if (!selectedCourseId) return;
     async function loadPlayerData() {
       setLoading(true);
       try {
-        // 1. Get the first enrolled course if no ID specified
-        let targetId = selectedCourseId;
-        if (!targetId) {
-          const listRes = await fetch("/api/student/courses", { credentials: "include" });
-          if (listRes.ok) {
-            const list: ApiCourse[] = await listRes.json();
-            targetId = list[0]?.id;
-          }
+        const response = await fetch(`/api/student/courses/${selectedCourseId}`, {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to load course details");
         }
-        if (!targetId) { setLoading(false); return; }
+        const data: CourseDetailResponse = await response.json();
+        setCourseData(data);
 
-        // 2. Load course detail (sections + lessons)
-        const detailRes = await fetch(`/api/student/courses/${targetId}`, { credentials: "include" });
-        if (!detailRes.ok) throw new Error("Failed to load course");
-        const detail: CourseDetailResponse = await detailRes.json();
-        setCourseData(detail.course);
-        setSections(detail.sections);
-        setExpandedSections(new Set(detail.sections.map((s) => s.id)));
+        const allSects = data.sections || [];
+        setExpandedSections(new Set(allSects.map((s) => s.id)));
 
-        // 3. Set first lesson as current
-        const allLessonsFlat = detail.sections.flatMap((s) => s.lessons || []);
-        if (allLessonsFlat.length > 0) {
-          setCurrentLessonId(allLessonsFlat[0].id);
+        const allL = allSects.flatMap((s) => s.lessons || []);
+        if (allL.length > 0) {
+          setCurrentLessonId(allL[0].id);
         }
 
-        // 4. Batch-load progress for all lessons (best effort)
-        const progResults = await Promise.allSettled(
-          allLessonsFlat.map((l) =>
-            fetch(`/api/student/progress/${l.id}`, { credentials: "include" })
-              .then((r) => r.ok ? r.json() as Promise<LessonProgress> : null)
-              .catch(() => null)
-          )
-        );
+        // Fetch completion status for all lessons
         const doneIds = new Set<string>();
+        const progResults = await Promise.allSettled(
+          allL.map((l) => loadProgressApi(l.id))
+        );
         progResults.forEach((result, idx) => {
           if (result.status === "fulfilled" && result.value?.completed) {
-            doneIds.add(allLessonsFlat[idx].id);
+            doneIds.add(allL[idx].id);
           }
         });
         setCompletedIds(doneIds);
@@ -212,7 +244,7 @@ export function CoursePlayer({
     loadPlayerData();
   }, [selectedCourseId]);
 
-  // Main branch: Load media URL when current lesson changes
+  // Load media URL when current lesson changes
   useEffect(() => {
     if (!currentLessonId) return;
     setVideoUrl(null);
@@ -220,13 +252,18 @@ export function CoursePlayer({
     setVideoError(false);
     setPdfError(false);
     setPlaying(false);
+    hasResumedRef.current = false;
 
     const currentLesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
     if (!currentLesson) return;
 
     if (currentLesson.hasVideo) {
       if (currentLesson.video_id) {
-        setVideoUrl(currentLesson.video_id);
+        if (currentLesson.video_id.startsWith('http://') || currentLesson.video_id.startsWith('https://')) {
+          setVideoUrl(currentLesson.video_id);
+        } else {
+          setVideoUrl(`https://iframe.mediadelivery.net/embed/381534/${currentLesson.video_id}`);
+        }
       } else {
         setVideoError(true);
       }
@@ -239,59 +276,177 @@ export function CoursePlayer({
     }
   }, [currentLessonId, sections]);
 
-  // Phase 4: Sync progress when lesson changes
+  // Sync progress when lesson changes (Resume Playback)
   useEffect(() => {
     if (!currentLessonId) return;
+    let isSubscribed = true;
+
     async function syncProgress() {
       const progress = await loadProgressApi(currentLessonId);
+      if (!isSubscribed) return;
+
       if (progress) {
-        const seconds = progress.video_progress_seconds || 0;
+        const seconds = progress.video_progress_seconds || progress.position_seconds || 0;
         setCurrentTime(seconds);
-        setCurrentPage(progress.document_progress_page || 1);
+        currentTimeRef.current = seconds;
         lastSavedTimeRef.current = seconds;
+        targetSeekPositionRef.current = progress.completed ? 0 : seconds;
+        setCurrentPage(progress.document_progress_page || 1);
         if (progress.completed) {
           setCompletedIds((prev) => new Set([...prev, currentLessonId!]));
         }
       } else {
         setCurrentTime(0);
-        setCurrentPage(1);
+        currentTimeRef.current = 0;
         lastSavedTimeRef.current = 0;
+        targetSeekPositionRef.current = 0;
+        setCurrentPage(1);
       }
+
       const lesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
-      if (lesson) {
+      if (lesson && isSubscribed) {
         setTotalPages(lesson.page_count || 5);
       }
     }
+
     syncProgress();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [currentLessonId, sections]);
 
-  // Phase 4: Video completion handler
-  // TODO (Phase 5 — Bunny Stream SDK): When Bunny Player.js SDK is integrated,
-  // call this from the player's 'ended' event to persist video completion.
+  // 15-second progress autosave interval during active video playback
+  useEffect(() => {
+    const currentLesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
+    const isPdfLesson = currentLesson?.hasDocument && !currentLesson?.hasVideo;
+
+    if (!currentLessonId || !playing || isPdfLesson) return;
+
+    const timer = setInterval(() => {
+      const currentPos = Math.floor(currentTimeRef.current);
+      if (currentPos > 0 && Math.abs(currentPos - lastSavedTimeRef.current) >= 2) {
+        lastSavedTimeRef.current = currentPos;
+        saveProgressApi(currentLessonId, { position_seconds: currentPos });
+      }
+    }, 15000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [currentLessonId, playing, sections]);
+
+  // Save latest position on unmount or lesson transition
+  useEffect(() => {
+    return () => {
+      const targetLessonId = currentLessonIdRef.current;
+      const currentPos = Math.floor(currentTimeRef.current);
+      if (targetLessonId && currentPos > 0 && Math.abs(currentPos - lastSavedTimeRef.current) >= 2) {
+        lastSavedTimeRef.current = currentPos;
+        saveProgressApi(targetLessonId, { position_seconds: currentPos });
+      }
+    };
+  }, [currentLessonId]);
+
+  // Video completion handler
   function handleVideoEnded() {
     setPlaying(false);
     if (!currentLessonId) return;
+    const finalPos = Math.floor(currentTimeRef.current);
+    lastSavedTimeRef.current = finalPos;
     saveProgressApi(currentLessonId, {
-      videoProgressSeconds: Math.floor(currentTime),
+      position_seconds: finalPos,
       completed: true,
-    }).then(() => {
-      setCompletedIds((prev) => new Set([...prev, currentLessonId!]));
-      toast.success("Lesson completed!");
-    }).catch(() => {
-      // save error already toasted by saveProgressApi
-    });
+    }).then((res) => {
+      if (res && !res.error) {
+        setCompletedIds((prev) => new Set([...prev, currentLessonId!]));
+        toast.success("Lesson completed!");
+      }
+    }).catch(() => {});
   }
 
-  // Phase 4: PDF page change handler with progress persistence
+  // Bunny Stream iframe postMessage listener & single-run seek resume
+  useEffect(() => {
+    const trustedOrigins = new Set([
+      "https://iframe.mediadelivery.net",
+      "https://video.bunnycdn.com",
+    ]);
+
+    function handleBunnyMessage(event: MessageEvent) {
+      // 1. Enforce active iframe reference and message source
+      if (!iframeRef.current || event.source !== iframeRef.current.contentWindow) {
+        return;
+      }
+
+      // 2. Enforce exact origin matching against trusted Bunny Stream player domains
+      if (!trustedOrigins.has(event.origin)) {
+        return;
+      }
+
+      let data: any = null;
+      if (typeof event.data === "string") {
+        try {
+          data = JSON.parse(event.data);
+        } catch {}
+      } else if (typeof event.data === "object" && event.data !== null) {
+        data = event.data;
+      }
+
+      if (!data) return;
+
+      const eventName = data.event || data.type;
+      const time = data.currentTime ?? data.data?.currentTime ?? data.value;
+
+      if (typeof time === "number" && Number.isFinite(time) && time >= 0) {
+        setCurrentTime(time);
+        currentTimeRef.current = time;
+      }
+
+      if (eventName === "error") {
+        console.warn("[CoursePlayer] Bunny stream player emitted error:", data);
+        setVideoError(true);
+        return;
+      }
+
+      // Execute single-run seek to resume saved playback position when player is ready
+      if (!hasResumedRef.current && targetSeekPositionRef.current > 0) {
+        if (eventName === "ready" || eventName === "play" || eventName === "playing" || eventName === "timeupdate") {
+          hasResumedRef.current = true;
+          performBunnySeek(targetSeekPositionRef.current);
+        }
+      }
+
+      if (eventName === "play" || eventName === "playing") {
+        setPlaying(true);
+      } else if (eventName === "pause") {
+        setPlaying(false);
+        const pos = Math.floor(currentTimeRef.current);
+        if (currentLessonId && pos > 0 && Math.abs(pos - lastSavedTimeRef.current) >= 1) {
+          lastSavedTimeRef.current = pos;
+          saveProgressApi(currentLessonId, { position_seconds: pos });
+        }
+      } else if (eventName === "ended") {
+        setPlaying(false);
+        handleVideoEnded();
+      }
+    }
+
+    window.addEventListener("message", handleBunnyMessage);
+    return () => {
+      window.removeEventListener("message", handleBunnyMessage);
+    };
+  }, [currentLessonId]);
+
+  // PDF page change handler with progress persistence
   async function handlePdfPageChange(nextPage: number) {
     if (nextPage < 1 || nextPage > totalPages || !currentLesson) return;
     setCurrentPage(nextPage);
     const isCompleted = nextPage === totalPages;
-    await saveProgressApi(currentLesson.id, {
+    const res = await saveProgressApi(currentLesson.id, {
       documentProgressPage: nextPage,
       completed: isCompleted,
     });
-    if (isCompleted) {
+    if (isCompleted && res && !res.error) {
       setCompletedIds((prev) => new Set([...prev, currentLesson.id]));
       toast.success("PDF Lesson completed!");
     }
@@ -316,19 +471,19 @@ export function CoursePlayer({
     if (!currentLesson || markingComplete.current) return;
     markingComplete.current = true;
     try {
-      const res = await fetch("/api/student/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ lessonId: currentLesson.id, completed: true }),
+      const res = await saveProgressApi(currentLesson.id, {
+        position_seconds: Math.floor(currentTimeRef.current),
+        completed: true,
       });
-      if (res.ok) {
+
+      if (res && !res.error && res.completed) {
         setCompletedIds((prev) => new Set([...prev, currentLesson.id]));
         toast.success("Lesson marked as complete!");
-        // Auto-advance to next lesson after 1.5s
         if (nextLesson) {
           setTimeout(() => navigateLesson(nextLesson.id), 1500);
         }
+      } else if (res?.error) {
+        toast.error(res.error || "Failed to mark lesson complete");
       } else {
         toast.error("Failed to mark lesson complete");
       }
@@ -359,75 +514,87 @@ export function CoursePlayer({
           <BookOpen className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
           <p className="text-xs text-muted-foreground">No lessons available</p>
         </div>
-      ) : sections.map((section) => {
-        const expanded = expandedSections.has(section.id);
-        const lessons = section.lessons || [];
-        const doneCount = lessons.filter((l) => completedIds.has(l.id)).length;
+      ) : (
+        sections.map((section, sIdx) => {
+          const isExpanded = expandedSections.has(section.id);
+          const sLessons = section.lessons || [];
 
-        return (
-          <div key={section.id} className="border-b border-border last:border-0">
-            <button
-              onClick={() => toggleSection(section.id)}
-              className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors text-left font-medium cursor-pointer"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-foreground">{section.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {doneCount}/{lessons.length} done
-                </p>
-              </div>
-              {expanded ? (
-                <ChevronUp className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              )}
-            </button>
-            {expanded &&
-              lessons.map((lesson) => {
-                const isCurrent = currentLessonId === lesson.id;
-                const isDone = completedIds.has(lesson.id);
+          return (
+            <div key={section.id} className="border-b border-border/50">
+              <button
+                onClick={() => toggleSection(section.id)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0">
+                    {sIdx + 1}
+                  </span>
+                  <p className="text-xs font-semibold text-foreground truncate">
+                    {section.title}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {sLessons.length} {sLessons.length === 1 ? "lesson" : "lessons"}
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </div>
+              </button>
 
-                return (
-                  <button
-                    key={lesson.id}
-                    onClick={() => navigateLesson(lesson.id)}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors border-t border-border/60 cursor-pointer",
-                      isCurrent ? "bg-primary-light" : "hover:bg-muted/30"
-                    )}
-                  >
-                    <div className="flex-shrink-0 mt-0.5">
-                      {isDone ? (
-                        <CheckCircle2 className="w-4 h-4 text-success-foreground" />
-                      ) : isCurrent ? (
-                        <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        </div>
-                      ) : lesson.hasDocument && !lesson.hasVideo ? (
-                        <FileText className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
+              {isExpanded && (
+                <div className="bg-muted/10 divide-y divide-border/20">
+                  {sLessons.map((lesson) => {
+                    const isCurrent = lesson.id === currentLessonId;
+                    const isDone = completedIds.has(lesson.id);
+
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => navigateLesson(lesson.id)}
                         className={cn(
-                          "text-xs leading-snug truncate",
-                          isCurrent ? "font-bold text-primary" : "text-foreground font-medium"
+                          "w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left pl-8",
+                          isCurrent ? "bg-primary/10 border-l-2 border-primary" : "hover:bg-muted/30"
                         )}
                       >
-                        {lesson.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {lesson.hasVideo ? "Video" : "PDF"}{lesson.allow_download ? " · DL" : ""}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-          </div>
-        );
-      })}
+                        <div className="flex-shrink-0">
+                          {isDone ? (
+                            <CheckCircle2 className="w-4 h-4 text-success-foreground" />
+                          ) : isCurrent ? (
+                            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            </div>
+                          ) : lesson.hasDocument && !lesson.hasVideo ? (
+                            <FileText className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={cn(
+                              "text-xs leading-snug truncate",
+                              isCurrent ? "font-bold text-primary" : "text-foreground font-medium"
+                            )}
+                          >
+                            {lesson.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {lesson.hasVideo ? "Video" : "PDF"}{lesson.allow_download ? " · DL" : ""}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
     </div>
   );
 
@@ -445,13 +612,8 @@ export function CoursePlayer({
                       <Loader2 className="w-8 h-8 animate-spin text-white/30" />
                     </div>
                   ) : videoUrl ? (
-                    // Real Bunny Stream embed
-                    // TODO (Phase 5 — Bunny Player.js SDK): Replace this basic iframe with
-                    // the Bunny Stream Player.js embed to gain access to playback events
-                    // (timeupdate, ended, seeked) for real-time 15-second progress autosave.
-                    // Currently, video progress can only be persisted via the manual
-                    // "Mark as complete" button since the iframe doesn't expose currentTime.
                     <iframe
+                      ref={iframeRef}
                       src={videoUrl}
                       className="absolute inset-0 w-full h-full"
                       allow="autoplay; fullscreen; picture-in-picture"
@@ -459,296 +621,171 @@ export function CoursePlayer({
                       title={currentLesson?.title || "Video Lesson"}
                     />
                   ) : videoError ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                      <AlertCircle className="w-10 h-10 text-white/30" />
-                      <div className="text-center px-4">
-                        <p className="text-white/70 font-medium text-sm">Video failed to load</p>
-                        <p className="text-white/40 text-xs mt-1">Check your connection and try again</p>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white/60">
+                      <AlertCircle className="w-10 h-10 text-error-foreground" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">Video unavailable</p>
+                        <p className="text-xs text-white/50 mt-1">No video stream ID associated with this lesson.</p>
                       </div>
-                      <button
-                        onClick={() => { setVideoError(false); setCurrentLessonId((id) => id); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-white text-sm transition-colors cursor-pointer"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        Retry
-                      </button>
                     </div>
                   ) : (
-                    // Fallback player UI (no Bunny credentials yet)
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-primary/40" />
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                        <button
-                          onClick={() => setPlaying(!playing)}
-                          className="w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md flex items-center justify-center transition-colors border border-white/20 shadow-xl cursor-pointer"
-                        >
-                          {playing ? <Pause className="w-7 h-7 text-white" /> : <Play className="w-7 h-7 text-white ml-1" />}
-                        </button>
-                        <div className="text-center px-4">
-                          <p className="text-white font-bold text-xs sm:text-sm">{currentLesson?.title}</p>
-                          <p className="text-white/50 text-xs mt-0.5">Video Lesson</p>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 sm:px-6 pt-8 pb-3">
-                        <div className="h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group">
-                          <div className="w-0 h-full bg-primary rounded-full relative">
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-3">
-                            <button onClick={() => setPlaying(!playing)} className="text-white/80 hover:text-white transition-colors cursor-pointer">
-                              {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </button>
-                            <button onClick={() => setMuted(!muted)} className="text-white/80 hover:text-white transition-colors cursor-pointer">
-                              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button className="text-white/60 hover:text-white text-xs px-2 py-0.5 border border-white/20 rounded-lg transition-colors cursor-pointer">
-                              1×
-                            </button>
-                            <button className="text-white/80 hover:text-white transition-colors cursor-pointer">
-                              <Maximize2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="text-xs text-white/40">Select a video lesson to begin playback</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-muted/20 p-4 sm:p-6">
-              {pdfError ? (
-                <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-                  <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground truncate">{currentLesson?.title}</span>
-                  </div>
-                  <div className="h-64 flex flex-col items-center justify-center gap-4">
-                    <AlertCircle className="w-9 h-9 text-muted-foreground/30" />
-                    <div className="text-center">
-                      <p className="text-sm text-foreground font-semibold">PDF failed to load</p>
-                      <p className="text-xs text-muted-foreground mt-1">There was a problem fetching this document.</p>
-                    </div>
-                    <Button variant="secondary" size="sm" onClick={() => setPdfError(false)}>
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Try again
-                    </Button>
-                  </div>
+            <div className="flex-1 flex flex-col bg-muted/20 min-h-[400px]">
+              {pdfUrl ? (
+                <iframe
+                  src={`${pdfUrl}#page=${currentPage}`}
+                  className="w-full flex-1 min-h-[500px] border-0"
+                  title={currentLesson?.title || "PDF Lesson"}
+                />
+              ) : pdfError ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
+                  <AlertCircle className="w-8 h-8 text-error-foreground" />
+                  <p className="text-sm font-semibold text-foreground">Document unavailable</p>
+                  <p className="text-xs">No PDF file attached to this lesson.</p>
                 </div>
               ) : (
-                <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/30 gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span className="text-sm font-bold text-foreground truncate">{currentLesson?.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {currentLesson?.allow_download ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-success-foreground flex items-center gap-1 font-semibold hidden sm:flex">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Download allowed
-                          </span>
-                          {pdfUrl && (
-                            <Button variant="secondary" size="sm" onClick={() => window.open(pdfUrl, "_blank")}>
-                              <Download className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Download PDF</span>
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Download restricted</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {mediaLoading ? (
-                    <div className="h-72 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : pdfUrl ? (
-                    <div>
-                      <iframe
-                        src={pdfUrl}
-                        className="w-full"
-                        style={{ height: "72vh" }}
-                        title={currentLesson?.title || "PDF Document"}
-                      />
-                      {/* Phase 4: PDF page navigation for progress tracking */}
-                      <div className="flex items-center justify-center gap-3 px-4 py-3 border-t border-border bg-muted/20">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={currentPage <= 1}
-                          onClick={() => handlePdfPageChange(currentPage - 1)}
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                          Previous Page
-                        </Button>
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={currentPage >= totalPages}
-                          onClick={() => handlePdfPageChange(currentPage + 1)}
-                        >
-                          Next Page
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-72 flex items-center justify-center bg-muted/10">
-                      <div className="text-center">
-                        <FileText className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-                        <p className="text-muted-foreground text-sm font-medium">PDF document will appear here</p>
-                        <p className="text-xs text-muted-foreground mt-1">Upload a PDF file in the Admin panel to enable this lesson</p>
-                      </div>
-                    </div>
-                  )}
+                <div className="flex-1 flex items-center justify-center p-8 text-muted-foreground text-xs">
+                  Loading PDF document...
                 </div>
               )}
+
+              {/* PDF page controls */}
+              <div className="p-3 bg-card border-t border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={currentPage <= 1}
+                    onClick={() => handlePdfPageChange(currentPage - 1)}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => handlePdfPageChange(currentPage + 1)}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+                {currentLesson?.allow_download && pdfUrl && (
+                  <a
+                    href={pdfUrl}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Download PDF
+                  </a>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Mobile view lessons */}
-          <div className="lg:hidden px-4 pt-3">
-            <Button variant="secondary" className="w-full" size="sm" onClick={() => setMobileLessonsOpen(true)}>
-              <BookOpen className="w-4 h-4" />
-              View course content
-            </Button>
-          </div>
-
-          {/* Tabs */}
-          <div className="px-5 sm:px-6 pt-4 pb-4">
-            <div className="flex border-b border-border mb-5">
-              {(["overview", "materials"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "px-4 py-2.5 text-sm font-bold -mb-px border-b-2 transition-colors cursor-pointer",
-                    activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {tab === "overview" ? "Overview" : "Materials"}
-                </button>
-              ))}
-            </div>
-            {activeTab === "overview" ? (
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <h3 className="font-bold text-foreground text-base">{currentLesson?.title}</h3>
-                  {/* Phase 4: Resume position indicator for video lessons */}
-                  {currentLesson && currentLessonId && !completedIds.has(currentLessonId) && currentLesson.hasVideo && currentTime > 0 && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400 flex-shrink-0">
-                      <Clock className="w-3.5 h-3.5" />
-                      Resume from {formatTime(currentTime)}
-                    </div>
+          {/* Lesson info & navigation header */}
+          <div className="p-6 bg-card border-b border-border space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md border border-border bg-muted/20 text-muted-foreground">
+                    {isPdf ? "Document" : "Video"}
+                  </span>
+                  {completedIds.has(currentLesson?.id || "") && (
+                    <Badge variant="completed" />
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {currentLesson?.description || "In this lesson you'll explore core technical concepts, step-by-step demonstrations, and hands-on exercises tailored for this course module."}
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5 max-w-2xl">
-                {allLessons
-                  .filter((l) => l.hasDocument && !l.hasVideo)
-                  .map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center justify-between p-3.5 rounded-xl border border-border hover:bg-muted/30 transition-colors gap-3"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-sm font-semibold text-foreground truncate">{lesson.title}</span>
-                        {completedIds.has(lesson.id) && <Badge variant="completed" />}
-                      </div>
-                      {lesson.allow_download ? (
-                        <Button variant="ghost" size="sm" className="flex-shrink-0" onClick={() => navigateLesson(lesson.id)}>
-                          <Download className="w-3.5 h-3.5" />
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground flex-shrink-0 flex items-center gap-1 font-medium">
-                          <Lock className="w-3 h-3" />
-                          Restricted
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                {allLessons.filter((l) => l.hasDocument && !l.hasVideo).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-6">No PDF materials in this course</p>
+                <h1 className="text-xl font-bold text-foreground">
+                  {currentLesson?.title || "Select a lesson"}
+                </h1>
+                {currentLesson?.description && (
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {currentLesson.description}
+                  </p>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Controls */}
-          <div className="border-t border-border bg-card px-5 py-3.5 flex items-center justify-between sticky bottom-0 gap-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!prevLesson}
-              onClick={() => prevLesson && navigateLesson(prevLesson.id)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Previous</span>
-            </Button>
-            {currentLesson && !completedIds.has(currentLesson.id) ? (
-              <button
-                onClick={markComplete}
-                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-success-foreground hover:underline transition-colors cursor-pointer"
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={markComplete}
+                  disabled={!currentLesson || completedIds.has(currentLesson.id)}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1.5 text-success-foreground" />
+                  {completedIds.has(currentLesson?.id || "") ? "Completed" : "Mark as Complete"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Bottom navigation buttons */}
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!prevLesson}
+                onClick={() => prevLesson && navigateLesson(prevLesson.id)}
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Mark as complete</span>
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous Lesson
+              </Button>
+
+              <button
+                className="lg:hidden text-xs text-primary font-semibold flex items-center gap-1"
+                onClick={() => setMobileLessonsOpen(!mobileLessonsOpen)}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Course Content
               </button>
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs sm:text-sm text-success-foreground font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Completed</span>
-              </span>
-            )}
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!nextLesson}
-              onClick={() => nextLesson && navigateLesson(nextLesson.id)}
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!nextLesson}
+                onClick={() => nextLesson && navigateLesson(nextLesson.id)}
+              >
+                Next Lesson
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Desktop sidebar */}
-        <div className="hidden lg:flex w-72 border-l border-border bg-card flex-col flex-shrink-0 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-border flex-shrink-0 bg-muted/20">
-            <p className="text-sm font-bold text-foreground">Course content</p>
+        {/* Sidebar course content drawer / column */}
+        <div
+          className={cn(
+            "w-full lg:w-80 bg-card border-l border-border flex flex-col flex-shrink-0",
+            mobileLessonsOpen ? "block" : "hidden lg:flex"
+          )}
+        >
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-primary" />
+              Course Content
+            </h2>
+            <button
+              onClick={() => setMobileLessonsOpen(false)}
+              className="lg:hidden text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
           {LessonList}
         </div>
-
-        {/* Mobile lessons overlay */}
-        {mobileLessonsOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex flex-col bg-card">
-            <div className="flex items-center justify-between px-4 py-4 border-b border-border flex-shrink-0">
-              <p className="font-bold text-foreground">Course content</p>
-              <button onClick={() => setMobileLessonsOpen(false)} className="p-2 rounded-lg hover:bg-muted transition-colors">
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </div>
-            {LessonList}
-          </div>
-        )}
       </div>
     </StudentLayout>
   );

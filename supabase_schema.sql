@@ -1,5 +1,5 @@
 -- =======================================================================
--- NYTRC LMS — Supabase Schema
+-- NYTRC LMS — Supabase Schema (Complete Production Baseline - Sprint 5.2)
 -- Run this entire script once in the Supabase SQL Editor.
 -- Tables are created in foreign-key dependency order.
 -- =======================================================================
@@ -11,6 +11,8 @@ create table if not exists public.users (
   id                      uuid primary key default gen_random_uuid(),
   email                   text not null unique,
   name                    text not null,
+  mobile                  text,
+  state                   text,
   role                    text not null default 'student'
                             check (role in ('admin', 'student')),
   password_hash           text not null,
@@ -18,9 +20,12 @@ create table if not exists public.users (
   force_password_change   boolean not null default false,
   reset_token             text unique,
   reset_token_expires_at  timestamptz,
+  last_login_at           timestamptz,
   created_at              timestamptz not null default now(),
   updated_at              timestamptz not null default now()
 );
+
+create index if not exists users_email_idx on public.users (email);
 
 -- -----------------------------------------------------------------------
 -- 2. sessions  (references users)
@@ -55,6 +60,7 @@ create table if not exists public.courses (
   title          text not null,
   description    text,
   thumbnail_url  text,
+  price          numeric(10, 2) not null default 0.00,
   status         text not null default 'draft'
                    check (status in ('draft', 'published')),
   created_by     uuid not null references public.users(id),
@@ -65,13 +71,35 @@ create table if not exists public.courses (
 create index if not exists courses_status_idx on public.courses (status);
 
 -- -----------------------------------------------------------------------
--- 4. sections  (references courses)
+-- 4. leads  (references courses)
+-- -----------------------------------------------------------------------
+create table if not exists public.leads (
+  id                  uuid primary key default gen_random_uuid(),
+  name                text not null,
+  email               text not null,
+  mobile              text,
+  state               text,
+  course_id           uuid references public.courses(id) on delete set null,
+  razorpay_order_id   text,
+  status              text not null default 'initiated'
+                        check (status in ('initiated', 'paid', 'failed')),
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
+);
+
+create index if not exists leads_email_idx on public.leads (email);
+create index if not exists leads_razorpay_order_id_idx on public.leads (razorpay_order_id);
+
+-- -----------------------------------------------------------------------
+-- 5. sections  (references courses)
 -- -----------------------------------------------------------------------
 create table if not exists public.sections (
   id            uuid primary key default gen_random_uuid(),
   course_id     uuid not null references public.courses(id) on delete cascade,
   title         text not null,
   order_number  integer not null default 0,
+  status        text not null default 'draft'
+                  check (status in ('draft', 'published')),
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -79,8 +107,10 @@ create table if not exists public.sections (
 create index if not exists sections_course_id_order_idx
   on public.sections (course_id, order_number);
 
+create index if not exists sections_status_idx on public.sections (status);
+
 -- -----------------------------------------------------------------------
--- 5. lessons  (references sections)
+-- 6. lessons  (references sections)
 -- -----------------------------------------------------------------------
 create table if not exists public.lessons (
   id              uuid primary key default gen_random_uuid(),
@@ -94,6 +124,7 @@ create table if not exists public.lessons (
   lesson_order    integer not null default 0,
   status          text not null default 'draft'
                     check (status in ('draft', 'published')),
+  published_at    timestamptz,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
@@ -104,8 +135,8 @@ create index if not exists lessons_section_id_order_idx
 create index if not exists lessons_status_idx on public.lessons (status);
 
 -- -----------------------------------------------------------------------
--- 6. payments  (references users, courses)
---    NOTE: invoice_id FK is added in step 8 after invoices table exists.
+-- 7. payments  (references users, courses)
+--    NOTE: invoice_id FK is added in step 9 after invoices table exists.
 -- -----------------------------------------------------------------------
 create table if not exists public.payments (
   id                   uuid primary key default gen_random_uuid(),
@@ -115,10 +146,12 @@ create table if not exists public.payments (
   razorpay_payment_id  text unique,
   invoice_id           uuid,
   payment_status       text not null default 'pending'
-                         check (payment_status in ('pending', 'success', 'failed')),
+                         check (payment_status in ('pending', 'success', 'failed', 'refunded')),
   amount_paid          numeric(10, 2) not null,
   currency             text not null default 'INR',
   gst_state            text,
+  method               text,
+  raw_payload          jsonb,
   created_at           timestamptz not null default now(),
   updated_at           timestamptz not null default now()
 );
@@ -130,7 +163,7 @@ create index if not exists payments_razorpay_order_id_idx
   on public.payments (razorpay_order_id);
 
 -- -----------------------------------------------------------------------
--- 7. course_access  (references users, courses, payments)
+-- 8. course_access  (references users, courses, payments)
 -- -----------------------------------------------------------------------
 create table if not exists public.course_access (
   id             uuid primary key default gen_random_uuid(),
@@ -154,18 +187,28 @@ create index if not exists course_access_student_id_idx
   on public.course_access (student_id);
 
 -- -----------------------------------------------------------------------
--- 8. invoices  (references payments)
+-- 9. invoices  (references payments)
 -- -----------------------------------------------------------------------
 create table if not exists public.invoices (
   id                    uuid primary key default gen_random_uuid(),
   payment_id            uuid not null unique references public.payments(id),
   invoice_number        text not null unique,
+  invoice_date          timestamptz not null default now(),
   invoice_status        text not null default 'generated'
                           check (invoice_status in ('pending', 'generated')),
   invoice_download_url  text,
+  seller_name           text,
+  seller_gstin          text,
+  buyer_state           text,
+  place_of_supply       text,
+  sac_code              text,
+  tax_type              text check (tax_type in ('cgst_sgst', 'igst')),
   base_amount           numeric(10, 2) not null,
   gst_amount            numeric(10, 2) not null,
   gst_rate              numeric(5, 4) not null,
+  cgst                  numeric(10, 2) not null default 0.00,
+  sgst                  numeric(10, 2) not null default 0.00,
+  igst                  numeric(10, 2) not null default 0.00,
   total_amount          numeric(10, 2) not null,
   created_at            timestamptz not null default now(),
   updated_at            timestamptz not null default now()
@@ -180,7 +223,7 @@ alter table public.payments
   foreign key (invoice_id) references public.invoices(id);
 
 -- -----------------------------------------------------------------------
--- 9. progress  (references users, lessons)
+-- 10. progress  (references users, lessons)
 -- -----------------------------------------------------------------------
 create table if not exists public.progress (
   id                       uuid primary key default gen_random_uuid(),
@@ -199,6 +242,27 @@ create table if not exists public.progress (
 create index if not exists progress_student_id_idx on public.progress (student_id);
 create index if not exists progress_lesson_id_idx  on public.progress (lesson_id);
 
+-- -----------------------------------------------------------------------
+-- 11. email_log  (references users)
+-- -----------------------------------------------------------------------
+create table if not exists public.email_log (
+  id                  uuid primary key default gen_random_uuid(),
+  user_id             uuid references public.users(id) on delete set null,
+  template            text not null,
+  to_address          text not null,
+  subject             text,
+  status              text not null default 'pending'
+                        check (status in ('pending', 'sent', 'failed', 'delivered')),
+  provider_message_id text,
+  error               text,
+  metadata            jsonb,
+  sent_at             timestamptz,
+  created_at          timestamptz not null default now()
+);
+
+create index if not exists email_log_user_id_idx on public.email_log (user_id);
+create index if not exists email_log_status_idx on public.email_log (status);
+
 -- =======================================================================
 -- Row Level Security
 -- All repository calls use the SERVICE ROLE key which bypasses RLS.
@@ -208,24 +272,11 @@ create index if not exists progress_lesson_id_idx  on public.progress (lesson_id
 alter table public.users         enable row level security;
 alter table public.sessions      enable row level security;
 alter table public.courses       enable row level security;
+alter table public.leads         enable row level security;
 alter table public.sections      enable row level security;
 alter table public.lessons       enable row level security;
 alter table public.payments      enable row level security;
 alter table public.course_access enable row level security;
 alter table public.invoices      enable row level security;
 alter table public.progress      enable row level security;
-
--- =======================================================================
--- Seed: first admin user
--- Generate password_hash locally before inserting:
---   node -e "import('./src/lib/password.js').then(m => m.hashPassword('YourPass1!').then(console.log))"
--- Then paste the output as the password_hash value below and uncomment.
--- =======================================================================
--- insert into public.users (email, name, role, password_hash, force_password_change)
--- values (
---   'admin@nytrc.in',
---   'NYTRC Admin',
---   'admin',
---   'REPLACE_WITH_HASH_OUTPUT',
---   false
--- );
+alter table public.email_log     enable row level security;

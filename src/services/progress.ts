@@ -37,7 +37,7 @@ export const progressService = {
   },
 
   /**
-   * Marks a specific lesson as completed.
+   * Marks a specific lesson as completed after server-side validation.
    */
   async markLessonCompleted(studentId: string, lessonId: string) {
     // 1. Validate lesson exists
@@ -46,7 +46,22 @@ export const progressService = {
       throw new Error('LESSON_NOT_FOUND')
     }
 
-    // 2. Upsert completion details
+    // 2. Fetch existing progress to validate completion legitimacy
+    const existing = await progressRepository.findByStudentAndLesson(studentId, lessonId)
+    const currentVideoProgress = existing?.video_progress_seconds ?? 0
+    const currentDocPage = existing?.document_progress_page ?? 0
+
+    // Server-side completion validation rule:
+    // Video lessons require non-zero watch progress (>= 5s).
+    // Document lessons require viewing at least 1 page.
+    if (lesson.video_id && currentVideoProgress < 5) {
+      throw new Error('INSUFFICIENT_PROGRESS_FOR_COMPLETION')
+    }
+    if (lesson.pdf_url && currentDocPage < 1) {
+      throw new Error('INSUFFICIENT_PROGRESS_FOR_COMPLETION')
+    }
+
+    // 3. Upsert completion details
     const updated = await progressRepository.upsert(studentId, lessonId, {
       completed: true,
     })

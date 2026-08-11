@@ -13,6 +13,7 @@ export const lessonSchema = z.object({
   page_count: z.number().int().nonnegative().nullable(),
   lesson_order: z.number().int().nonnegative(),
   status: z.enum(['draft', 'published']),
+  published_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })
@@ -27,6 +28,7 @@ export const newLessonSchema = z.object({
   page_count: z.number().int().nonnegative().optional(),
   lesson_order: z.number().int().nonnegative().optional(),
   status: z.enum(['draft', 'published']).optional(),
+  published_at: z.string().optional(),
 })
 
 export const updateLessonSchema = newLessonSchema.partial()

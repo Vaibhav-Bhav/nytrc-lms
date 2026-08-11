@@ -2,35 +2,11 @@
 //
 // Supabase-backed repository for the `sessions` table.
 //
-// Public method signatures are identical to the in-memory version so that
-// services/auth.ts requires zero changes.
-//
-// Expected Supabase table DDL (run once in Supabase SQL editor):
-//
-//   create table public.sessions (
-//     id                  uuid primary key default gen_random_uuid(),
-//     user_id             uuid not null references public.users(id) on delete cascade,
-//     token               text not null unique,
-//     refresh_token       text unique,
-//     device_identifier   text,
-//     browser             text,
-//     os                  text,
-//     ip_address          text,
-//     location_metadata   jsonb,
-//     is_active           boolean not null default true,
-//     expires_at          timestamptz not null,
-//     created_at          timestamptz not null default now()
-//   );
-//
-//   create index sessions_user_id_is_active_idx on public.sessions (user_id, is_active);
-//   create index sessions_token_idx on public.sessions (token) where is_active = true;
 
 import { supabase } from '@/lib/supabase'
 import type { Session, NewSession } from '@/schemas/sessions'
 
-// -----------------------------------------------------------------------
 // Internal helper — maps a raw Supabase row to the Session type.
-// -----------------------------------------------------------------------
 function toSession(row: Record<string, unknown>): Session {
   return {
     id: row.id as string,
@@ -128,6 +104,15 @@ export const sessionRepository = {
 
     if (error) throw new Error(`sessionRepository.create: ${error.message}`)
     return toSession(row)
+  },
+
+  async updateExpiry(id: string, expiresAt: string): Promise<void> {
+    const { error } = await supabase
+      .from('sessions')
+      .update({ expires_at: expiresAt })
+      .eq('id', id)
+
+    if (error) throw new Error(`sessionRepository.updateExpiry: ${error.message}`)
   },
 
   async deactivate(id: string): Promise<boolean> {

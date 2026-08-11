@@ -1,18 +1,103 @@
-import { useState } from "react";
-import { Search, ArrowLeft, Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, ArrowLeft, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Screen } from "../../../data/types";
-import { EMAIL_LOG } from "../../../data/mockData";
+import { EMAIL_LOG as MOCK_EMAIL_LOG } from "../../../data/mockData";
 import { AdminLayout } from "../../components/AdminLayout";
 import { SearchInput } from "../../components/SearchInput";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 
+interface ApiEmailLog {
+  id: string;
+  user_id?: string | null;
+  recipient_name: string;
+  to_address: string;
+  template: string;
+  subject?: string | null;
+  status: "pending" | "sent" | "failed" | "delivered";
+  provider_message_id?: string | null;
+  error?: string | null;
+  sent_at?: string | null;
+  created_at: string;
+}
+
 export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const [search, setSearch] = useState("");
+  const [logs, setLogs] = useState<ApiEmailLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
-  const logs = EMAIL_LOG.filter(
-    (l) => l.type.toLowerCase().includes(search.toLowerCase()) || l.sent.includes(search)
+  useEffect(() => {
+    async function fetchLogs() {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/admin/email-log", { credentials: "include" });
+        if (res.ok) {
+          const data: ApiEmailLog[] = await res.json();
+          setLogs(data);
+        } else {
+          // Fallback to mock data
+          setLogs(
+            MOCK_EMAIL_LOG.map((m) => ({
+              id: m.id,
+              recipient_name: "Student",
+              to_address: "student@example.com",
+              template: m.type,
+              status: m.status as any,
+              created_at: m.sent,
+            }))
+          );
+        }
+      } catch {
+        setLogs(
+          MOCK_EMAIL_LOG.map((m) => ({
+            id: m.id,
+            recipient_name: "Student",
+            to_address: "student@example.com",
+            template: m.type,
+            status: m.status as any,
+            created_at: m.sent,
+          }))
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLogs();
+  }, []);
+
+  async function handleResend(logId: string, template: string) {
+    setResendingId(logId);
+    try {
+      const res = await fetch("/api/admin/email-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ log_id: logId }),
+      });
+      if (res.ok) {
+        toast.success(`Resent ${template} email successfully`);
+        // Refresh logs
+        const refreshRes = await fetch("/api/admin/email-log", { credentials: "include" });
+        if (refreshRes.ok) setLogs(await refreshRes.json());
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Failed to resend email");
+      }
+    } catch {
+      toast.error("Network error when attempting to resend email");
+    } finally {
+      setResendingId(null);
+    }
+  }
+
+  const filtered = logs.filter(
+    (l) =>
+      l.template.toLowerCase().includes(search.toLowerCase()) ||
+      l.to_address.toLowerCase().includes(search.toLowerCase()) ||
+      l.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
+      l.created_at.includes(search)
   );
 
   return (
@@ -35,7 +120,7 @@ export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void 
           </div>
 
           <div className="mb-6">
-            <SearchInput value={search} onChange={setSearch} placeholder="Search by email type or timestamp..." />
+            <SearchInput value={search} onChange={setSearch} placeholder="Search by recipient, template, or timestamp..." />
           </div>
 
           <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -47,7 +132,7 @@ export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void 
                       Recipient
                     </th>
                     <th className="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Email Type
+                      Email Template
                     </th>
                     <th className="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       Sent Time
@@ -61,7 +146,14 @@ export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {logs.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                        <span className="text-sm">Loading email audit logs...</span>
+                      </td>
+                    </tr>
+                  ) : filtered.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center">
                         <Search className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
@@ -69,21 +161,33 @@ export function AdminEmailLog({ onNavigate }: { onNavigate: (s: Screen) => void 
                       </td>
                     </tr>
                   ) : (
-                    logs.map((entry) => (
+                    filtered.map((entry) => (
                       <tr key={entry.id} className="hover:bg-muted/20 transition-colors">
                         <td className="px-5 py-3.5">
                           <div>
-                            <p className="text-sm font-bold text-foreground">Sarah Chen</p>
-                            <p className="text-xs text-muted-foreground">sarah.chen@example.com</p>
+                            <p className="text-sm font-bold text-foreground">{entry.recipient_name}</p>
+                            <p className="text-xs text-muted-foreground">{entry.to_address}</p>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-sm font-semibold text-foreground">{entry.type}</td>
-                        <td className="px-4 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{entry.sent}</td>
+                        <td className="px-4 py-3.5 text-sm font-semibold text-foreground capitalize">
+                          {entry.template.replace("_", " ")}
+                        </td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground whitespace-nowrap">
+                          {new Date(entry.created_at).toLocaleString("en-IN", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </td>
                         <td className="px-4 py-3.5">
-                          <Badge variant={entry.status} />
+                          <Badge variant={entry.status === "sent" ? "delivered" : entry.status === "failed" ? "failed" : "pending"} />
                         </td>
                         <td className="px-5 py-3.5 text-right">
-                          <Button variant="ghost" size="sm" onClick={() => toast.success(`Resent ${entry.type} email`)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            loading={resendingId === entry.id}
+                            onClick={() => handleResend(entry.id, entry.template)}
+                          >
                             <Send className="w-3.5 h-3.5" />
                             Resend
                           </Button>

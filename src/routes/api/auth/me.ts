@@ -34,10 +34,31 @@ export const Route = createFileRoute('/api/auth/me')({
           }
 
           const user = await authService.getCurrentUser(token)
-          return Response.json({ user })
+
+          // Refresh the HTTP-only session cookie expiration (30-day rolling expiry) in sync with DB session
+          const isProduction = process.env.APP_ENV !== 'development'
+          const cookieOptions = [
+            `session_token=${token}`,
+            'HttpOnly',
+            'Path=/',
+            `Max-Age=${30 * 24 * 60 * 60}`, // 30 days in seconds
+            'SameSite=Lax',
+            ...(isProduction ? ['Secure'] : [])
+          ].join('; ')
+
+          return new Response(JSON.stringify({ user }), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Set-Cookie': cookieOptions,
+            },
+          })
         } catch (err) {
           if (err instanceof Error && err.message === 'UNAUTHORIZED') {
             return Response.json({ error: 'Unauthorized: Session is invalid or expired' }, { status: 401 })
+          }
+          if (err instanceof Error && err.message === 'TEMPORARY_CREDENTIAL_EXPIRED') {
+            return Response.json({ error: 'TEMPORARY_CREDENTIAL_EXPIRED', message: 'Your temporary credential has expired.' }, { status: 403 })
           }
           console.error('[me] Unexpected error:', err)
           return Response.json({ error: 'Internal server error' }, { status: 500 })

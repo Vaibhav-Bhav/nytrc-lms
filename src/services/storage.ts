@@ -1,7 +1,7 @@
 // src/services/storage.ts
 
 import { lessonRepository } from '@/repositories/lesson'
-import { createBunnyVideo, uploadBunnyVideo, generateSignedPlaybackUrl } from '@/lib/bunny'
+import { bunnyVideoService } from '@/services/video/bunny'
 import { uploadR2File, getSignedDownloadUrl, getR2Config } from '@/lib/r2'
 
 // Allowed MIME types
@@ -44,11 +44,11 @@ export const storageService = {
     }
 
     try {
-      // 3. Register video slot in Bunny Stream
-      const { videoId } = await createBunnyVideo({ title })
+      // 3. Register video slot in Bunny Stream via bunnyVideoService
+      const { videoId } = await bunnyVideoService.createVideoAsset({ title })
 
       // 4. Upload actual video bytes
-      await uploadBunnyVideo(videoId, fileData)
+      await bunnyVideoService.uploadVideoAsset(videoId, fileData)
 
       // 5. Persist video ID to the lesson metadata
       await lessonRepository.update(lessonId, { video_id: videoId })
@@ -139,7 +139,7 @@ export const storageService = {
     }
 
     try {
-      const { streamUrl } = generateSignedPlaybackUrl(lesson.video_id)
+      const { streamUrl } = bunnyVideoService.resolvePlaybackUrl(lesson.video_id)
       return {
         lessonId,
         videoId: lesson.video_id,

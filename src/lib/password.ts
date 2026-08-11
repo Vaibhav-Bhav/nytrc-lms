@@ -27,16 +27,44 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 /**
- * Generates a cryptographically secure temporary password.
+ * Generates a cryptographically secure random 12-character temporary password.
  */
 export function generateTemporaryPassword(length = 12): string {
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ23456789!@#$%^&*'
   let password = ''
   const bytes = randomBytes(length)
   for (let i = 0; i < length; i++) {
     password += charset[bytes[i] % charset.length]
   }
   return password
+}
+
+/**
+ * Generates a PRD-compliant memorable temporary password in the format "Word-Word-4Digits"
+ * (e.g. "River-Mango-4827"), avoiding look-alike characters (0/O, 1/l).
+ */
+export function generateWordTemporaryPassword(): string {
+  const wordsGroupA = [
+    'River', 'Forest', 'Mountain', 'Valley', 'Ocean', 'Island',
+    'Harbor', 'Meadow', 'Canyon', 'Summit', 'Glacier', 'Prairie',
+    'Haven', 'Beacon', 'Horizon', 'Timber', 'Cascade', 'Granite'
+  ]
+  const wordsGroupB = [
+    'Mango', 'Cedar', 'Willow', 'Falcon', 'Tiger', 'Amber',
+    'Breeze', 'Copper', 'Silver', 'Golden', 'Marble', 'Crystal',
+    'Clover', 'Orchid', 'Jasmine', 'Saffron', 'Lotus', 'Cobalt'
+  ]
+
+  const bytes = randomBytes(4)
+  const wordA = wordsGroupA[bytes[0] % wordsGroupA.length]
+  const wordB = wordsGroupB[bytes[1] % wordsGroupB.length]
+  // Generate 4 digits avoiding 0 and 1
+  const digits = Array.from(bytes.subarray(2, 4))
+    .map((b) => (2 + (b % 8)).toString())
+    .join('')
+    .padStart(4, '7')
+
+  return `${wordA}-${wordB}-${digits}`
 }
 
 /**

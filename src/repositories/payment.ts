@@ -1,37 +1,10 @@
 // src/repositories/payment.ts
 //
 // Supabase-backed repository for the `payments` table.
-//
-// Public method signatures are identical to the in-memory version so that
-// services/payment.ts requires zero changes.
-//
-// Expected Supabase table DDL (run once in Supabase SQL editor):
-//
-//   create table public.payments (
-//     id                   uuid primary key default gen_random_uuid(),
-//     student_id           uuid not null references public.users(id),
-//     course_id            uuid not null references public.courses(id),
-//     razorpay_order_id    text unique,
-//     razorpay_payment_id  text unique,
-//     invoice_id           uuid,           -- FK added after invoices table is created
-//     payment_status       text not null default 'pending'
-//                            check (payment_status in ('pending','success','failed')),
-//     amount_paid          numeric(10,2) not null,
-//     currency             text not null default 'INR',
-//     gst_state            text,
-//     created_at           timestamptz not null default now(),
-//     updated_at           timestamptz not null default now()
-//   );
-//
-//   create index payments_student_id_idx on public.payments (student_id);
-//   create index payments_razorpay_order_id_idx on public.payments (razorpay_order_id);
 
 import { supabase } from '@/lib/supabase'
 import type { Payment, NewPayment, UpdatePayment } from '@/schemas/payments'
 
-// -----------------------------------------------------------------------
-// Internal helper — maps a raw Supabase row to the Payment type.
-// -----------------------------------------------------------------------
 function toPayment(row: Record<string, unknown>): Payment {
   return {
     id: row.id as string,
@@ -40,10 +13,12 @@ function toPayment(row: Record<string, unknown>): Payment {
     razorpay_order_id: (row.razorpay_order_id as string | null) ?? null,
     razorpay_payment_id: (row.razorpay_payment_id as string | null) ?? null,
     invoice_id: (row.invoice_id as string | null) ?? null,
-    payment_status: row.payment_status as 'pending' | 'success' | 'failed',
+    payment_status: row.payment_status as 'pending' | 'success' | 'failed' | 'refunded',
     amount_paid: Number(row.amount_paid),
     currency: row.currency as string,
     gst_state: (row.gst_state as string | null) ?? null,
+    method: (row.method as string | null) ?? null,
+    raw_payload: row.raw_payload ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   }
@@ -114,6 +89,8 @@ export const paymentRepository = {
         amount_paid: data.amount_paid,
         currency: data.currency ?? 'INR',
         gst_state: data.gst_state ?? null,
+        method: data.method ?? null,
+        raw_payload: data.raw_payload ?? null,
       })
       .select()
       .single()

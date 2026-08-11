@@ -1,3 +1,5 @@
+// src/schemas/sections.ts
+
 import { z } from 'zod'
 
 export const sectionSchema = z.object({
@@ -5,6 +7,7 @@ export const sectionSchema = z.object({
   course_id: z.string().uuid(),
   title: z.string().min(1),
   order_number: z.number().int().nonnegative(),
+  status: z.enum(['draft', 'published']),
   created_at: z.string(),
   updated_at: z.string(),
 })
@@ -13,6 +16,7 @@ export const newSectionSchema = z.object({
   course_id: z.string().uuid(),
   title: z.string().min(1, 'Title is required'),
   order_number: z.number().int().nonnegative().optional(),
+  status: z.enum(['draft', 'published']).optional(),
 })
 
 export const updateSectionSchema = newSectionSchema.partial()

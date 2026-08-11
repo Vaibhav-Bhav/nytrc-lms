@@ -29,7 +29,8 @@ function getSessionTokenFromRequest(request: Request): string | null {
  * Core authentication helper.
  * Validates the active session and attaches the user object to the request context
  * to prevent duplicate lookups downstream.
- * Throws 401 JSON response on failure.
+ * Enforces forced-password-change restriction for users with force_password_change = true.
+ * Throws 401/403 JSON response on failure.
  */
 export async function authenticate(request: Request) {
   // Return cached user if already authenticated in this request lifecycle
@@ -46,17 +47,43 @@ export async function authenticate(request: Request) {
     )
   }
 
+  let user
   try {
-    const user = await authService.getCurrentUser(token)
+    user = await authService.getCurrentUser(token)
     ;(request as any).user = user
-    return user
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.message === 'TEMPORARY_CREDENTIAL_EXPIRED') {
+      throw Response.json(
+        { error: 'TEMPORARY_CREDENTIAL_EXPIRED', message: 'Your 72-hour temporary credential has expired. Please reset your password or contact support.' },
+        { status: 403 }
+      )
+    }
     console.warn(`[authMiddleware] Blocked request: Invalid or expired session token`)
     throw Response.json(
       { error: 'Unauthorized: Session is invalid or expired' },
       { status: 401 }
     )
   }
+
+  // Global Enforcement: If user must change password, restrict access to protected endpoints except change-password, logout, and me
+  if (user.force_password_change) {
+    const url = new URL(request.url)
+    const allowedPaths = ['/api/auth/change-password', '/api/auth/logout', '/api/auth/me']
+    const isAllowed = allowedPaths.some((path) => url.pathname.endsWith(path))
+
+    if (!isAllowed) {
+      console.warn(`[authMiddleware] Restricted access for user ${user.id}: Forced password change required.`)
+      throw Response.json(
+        {
+          error: 'FORCED_PASSWORD_CHANGE_REQUIRED',
+          message: 'You must change your temporary password before accessing LMS features.',
+        },
+        { status: 403 }
+      )
+    }
+  }
+
+  return user
 }
 
 /**

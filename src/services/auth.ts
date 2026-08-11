@@ -17,13 +17,21 @@ type DeviceInfo = {
 export const authService = {
   /**
    * Performs user login, creates an active session, and returns profile details.
-   * Enforces a maximum of 2 active device sessions per user.
+   * Enforces a maximum of 2 active device sessions per user and 30-day session duration.
    */
   async login(credentials: LoginInput, deviceInfo: DeviceInfo) {
     console.log(`[authService] Login attempt for email: ${credentials.email}`)
     const user = await userRepository.findByEmail(credentials.email)
     if (!user || !user.is_active) {
       throw new Error('INVALID_CREDENTIALS')
+    }
+
+    // Check temporary credential 72-hour expiration if forced password change is active
+    if (user.force_password_change && user.reset_token_expires_at) {
+      if (new Date(user.reset_token_expires_at) < new Date()) {
+        console.warn(`[authService] Temporary credential expired for user ${user.id} at ${user.reset_token_expires_at}`)
+        throw new Error('TEMPORARY_CREDENTIAL_EXPIRED')
+      }
     }
 
     const isValid = await verifyPassword(credentials.password, user.password_hash)
@@ -54,10 +62,10 @@ export const authService = {
 
     // Generate random UUID session token
     const sessionToken = crypto.randomUUID()
-    
-    // Set session expiry to 7 days from now
+
+    // 30-day rolling session expiry calculation
     const expiry = new Date()
-    expiry.setDate(expiry.getDate() + 7)
+    expiry.setDate(expiry.getDate() + 30)
     const expiresAt = expiry.toISOString()
 
     const session = await sessionRepository.create({
@@ -71,7 +79,7 @@ export const authService = {
       expires_at: expiresAt,
     })
 
-    console.log(`[authService] Session ${session.id} created successfully for user ${user.id}`)
+    console.log(`[authService] Session ${session.id} created successfully for user ${user.id} (expires ${expiresAt})`)
 
     return {
       user: {
@@ -90,7 +98,7 @@ export const authService = {
    * Invalidates the active session associated with the provided token.
    */
   async logout(token: string): Promise<void> {
-    console.log(`[authService] Logout attempt with token: ${token.substring(0, 8)}...`)
+    console.log(`[authService] Logout attempt received`)
     const session = await sessionRepository.findByToken(token)
     if (!session) {
       throw new Error('SESSION_NOT_FOUND')
@@ -102,6 +110,7 @@ export const authService = {
 
   /**
    * Retrieves the authenticated user profile if the session is active and not expired.
+   * Refreshes session expiry to 30 days on every valid request (Rolling 30-Day Session Expiry).
    */
   async getCurrentUser(token: string) {
     const session = await sessionRepository.findByToken(token)
@@ -111,7 +120,6 @@ export const authService = {
 
     // Verify session expiration
     if (new Date(session.expires_at) < new Date()) {
-      // Deactivate expired session
       await sessionRepository.deactivate(session.id)
       throw new Error('UNAUTHORIZED')
     }
@@ -120,6 +128,23 @@ export const authService = {
     if (!user || !user.is_active) {
       throw new Error('UNAUTHORIZED')
     }
+
+    // Enforce 72-hour temporary credential expiry for accounts requiring forced password change
+    if (user.force_password_change && user.reset_token_expires_at) {
+      if (new Date(user.reset_token_expires_at) < new Date()) {
+        console.warn(`[authService] Temporary credential expired during getCurrentUser for user ${user.id}`)
+        await sessionRepository.deactivate(session.id)
+        throw new Error('TEMPORARY_CREDENTIAL_EXPIRED')
+      }
+    }
+
+    // Refresh 30-day rolling session expiry on valid authenticated activity
+    const newExpiry = new Date()
+    newExpiry.setDate(newExpiry.getDate() + 30)
+    const newExpiresAt = newExpiry.toISOString()
+    await sessionRepository.updateExpiry(session.id, newExpiresAt).catch((err) => {
+      console.warn(`[authService] Could not refresh rolling session expiry for ${session.id}:`, err)
+    })
 
     return {
       id: user.id,
@@ -131,19 +156,61 @@ export const authService = {
   },
 
   /**
+   * Password change method for authenticated users (Sprint 5.5).
+   * Validates current password, enforces password strength, clears force_password_change,
+   * and clears reset_token_expires_at upon success.
+   */
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await userRepository.findById(userId)
+    if (!user || !user.is_active) {
+      throw new Error('UNAUTHORIZED')
+    }
+
+    // Check temporary credential 72-hour expiry
+    if (user.force_password_change && user.reset_token_expires_at) {
+      if (new Date(user.reset_token_expires_at) < new Date()) {
+        throw new Error('TEMPORARY_CREDENTIAL_EXPIRED')
+      }
+    }
+
+    // 1. Verify current password
+    const isValid = await verifyPassword(currentPassword, user.password_hash)
+    if (!isValid) {
+      throw new Error('INVALID_CURRENT_PASSWORD')
+    }
+
+    // 2. Prevent setting new password equal to current password
+    if (currentPassword === newPassword) {
+      throw new Error('PASSWORD_SAME_AS_CURRENT')
+    }
+
+    // 3. Validate password strength policy
+    if (!isPasswordStrong(newPassword)) {
+      throw new Error('PASSWORD_POLICY_FAILED')
+    }
+
+    // 4. Hash new password securely
+    const newHash = await hashPassword(newPassword)
+    await userRepository.updatePasswordHash(user.id, newHash)
+
+    // 5. Clear forced password change flag & temporary credential expiration
+    await userRepository.update(user.id, {
+      force_password_change: false,
+      reset_token_expires_at: null,
+      reset_token: null,
+    })
+
+    console.log(`[authService] Password successfully updated and force_password_change cleared for user ${user.id}`)
+  },
+
+  /**
    * Lists all active (non-expired) sessions for the authenticated user.
    */
   async listSessions(token: string) {
-    // 1. Verify caller session
     const user = await this.getCurrentUser(token)
-    
-    // 2. Clean up expired sessions first
     await sessionRepository.deactivateExpiredSessions()
-
-    // 3. Fetch active sessions
     const sessions = await sessionRepository.findActiveByUserId(user.id)
 
-    // 4. Sanitize list by omitting actual security tokens
     return sessions.map((s) => ({
       id: s.id,
       device_identifier: s.device_identifier,
@@ -161,12 +228,10 @@ export const authService = {
    */
   async revokeSession(token: string, sessionIdToRevoke: string): Promise<void> {
     const user = await this.getCurrentUser(token)
-
     const sessionToRevoke = await sessionRepository.findById(sessionIdToRevoke)
     if (!sessionToRevoke || sessionToRevoke.user_id !== user.id) {
       throw new Error('SESSION_NOT_FOUND')
     }
-
     await sessionRepository.deactivate(sessionIdToRevoke)
     console.log(`[authService] Session ${sessionIdToRevoke} revoked by user ${user.id}`)
   },
@@ -176,64 +241,45 @@ export const authService = {
    */
   async revokeOtherSessions(token: string): Promise<void> {
     const user = await this.getCurrentUser(token)
-    
     const currentSession = await sessionRepository.findByToken(token)
     if (!currentSession) {
       throw new Error('UNAUTHORIZED')
     }
-
     await sessionRepository.deactivateAllExcept(user.id, currentSession.id)
     console.log(`[authService] All sessions except ${currentSession.id} revoked for user ${user.id}`)
   },
 
-  // -----------------------------------------------------------------------
-  // Sprint 2.3 / Sprint 2.4 stubs — DO NOT implement here
-  // -----------------------------------------------------------------------
-
   async refresh(refreshToken: string) {
-    /*
-      TODO (Sprint 2.3 - Refresh Tokens)
-      - Look up the session by refresh_token in sessionRepository
-      - If not found or expired, throw 'INVALID_REFRESH_TOKEN'
-      - Generate a new access token (JWT)
-      - Optionally rotate the refresh token
-      - Update the session record
-      - Return new tokens
-    */
     throw new Error('Not implemented')
   },
 
   async forcePasswordChange(userId: string, newPassword: string): Promise<void> {
-    /*
-      TODO (Sprint 2.4 - Password Security)
-      - Verify newPassword meets strength requirements via isPasswordStrong()
-      - Hash the new password via hashPassword()
-      - Call userRepository.updatePasswordHash(userId, hash)
-      - Set force_password_change = false on the user record
-    */
-    throw new Error('Not implemented')
+    const newHash = await hashPassword(newPassword)
+    await userRepository.updatePasswordHash(userId, newHash)
+    await userRepository.update(userId, {
+      force_password_change: false,
+      reset_token_expires_at: null,
+    })
   },
 
   async requestPasswordReset(email: string): Promise<void> {
     console.log(`[authService] Password reset requested for email: ${email}`)
     const user = await userRepository.findByEmail(email)
     if (!user) {
-      // Do not leak user existence. Return success silently.
       console.log(`[authService] Password reset request: Email not found, returning silently`)
       return
     }
 
     const resetToken = crypto.randomUUID()
     const expiry = new Date()
-    expiry.setHours(expiry.getHours() + 1) // 1 hour token validity
+    expiry.setHours(expiry.getHours() + 1)
     const resetTokenExpiresAt = expiry.toISOString()
 
     await userRepository.update(user.id, {
       reset_token: resetToken,
-      reset_token_expires_at: resetTokenExpiresAt
+      reset_token_expires_at: resetTokenExpiresAt,
     })
 
-    // Send password reset email via Resend containing resetToken
     try {
       const resetLink = `${process.env['APP_URL'] || 'http://localhost:3000'}/reset-password?token=${resetToken}`
       const emailSubject = 'Password Reset Request'
@@ -253,41 +299,34 @@ export const authService = {
   },
 
   async resetPassword(resetToken: string, newPassword: string): Promise<void> {
-    console.log(`[authService] Password reset attempt with token: ${resetToken.substring(0, 8)}...`)
-    
+    console.log('[authService] Password reset attempt received')
     const user = await userRepository.findByResetToken(resetToken)
     if (!user || !user.reset_token_expires_at) {
       throw new Error('INVALID_TOKEN')
     }
 
-    // Check expiry
     if (new Date(user.reset_token_expires_at) < new Date()) {
-      // Clear expired token fields
       await userRepository.update(user.id, {
         reset_token: null,
-        reset_token_expires_at: null
+        reset_token_expires_at: null,
       })
       throw new Error('EXPIRED_TOKEN')
     }
 
-    // Validate password strength
     if (!isPasswordStrong(newPassword)) {
       throw new Error('WEAK_PASSWORD')
     }
 
-    // Hash new password and save it
     const hashedPassword = await hashPassword(newPassword)
     await userRepository.updatePasswordHash(user.id, hashedPassword)
 
-    // Clear reset token fields to invalidate it
     await userRepository.update(user.id, {
       reset_token: null,
-      reset_token_expires_at: null
+      reset_token_expires_at: null,
+      force_password_change: false,
     })
 
-    // Deactivate all active sessions for the user to force relogin
     await sessionRepository.deactivateAllForUser(user.id)
-
     console.log(`[authService] Password successfully reset for user ${user.id}. All active sessions invalidated.`)
   },
 }

@@ -11,16 +11,6 @@ import { Button } from "../../components/Button";
 
 type AuthStatus = "idle" | "loading" | "success" | "session-expired" | "unauthorized" | "logout-success";
 
-interface LoginApiResponse {
-  session_token: string;
-  role: "admin" | "student";
-  user?: {
-    id: string;
-    name?: string;
-    email: string;
-  };
-}
-
 export function LoginScreen({
   initialAuthStatus = "idle",
   initialEmail = "",
@@ -62,13 +52,18 @@ export function LoginScreen({
         if (response.status === 401) {
           toast.error("Invalid email or password");
         } else if (response.status === 403) {
-          toast.error("Account locked");
+          if (data.code === 'TEMPORARY_CREDENTIAL_EXPIRED') {
+            toast.error(data.error || "Your 72-hour temporary credential has expired. Please reset your password.");
+          } else {
+            toast.error(data.error || "Account access restricted");
+          }
         } else if (response.status === 400 && data.error?.includes('device')) {
           // Navigate to the device limit screen
           const { pendingAuth } = await import('@/store/pendingAuth');
           pendingAuth.email = email;
           pendingAuth.password = password;
-          navigate({ to: '/device-limit' });
+          if (onNavigate) onNavigate("auth-device-limit-exceeded");
+          else navigate({ to: '/device-limit' });
         } else {
           toast.error(data.error || "Login failed");
         }
@@ -83,11 +78,16 @@ export function LoginScreen({
       queryClient.setQueryData(authQueryKey, data.user);
       queryClient.invalidateQueries({ queryKey: authQueryKey });
 
-      // Route based on the user's role returned from the API
-      if (data.user?.role === 'admin') {
-        navigate({ to: '/admin/dashboard' });
+      // Route based on forced password change status or role
+      if (data.user?.force_password_change) {
+        if (onNavigate) onNavigate("force-password");
+        else navigate({ to: '/force-password' });
+      } else if (data.user?.role === 'admin') {
+        if (onNavigate) onNavigate("admin-dashboard");
+        else navigate({ to: '/admin/dashboard' });
       } else {
-        navigate({ to: '/student/dashboard' });
+        if (onNavigate) onNavigate("student-dashboard");
+        else navigate({ to: '/student/dashboard' });
       }
 
     } catch (err) {
@@ -143,7 +143,10 @@ export function LoginScreen({
         <div className="flex justify-end -mt-1">
           <button
             type="button"
-            onClick={() => navigate({ to: "/forgot-password" })}
+            onClick={() => {
+              if (onNavigate) onNavigate("forgot-password");
+              else navigate({ to: "/forgot-password" });
+            }}
             className="text-sm text-primary hover:underline font-medium"
           >
             Forgot password?

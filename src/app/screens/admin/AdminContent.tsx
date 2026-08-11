@@ -142,8 +142,17 @@ export function AdminContent({
   const [simulateUploadFail, setSimulateUploadFail] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // Add/Edit Lesson modal state
+  const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string; lessonId?: string } | null>(null);
+  const [newLessonTitle, setNewLessonTitle] = useState("");
+  const [newLessonDesc, setNewLessonDesc] = useState("");
+  const [newLessonType, setNewLessonType] = useState<"video" | "pdf" | "text" | "link">("video");
+  const [newLessonVideoId, setNewLessonVideoId] = useState("");
+  const [newLessonPdfUrl, setNewLessonPdfUrl] = useState("");
+  const [lessonLoading, setLessonLoading] = useState(false);
+
   // Delete modal state
-  const [deleteTarget, setDeleteTarget] = useState<{ sectionId: string; lessonId: string; title: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ sectionId: string; lessonId: string; title: string; progressCount?: number } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Add Section modal state
@@ -151,15 +160,6 @@ export function AdminContent({
   const [newSectionName, setNewSectionName] = useState("");
   const [newSectionDesc, setNewSectionDesc] = useState("");
   const [sectionLoading, setSectionLoading] = useState(false);
-
-  // Add/Edit Lesson modal state
-  const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string; lessonId?: string } | null>(null);
-  const [newLessonTitle, setNewLessonTitle] = useState("");
-  const [newLessonDesc, setNewLessonDesc] = useState("");
-  const [newLessonType, setNewLessonType] = useState<"video" | "pdf">("video");
-  const [newLessonVideoId, setNewLessonVideoId] = useState("");
-  const [newLessonPdfUrl, setNewLessonPdfUrl] = useState("");
-  const [lessonLoading, setLessonLoading] = useState(false);
 
   // Publish Course modal state
   const [publishModal, setPublishModal] = useState(false);
@@ -404,6 +404,44 @@ export function AdminContent({
       toast.success("Download permission updated");
     } catch (err: any) {
       toast.error("Failed to update download permission");
+    }
+  }
+
+  async function promptDeleteLesson(sectionId: string, lessonId: string, title: string) {
+    let progressCount = 0;
+    try {
+      const res = await apiAdmin(`/api/admin/lessons/${lessonId}/progress-check`);
+      progressCount = res.progressCount || 0;
+    } catch {}
+    setDeleteTarget({ sectionId, lessonId, title, progressCount });
+  }
+
+  async function handleReorderLesson(sectionId: string, lessonId: string, direction: "up" | "down") {
+    const section = sections.find((s) => s.id === sectionId);
+    if (!section || !section.lessons) return;
+
+    const lessons = [...section.lessons];
+    const index = lessons.findIndex((l) => l.id === lessonId);
+    if (index === -1) return;
+
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= lessons.length) return;
+
+    const [moved] = lessons.splice(index, 1);
+    lessons.splice(newIndex, 0, moved);
+
+    const orderedIds = lessons.map((l) => l.id);
+    try {
+      await apiAdmin(`/api/admin/sections/${sectionId}/lessons/reorder`, {
+        method: "POST",
+        body: JSON.stringify({ orderedIds }),
+      });
+      setSections((prev) =>
+        prev.map((s) => (s.id === sectionId ? { ...s, lessons } : s))
+      );
+      toast.success("Lesson order updated!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reorder lessons");
     }
   }
 
@@ -714,6 +752,12 @@ export function AdminContent({
                                   Edit
                                 </button>
                                 <button
+                                  onClick={() => promptDeleteLesson(section.id, lesson.id, lesson.title)}
+                                  className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                </button>
+                                <button
                                   onClick={() => {
                                     setUploadTargetSection(section.id);
                                     setUploadTargetLesson(lesson.id);
@@ -843,7 +887,11 @@ export function AdminContent({
         loading={deleteLoading}
         title="Delete lesson?"
         description={`This will permanently remove "${deleteTarget?.title}" and its media file.`}
-        warning="Students with progress on this lesson will lose that record."
+        warning={
+          deleteTarget?.progressCount && deleteTarget.progressCount > 0
+            ? `Warning: ${deleteTarget.progressCount} student(s) have recorded progress for this lesson. Deleting it will permanently clear their progress records.`
+            : "Students with progress on this lesson will lose that record."
+        }
         confirmText="Delete lesson"
         variant="destructive"
       />

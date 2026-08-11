@@ -79,7 +79,8 @@ export function AdminDashboard() {
     navigate({ to: "/admin/content", search: { courseId: id } as never });
   }
 
-  const activeCount = students.filter((s) => s.lastLogin && new Date(s.lastLogin) >= new Date("2024-11-28")).length;
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const activeCount = students.filter((s) => s.lastLogin && new Date(s.lastLogin) >= thirtyDaysAgo).length;
   const avgProgress = students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.progress || 0), 0) / students.length) : 0;
   const revenue = PAYMENT_HISTORY.filter((p) => p.status === "paid").length * 14750;
 

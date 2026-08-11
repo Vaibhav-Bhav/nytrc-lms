@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string
   role: 'admin' | 'student'
   name?: string
+  force_password_change?: boolean
 }
 
 async function fetchCurrentUser(): Promise<AuthUser | null> {

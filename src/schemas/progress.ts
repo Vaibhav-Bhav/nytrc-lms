@@ -30,8 +30,15 @@ export const updateProgressSchema = z.object({
 
 export const progressInputSchema = z.object({
   lessonId: z.string().uuid('lessonId must be a valid UUID'),
-  videoProgressSeconds: z.number().int().nonnegative().optional(),
+  videoProgressSeconds: z.number().finite().nonnegative().optional(),
   documentProgressPage: z.number().int().nonnegative().optional(),
+  completed: z.boolean().optional(),
+})
+
+export const patchLessonProgressSchema = z.object({
+  position_seconds: z.number().finite().nonnegative().optional(),
+  video_progress_seconds: z.number().finite().nonnegative().optional(),
+  document_progress_page: z.number().int().nonnegative().optional(),
   completed: z.boolean().optional(),
 })
 
@@ -39,3 +46,4 @@ export type Progress = z.infer<typeof progressSchema>
 export type NewProgress = z.infer<typeof newProgressSchema>
 export type UpdateProgress = z.infer<typeof updateProgressSchema>
 export type ProgressInput = z.infer<typeof progressInputSchema>
+export type PatchLessonProgressInput = z.infer<typeof patchLessonProgressSchema>

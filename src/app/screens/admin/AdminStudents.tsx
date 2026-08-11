@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Download, Search, ArrowUpDown, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import { Screen, Student } from "../../../data/types";
 import { lmsService } from "../../../services/lmsService";
 import { AdminLayout } from "../../components/AdminLayout";
@@ -10,7 +11,7 @@ import { Badge } from "../../components/Badge";
 import { Pagination } from "../../components/Pagination";
 import { Button, cn } from "../../components/Button";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export function AdminStudents({
   onNavigate,
@@ -53,11 +54,40 @@ export function AdminStudents({
     setPage(1);
   }
 
+  function handleExportCsv() {
+    if (students.length === 0) {
+      toast.error("No student records available for CSV export.");
+      return;
+    }
+    const headers = ["Name", "Email", "Mobile", "Joined", "Last Login", "Progress (%)", "Status"];
+    const rows = students.map((s) => [
+      `"${(s.name || "").replace(/"/g, '""')}"`,
+      `"${s.email || ""}"`,
+      `"${(s as any).mobile || ""}"`,
+      `"${s.joined || ""}"`,
+      `"${s.lastLogin || ""}"`,
+      s.progress || 0,
+      `"${s.status || "active"}"`,
+    ]);
+    const csvData = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `students_export_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Student list exported to CSV!");
+  }
+
   const filtered = students
     .filter(
       (s) =>
         s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.email.toLowerCase().includes(search.toLowerCase())
+        s.email.toLowerCase().includes(search.toLowerCase()) ||
+        ((s as any).mobile && String((s as any).mobile).includes(search))
     )
     .sort((a, b) => {
       const cmp = String((a as any)[sortField] ?? "").localeCompare(
@@ -97,7 +127,7 @@ export function AdminStudents({
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Students</h1>
               <p className="text-muted-foreground text-sm mt-1">{students.length} enrolled students</p>
             </div>
-            <Button variant="secondary" size="sm" className="flex-shrink-0 self-start">
+            <Button variant="secondary" size="sm" onClick={handleExportCsv} className="flex-shrink-0 self-start">
               <Download className="w-4 h-4" />
               Export CSV
             </Button>
@@ -110,17 +140,18 @@ export function AdminStudents({
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search by name or email..."
+              placeholder="Search by name, email, or mobile..."
             />
           </div>
 
           <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[580px]">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="border-b border-border bg-muted/20">
                     <SortTh field="name" label="Name" cls="pl-5" />
                     <SortTh field="email" label="Email" cls="hidden md:table-cell" />
+                    <SortTh field="mobile" label="Mobile" cls="hidden sm:table-cell" />
                     <SortTh field="joined" label="Joined" />
                     <SortTh field="lastLogin" label="Last login" cls="hidden lg:table-cell" />
                     <SortTh field="progress" label="Progress" />
@@ -133,14 +164,14 @@ export function AdminStudents({
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center">
+                      <td colSpan={8} className="px-5 py-12 text-center">
                         <div className="w-8 h-8 mx-auto mb-3 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                         <p className="text-sm text-muted-foreground">Loading students...</p>
                       </td>
                     </tr>
                   ) : paged.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center">
+                      <td colSpan={8} className="px-5 py-12 text-center">
                         <Search className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
                         <p className="text-sm text-muted-foreground">
                           {search ? `No students match "${search}"` : "No students found"}
@@ -160,7 +191,7 @@ export function AdminStudents({
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-primary">
-                                {student.name.split(" ").map((n) => n[0]).join("")}
+                                {student.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()}
                               </span>
                             </div>
                             <button
@@ -175,6 +206,9 @@ export function AdminStudents({
                           </div>
                         </td>
                         <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell">{student.email}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground hidden sm:table-cell font-mono text-xs">
+                          {(student as any).mobile || "—"}
+                        </td>
                         <td className="px-4 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{student.joined}</td>
                         <td className="px-4 py-3.5 text-sm text-muted-foreground whitespace-nowrap hidden lg:table-cell">
                           {student.lastLogin}

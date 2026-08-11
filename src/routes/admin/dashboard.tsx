@@ -33,6 +33,10 @@ export const Route = createFileRoute('/admin/dashboard')({
         throw redirect({ to: '/login' })
       }
 
+      if (user.force_password_change) {
+        throw redirect({ to: '/force-password' })
+      }
+
       // Return user so it is available in route context
       return { user }
     } catch (err) {
@@ -48,27 +52,36 @@ export const Route = createFileRoute('/admin/dashboard')({
 function AdminDashboardRoute() {
   const navigate = useNavigate()
   const [activeScreen, setActiveScreen] = useState<Screen>('admin-dashboard')
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('c_1')
   const [selectedStudentId, setSelectedStudentId] = useState<string>('s1')
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('c1')
 
   function handleNavigate(screen: Screen) {
-    if (screen === 'login') {
-      navigate({ to: '/login' })
-      return
+    const map: Partial<Record<Screen, string>> = {
+      'login': '/login',
+      'auth-device-session': '/admin/dashboard',
+      'auth-device-limit-exceeded': '/device-limit',
     }
-    setActiveScreen(screen)
-  }
 
-  function handleSelectCourse(id: string) {
-    setSelectedCourseId(id)
+    const route = map[screen]
+    if (route) {
+      navigate({ to: route as '/' })
+    } else {
+      setActiveScreen(screen)
+    }
   }
 
   function handleSelectStudent(id: string) {
     setSelectedStudentId(id)
+    setActiveScreen('admin-student-detail')
+  }
+
+  function handleSelectCourse(id: string) {
+    setSelectedCourseId(id)
+    setActiveScreen('admin-content')
   }
 
   if (activeScreen === 'admin-content') {
-    return <AdminContent onNavigate={handleNavigate} selectedCourseId={selectedCourseId} />
+    return <AdminContent onNavigate={handleNavigate} selectedCourseId={selectedCourseId} onSelectCourse={handleSelectCourse} />
   }
 
   if (activeScreen === 'admin-create-course') {
@@ -80,7 +93,12 @@ function AdminDashboardRoute() {
   }
 
   if (activeScreen === 'admin-student-detail') {
-    return <AdminStudentDetail onNavigate={handleNavigate} studentId={selectedStudentId} />
+    return (
+      <AdminStudentDetail
+        onNavigate={handleNavigate}
+        studentId={selectedStudentId}
+      />
+    )
   }
 
   if (activeScreen === 'admin-payment-history') {

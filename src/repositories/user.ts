@@ -1,45 +1,25 @@
 // src/repositories/user.ts
 //
 // Supabase-backed repository for the `users` table.
-//
-// Public method signatures are identical to the in-memory version so that
-// services/auth.ts requires zero changes.
-//
-// Expected Supabase table DDL (run once in Supabase SQL editor):
-//
-//   create table public.users (
-//     id                      uuid primary key default gen_random_uuid(),
-//     email                   text not null unique,
-//     name                    text not null,
-//     role                    text not null default 'student' check (role in ('admin','student')),
-//     password_hash           text not null,
-//     is_active               boolean not null default true,
-//     force_password_change   boolean not null default false,
-//     reset_token             text,
-//     reset_token_expires_at  timestamptz,
-//     created_at              timestamptz not null default now(),
-//     updated_at              timestamptz not null default now()
-//   );
 
 import { supabase } from '@/lib/supabase'
 import { hashPassword } from '@/lib/password'
 import type { User, NewUser, UpdateUser } from '@/schemas/users'
 
-// -----------------------------------------------------------------------
-// Internal helper — maps a raw Supabase row to the User type.
-// Supabase returns timestamptz as ISO strings so they pass through as-is.
-// -----------------------------------------------------------------------
 function toUser(row: Record<string, unknown>): User {
   return {
     id: row.id as string,
     email: row.email as string,
     name: row.name as string,
+    mobile: (row.mobile as string | null) ?? null,
+    state: (row.state as string | null) ?? null,
     role: row.role as 'admin' | 'student',
     password_hash: row.password_hash as string,
     is_active: row.is_active as boolean,
     force_password_change: row.force_password_change as boolean,
     reset_token: (row.reset_token as string | null) ?? null,
     reset_token_expires_at: (row.reset_token_expires_at as string | null) ?? null,
+    last_login_at: (row.last_login_at as string | null) ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   }
@@ -71,7 +51,7 @@ export const userRepository = {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .ilike('email', email) // case-insensitive match — mirrors old .toLowerCase() comparison
+      .ilike('email', email)
       .maybeSingle()
 
     if (error) throw new Error(`userRepository.findByEmail: ${error.message}`)
@@ -97,6 +77,8 @@ export const userRepository = {
       .insert({
         email: data.email,
         name: data.name,
+        mobile: data.mobile ?? null,
+        state: data.state ?? null,
         role: data.role ?? 'student',
         password_hash,
         is_active: true,
@@ -121,6 +103,21 @@ export const userRepository = {
       .maybeSingle()
 
     if (error) throw new Error(`userRepository.update: ${error.message}`)
+    return row ? toUser(row) : null
+  },
+
+  async updateLastLogin(id: string): Promise<User | null> {
+    const { data: row, error } = await supabase
+      .from('users')
+      .update({
+        last_login_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .maybeSingle()
+
+    if (error) throw new Error(`userRepository.updateLastLogin: ${error.message}`)
     return row ? toUser(row) : null
   },
 

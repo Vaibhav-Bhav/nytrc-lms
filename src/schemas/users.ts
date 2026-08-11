@@ -3,19 +3,22 @@
 import { z } from 'zod'
 
 // -----------------------------------------------------------------------
-// User entity — matches the future `users` table in the database
+// User entity — matches the `users` table in the database
 // -----------------------------------------------------------------------
 
 export const userSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   name: z.string().min(1),
+  mobile: z.string().nullable().optional(),
+  state: z.string().nullable().optional(),
   role: z.enum(['admin', 'student']),
   password_hash: z.string(),
   is_active: z.boolean(),
   force_password_change: z.boolean(),
   reset_token: z.string().nullable().optional(),
   reset_token_expires_at: z.string().nullable().optional(),
+  last_login_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })
@@ -23,16 +26,21 @@ export const userSchema = z.object({
 export const newUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   name: z.string().min(1, 'Name is required'),
+  mobile: z.string().optional(),
+  state: z.string().optional(),
   role: z.enum(['admin', 'student']).optional(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
+  mobile: z.string().nullable().optional(),
+  state: z.string().nullable().optional(),
   is_active: z.boolean().optional(),
   force_password_change: z.boolean().optional(),
   reset_token: z.string().nullable().optional(),
   reset_token_expires_at: z.string().nullable().optional(),
+  last_login_at: z.string().nullable().optional(),
 })
 
 export const loginSchema = z.object({
