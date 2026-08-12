@@ -95,8 +95,12 @@ export const lessonService = {
                   <p>Happy Learning!</p>
                   <p>Best Regards,<br/>NYTRC Team</p>
                 `
-                await sendEmail(user.email, emailSubject, emailHtml)
-                console.log(`[lessonService] Lesson published email sent successfully to ${user.email}`)
+                try {
+                  await sendEmail(user.email, emailSubject, emailHtml)
+                  console.log(`[lessonService] Lesson published email sent successfully to ${user.email}`)
+                } catch (emailErr: any) {
+                  console.warn(`[lessonService] Skipping email notification to ${user.email}: ${emailErr.message}`)
+                }
               }
             }).catch((err) => {
               console.error(`[lessonService] Failed to send lesson publication email to student ${enrollment.student_id}:`, err)

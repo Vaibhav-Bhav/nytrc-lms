@@ -271,55 +271,47 @@ export function AdminContent({
 
   async function handleAddLesson() {
     if (!newLessonTitle.trim() || !addLessonModal) return;
-    
-    if (newLessonType === "video" && !newLessonVideoId.trim()) {
-      toast.error("Video ID or URL is required");
-      return;
-    }
-    if (newLessonType === "pdf" && !newLessonPdfUrl.trim()) {
-      toast.error("PDF URL is required");
-      return;
-    }
 
     setLessonLoading(true);
     try {
       if (addLessonModal.lessonId) {
-        // Edit existing
+        // Edit existing — only update title and description.
+        // Never touch video_id or pdf_url here; media is managed by the Upload modal.
         const updated: DbLesson = await apiAdmin(`/api/admin/lessons/${addLessonModal.lessonId}`, {
           method: "PUT",
           body: JSON.stringify({
             title: newLessonTitle.trim(),
             description: newLessonDesc.trim() || undefined,
-            video_id: newLessonType === "video" ? newLessonVideoId.trim() : null,
-            pdf_url: newLessonType === "pdf" ? newLessonPdfUrl.trim() : null,
           }),
         });
+        // Merge the server response back, but preserve any uploaded media IDs
+        // that toUiLesson would correctly carry from the updated DB row.
         const updatedLesson = toUiLesson(updated);
         setSections((prev) =>
           prev.map((s) =>
             s.id === addLessonModal.sectionId
               ? {
                   ...s,
-                  lessons: s.lessons?.map((l) => (l.id === addLessonModal.lessonId ? updatedLesson : l)),
+                  lessons: s.lessons?.map((l) =>
+                    l.id === addLessonModal.lessonId ? { ...updatedLesson, published: true, status: 'published' } : l
+                  ),
                 }
               : s
           )
         );
         toast.success("Lesson updated successfully.");
       } else {
-        // Create new
+        // Create new — always published so students can see it immediately after upload.
         const created: DbLesson = await apiAdmin("/api/admin/lessons", {
           method: "POST",
           body: JSON.stringify({
             section_id: addLessonModal.sectionId,
             title: newLessonTitle.trim(),
             description: newLessonDesc.trim() || undefined,
-            status: "draft",
-            video_id: newLessonType === "video" ? newLessonVideoId.trim() : undefined,
-            pdf_url: newLessonType === "pdf" ? newLessonPdfUrl.trim() : undefined,
+            status: "published",
           }),
         });
-        const newLesson = toUiLesson(created);
+        const newLesson = { ...toUiLesson(created), published: true, status: 'published' as const };
         setSections((prev) =>
           prev.map((s) =>
             s.id === addLessonModal.sectionId
@@ -329,52 +321,22 @@ export function AdminContent({
         );
         toast.success("Lesson added successfully.");
       }
-      
+
       setAddLessonModal(null);
       setNewLessonTitle("");
       setNewLessonDesc("");
       setNewLessonVideoId("");
       setNewLessonPdfUrl("");
-      toast.success("Lesson added successfully.");
     } catch (err: any) {
-      console.error("Backend error adding lesson:", err);
-      toast.error(err.message || "Failed to add lesson");
+      console.error("[handleAddLesson] error:", err);
+      toast.error(err.message || "Failed to save lesson");
     } finally {
       setLessonLoading(false);
     }
   }
 
-  async function handleToggleLessonPublished(sectionId: string, lessonId: string) {
-    const section = sections.find((s) => s.id === sectionId);
-    const lesson = section?.lessons?.find((l) => l.id === lessonId);
-    if (!lesson) return;
-
-    const isCurrentlyPublished = lesson.published;
-    const endpoint = isCurrentlyPublished
-      ? `/api/admin/lessons/${lessonId}/unpublish`
-      : `/api/admin/lessons/${lessonId}/publish`;
-
-    try {
-      const updated: DbLesson = await apiAdmin(endpoint, { method: "POST", body: JSON.stringify({}) });
-      setSections((prev) =>
-        prev.map((s) =>
-          s.id === sectionId
-            ? {
-                ...s,
-                lessons: s.lessons?.map((l) =>
-                  l.id === lessonId
-                    ? { ...l, published: updated.status === "published", status: updated.status, notPublished: updated.status === "draft" }
-                    : l
-                ),
-              }
-            : s
-        )
-      );
-      toast.success(updated.status === "published" ? "Lesson published" : "Lesson set to draft");
-    } catch (err: any) {
-      toast.error("Failed to update lesson");
-    }
-  }
+  // Draft mode removed — all lessons are published by default.
+  // handleToggleLessonPublished has been intentionally deleted.
 
   async function handleToggleDownloadPermission(sectionId: string, lessonId: string) {
     const section = sections.find((s) => s.id === sectionId);
@@ -509,48 +471,70 @@ export function AdminContent({
 
   async function handleStartUpload(fileToUpload?: File) {
     const file = fileToUpload || selectedFile;
+    if (!file || !uploadTargetLesson) {
+      toast.error("No file or target lesson selected");
+      return;
+    }
     setUploadStage("uploading");
     setUploadProgress(0);
 
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
-        if (prev >= 90) { clearInterval(interval); return 90; }
+        if (prev >= 90) return 90;
         return prev + 15;
       });
     }, 150);
 
     try {
-      // Simulate the upload progression for now; real upload goes to storage service
-      if (simulateUploadFail) throw new Error("Simulated upload failure");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("lessonId", uploadTargetLesson);
+
+      const endpoint = uploadFileType === "pdf" ? "/api/admin/upload/document" : "/api/admin/upload/video";
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Upload failed");
+      }
+
+      const data = await res.json();
+      
+      // Update local state to reflect the uploaded video_id / pdf_url
+      setSections((prev) =>
+        prev.map((s) => ({
+          ...s,
+          lessons: s.lessons?.map((l) => {
+            if (l.id === uploadTargetLesson) {
+               return {
+                 ...l,
+                 type: uploadFileType,
+                 videoId: uploadFileType === "video" ? data.videoId : l.videoId,
+                 pdfUrl: uploadFileType === "pdf" ? (data.key || data.url) : l.pdfUrl,
+                 status: 'published',
+                 published: true
+               };
+            }
+            return l;
+          }),
+        }))
+      );
+
       clearInterval(interval);
       setUploadProgress(100);
+      setUploadStage("processing");
       setTimeout(() => {
-        setUploadStage("processing");
-        setTimeout(() => {
-          setUploadStage(uploadFileType === "pdf" ? "published" : "generating");
-          if (uploadFileType !== "pdf") {
-            setTimeout(() => setUploadStage("ready"), 1200);
-          } else {
-            toast.success("PDF uploaded successfully");
-          }
-        }, 1200);
-      }, 300);
+        setUploadStage("published");
+        toast.success("Media uploaded successfully");
+      }, 800);
     } catch (err: any) {
       clearInterval(interval);
       setUploadStage("failed");
       toast.error(err.message || "Upload failed");
     }
-  }
-
-  async function handlePublishUploadedLesson() {
-    if (uploadTargetLesson) {
-      const targetSection = sections.find((s) => s.lessons?.some((l) => l.id === uploadTargetLesson));
-      if (targetSection) {
-        await handleToggleLessonPublished(targetSection.id, uploadTargetLesson);
-      }
-    }
-    setUploadStage("published");
-    toast.success("Lesson content published successfully");
   }
 
   function handleRetryUpload() {
@@ -742,8 +726,8 @@ export function AdminContent({
                                     setNewLessonTitle(lesson.title);
                                     setNewLessonDesc(lesson.description || "");
                                     setNewLessonType(lesson.type);
-                                    setNewLessonVideoId(lesson.videoId || "");
-                                    setNewLessonPdfUrl(lesson.pdfUrl || "");
+                                    setNewLessonVideoId("");
+                                    setNewLessonPdfUrl("");
                                   }}
                                   title="Edit Lesson"
                                   className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
@@ -753,6 +737,7 @@ export function AdminContent({
                                 </button>
                                 <button
                                   onClick={() => promptDeleteLesson(section.id, lesson.id, lesson.title)}
+                                  title="Delete lesson"
                                   className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3 text-destructive" />
@@ -770,26 +755,11 @@ export function AdminContent({
                                   <Upload className="w-3 h-3" />
                                   Upload
                                 </button>
-                                <button
-                                  onClick={() =>
-                                    setDeleteTarget({ sectionId: section.id, lessonId: lesson.id, title: lesson.title })
-                                  }
-                                  className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3 h-3 text-destructive" />
-                                </button>
                               </div>
-                              <button
-                                onClick={() => handleToggleLessonPublished(section.id, lesson.id)}
-                                className={cn(
-                                  "ml-1 px-2.5 py-0.5 rounded-md text-xs font-bold transition-colors border flex-shrink-0 cursor-pointer",
-                                  lesson.published
-                                    ? "bg-success-light text-success-foreground border-success/20 hover:bg-success-light/80"
-                                    : "bg-warning-light text-warning-foreground border-warning/20 hover:bg-warning-light/80"
-                                )}
-                              >
-                                {lesson.published ? "Published" : "Draft"}
-                              </button>
+                              {/* Static Published badge — draft mode removed */}
+                              <span className="ml-1 px-2.5 py-0.5 rounded-md text-xs font-bold border flex-shrink-0 bg-success-light text-success-foreground border-success/20">
+                                {lesson.videoId || lesson.pdfUrl ? "Published" : "No media"}
+                              </span>
                             </div>
                           ))
                         )}
@@ -873,7 +843,6 @@ export function AdminContent({
               filename={selectedFile?.name || (uploadFileType === "video" ? "lesson.mp4" : "document.pdf")}
               fileType={uploadFileType}
               onRetry={handleRetryUpload}
-              onPublish={handlePublishUploadedLesson}
             />
           </div>
         )}

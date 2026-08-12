@@ -30,8 +30,9 @@ function StudentDashboardRoute() {
   const navigate = useNavigate()
   const [activeScreen, setActiveScreen] = useState<Screen>('student-dashboard')
   const [selectedCourseId, setSelectedCourseId] = useState<string>('c_1')
+  const [selectedLessonId, setSelectedLessonId] = useState<string | undefined>(undefined)
 
-  function handleNavigate(screen: Screen) {
+  function handleNavigate(screen: Screen, params?: any) {
     if (screen === 'login') {
       navigate({ to: '/login' })
       return
@@ -40,6 +41,8 @@ function StudentDashboardRoute() {
       navigate({ to: '/device-limit' })
       return
     }
+    if (params?.courseId) setSelectedCourseId(params.courseId)
+    setSelectedLessonId(params?.lessonId)
     setActiveScreen(screen)
   }
 
@@ -60,7 +63,7 @@ function StudentDashboardRoute() {
   }
 
   if (activeScreen === 'course-player') {
-    return <CoursePlayer onNavigate={handleNavigate} selectedCourseId={selectedCourseId} />
+    return <CoursePlayer onNavigate={handleNavigate} selectedCourseId={selectedCourseId} selectedLessonId={selectedLessonId} />
   }
 
   return <StudentDashboard />

@@ -5,16 +5,14 @@ import { Screen } from '@/data/types'
 function StudentCoursesRoute() {
   const navigate = useNavigate()
 
-  function handleNavigate(screen: Screen) {
-    const map: Partial<Record<Screen, string>> = {
-      'login': '/login',
-      'student-dashboard': '/student/dashboard',
-      'student-course-detail': '/student/course',
-      'course-player': '/student/course',
+  function handleNavigate(screen: Screen, params?: { courseId?: string; lessonId?: string }) {
+    if (screen === 'login') { navigate({ to: '/login' }); return }
+    if (screen === 'student-dashboard') { navigate({ to: '/student/dashboard' }); return }
+    if (screen === 'student-course-detail' || screen === 'course-player') {
+      navigate({ to: '/student/course', search: { id: params?.courseId } as never })
+      return
     }
-    const route = map[screen]
-    if (route) navigate({ to: route as '/' })
-    else console.warn(`[StudentCourses] "${screen}" not yet mapped.`)
+    console.warn(`[StudentCourses] "${screen}" not mapped.`)
   }
 
   return <StudentCourses onNavigate={handleNavigate} onSelectCourse={(id) => navigate({ to: '/student/course', search: { id } as never })} />

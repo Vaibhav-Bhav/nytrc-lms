@@ -27,19 +27,19 @@ export const Route = createFileRoute('/api/admin/upload/document')({
           const lessonId = formData.get('lessonId')
           const file = formData.get('file')
 
+          if (!lessonId) {
+            return Response.json({ error: 'Missing lessonId field' }, { status: 400 })
+          }
+
+          if (!file || !(file instanceof Blob)) {
+            return Response.json({ error: 'Missing file field' }, { status: 400 })
+          }
+
           // Validate metadata inputs
           const parsed = documentMetadataSchema.safeParse({ lessonId })
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', issues: parsed.error.issues },
-              { status: 400 },
-            )
-          }
-
-          // Validate file presence
-          if (!file || !(file instanceof Blob)) {
-            return Response.json(
-              { error: 'Validation failed: file is required' },
               { status: 400 },
             )
           }

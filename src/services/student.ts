@@ -59,12 +59,10 @@ export const studentService = {
           page_count: l.page_count,
         }))
 
-      if (publishedLessons.length > 0) {
-        sectionsWithLessons.push({
-          ...section,
-          lessons: publishedLessons,
-        })
-      }
+      sectionsWithLessons.push({
+        ...section,
+        lessons: publishedLessons,
+      })
     }
 
     return {

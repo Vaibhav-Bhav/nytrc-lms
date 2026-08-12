@@ -13,7 +13,11 @@ function getRequiredEnv(key: string): string {
 }
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  const apiKey = getRequiredEnv('RESEND_API_KEY')
+  const apiKey = process.env['RESEND_API_KEY']?.trim()
+  if (!apiKey) {
+    console.warn(`[Resend] Skipping email notification to ${to}: RESEND_API_KEY is not configured.`)
+    return
+  }
   const from = process.env['RESEND_FROM_EMAIL'] || 'onboarding@resend.dev'
 
   const response = await fetch('https://api.resend.com/emails', {

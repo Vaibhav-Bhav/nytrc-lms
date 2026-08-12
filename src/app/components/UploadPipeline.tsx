@@ -6,7 +6,6 @@ const VIDEO_PIPELINE_STAGES = [
   { id: "uploading", label: "Uploading file" },
   { id: "processing", label: "Processing video" },
   { id: "generating", label: "Generating streaming assets" },
-  { id: "ready", label: "Ready for publishing" },
   { id: "published", label: "Published" },
 ];
 
@@ -22,14 +21,12 @@ export function UploadPipeline({
   filename,
   fileType = "video",
   onRetry,
-  onPublish,
 }: {
   stage: UploadStage;
   progress: number;
   filename?: string;
   fileType?: "video" | "pdf";
   onRetry?: () => void;
-  onPublish?: () => void;
 }) {
   const stages = fileType === "pdf" ? PDF_PIPELINE_STAGES : VIDEO_PIPELINE_STAGES;
   const currentIdx = stage === "failed" ? stages.findIndex((s) => s.id === "uploading") : stages.findIndex((s) => s.id === stage);
@@ -109,12 +106,6 @@ export function UploadPipeline({
         })}
       </div>
 
-      {stage === "ready" && onPublish && (
-        <Button onClick={onPublish} className="w-full mt-2">
-          <CheckCircle2 className="w-4 h-4" />
-          Publish lesson now
-        </Button>
-      )}
       {stage === "published" && (
         <div className="flex items-center gap-2 text-sm text-success-foreground font-semibold px-1">
           <CheckCircle2 className="w-4 h-4" />

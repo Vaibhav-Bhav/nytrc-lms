@@ -124,9 +124,11 @@ async function loadProgressApi(lessonId: string | null) {
 export function CoursePlayer({
   onNavigate,
   selectedCourseId,
+  selectedLessonId,
 }: {
   onNavigate: (screen: Screen, params?: { courseId?: string }) => void;
   selectedCourseId?: string;
+  selectedLessonId?: string;
 }) {
   const [courseData, setCourseData] = useState<CourseDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -221,7 +223,11 @@ export function CoursePlayer({
 
         const allL = allSects.flatMap((s) => s.lessons || []);
         if (allL.length > 0) {
-          setCurrentLessonId(allL[0].id);
+          if (selectedLessonId && allL.some(l => l.id === selectedLessonId)) {
+            setCurrentLessonId(selectedLessonId);
+          } else {
+            setCurrentLessonId(allL[0].id);
+          }
         }
 
         // Fetch completion status for all lessons
@@ -244,6 +250,17 @@ export function CoursePlayer({
     loadPlayerData();
   }, [selectedCourseId]);
 
+  useEffect(() => {
+    if (selectedLessonId && selectedLessonId !== currentLessonId && courseData) {
+      const allL = courseData.sections?.flatMap(s => s.lessons || []) || [];
+      if (allL.some(l => l.id === selectedLessonId)) {
+        setCurrentLessonId(selectedLessonId);
+        setVideoError(false);
+        setPdfError(false);
+      }
+    }
+  }, [selectedLessonId, courseData]);
+
   // Load media URL when current lesson changes
   useEffect(() => {
     if (!currentLessonId) return;
@@ -262,7 +279,20 @@ export function CoursePlayer({
         if (currentLesson.video_id.startsWith('http://') || currentLesson.video_id.startsWith('https://')) {
           setVideoUrl(currentLesson.video_id);
         } else {
-          setVideoUrl(`https://iframe.mediadelivery.net/embed/381534/${currentLesson.video_id}`);
+          const fetchVideo = async () => {
+            setMediaLoading(true);
+            try {
+              const r = await fetch(`/api/student/lessons/${currentLessonId}/video`, { credentials: "include" });
+              if (!r.ok) throw new Error("Fetch failed");
+              const data = await r.json();
+              setVideoUrl(data.streamUrl);
+            } catch (err) {
+              setVideoError(true);
+            } finally {
+              setMediaLoading(false);
+            }
+          };
+          fetchVideo();
         }
       } else {
         setVideoError(true);
@@ -274,12 +304,20 @@ export function CoursePlayer({
           setPdfUrl(currentLesson.pdf_url);
         } else {
           // It's an R2 key — fetch a presigned download URL from the backend
-          setMediaLoading(true);
-          fetch(`/api/student/lessons/${currentLessonId}/document`, { credentials: "include" })
-            .then((r) => r.ok ? r.json() : Promise.reject(r))
-            .then((data) => { setPdfUrl(data.downloadUrl || data.url || null); })
-            .catch(() => setPdfError(true))
-            .finally(() => setMediaLoading(false));
+          const fetchPdf = async () => {
+            setMediaLoading(true);
+            try {
+              const r = await fetch(`/api/student/lessons/${currentLessonId}/document`, { credentials: "include" });
+              if (!r.ok) throw new Error("Fetch failed");
+              const data = await r.json();
+              setPdfUrl(data.downloadUrl || data.url || null);
+            } catch (err) {
+              setPdfError(true);
+            } finally {
+              setMediaLoading(false);
+            }
+          };
+          fetchPdf();
         }
       } else {
         setPdfError(true);
@@ -308,10 +346,10 @@ export function CoursePlayer({
         }
       } else {
         setCurrentTime(0);
+        setCurrentPage(1);
         currentTimeRef.current = 0;
         lastSavedTimeRef.current = 0;
         targetSeekPositionRef.current = 0;
-        setCurrentPage(1);
       }
 
       const lesson = sections.flatMap((s) => s.lessons || []).find((l) => l.id === currentLessonId);
@@ -614,7 +652,15 @@ export function CoursePlayer({
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden h-[calc(100vh-64px)]">
         {/* Main player content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          {!isPdf ? (
+          {currentLesson && !currentLesson.video_id && !currentLesson.pdf_url ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-950 text-white/60 gap-3">
+              <AlertCircle className="w-10 h-10 text-white/30" />
+              <div className="empty-state">
+                <p className="text-sm font-bold text-white">Media not uploaded yet.</p>
+                <p className="text-xs text-white/50 mt-1">This lesson does not have any playable media attached.</p>
+              </div>
+            </div>
+          ) : !isPdf ? (
             <div className="bg-slate-950">
               <div className="relative" style={{ paddingBottom: "56.25%" }}>
                 <div className="absolute inset-0">
@@ -632,13 +678,7 @@ export function CoursePlayer({
                       title={currentLesson?.title || "Video Lesson"}
                     />
                   ) : videoError ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white/60">
-                      <AlertCircle className="w-10 h-10 text-error-foreground" />
-                      <div>
-                        <p className="text-sm font-semibold text-white">Video unavailable</p>
-                        <p className="text-xs text-white/50 mt-1">No video stream ID associated with this lesson.</p>
-                      </div>
-                    </div>
+                    <div className="flex items-center justify-center bg-gray-900 text-white h-full">Media could not be loaded.</div>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <p className="text-xs text-white/40">Select a video lesson to begin playback</p>
@@ -656,10 +696,10 @@ export function CoursePlayer({
                   title={currentLesson?.title || "PDF Lesson"}
                 />
               ) : pdfError ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
+                <div className="error flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
                   <AlertCircle className="w-8 h-8 text-error-foreground" />
-                  <p className="text-sm font-semibold text-foreground">Document unavailable</p>
-                  <p className="text-xs">No PDF file attached to this lesson.</p>
+                  <p className="text-sm font-semibold text-foreground">Media unavailable</p>
+                  <p className="text-xs">We could not load the document for this lesson.</p>
                 </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center p-8 text-muted-foreground text-xs">

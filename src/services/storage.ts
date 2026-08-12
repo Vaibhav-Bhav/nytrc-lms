@@ -50,8 +50,8 @@ export const storageService = {
       // 4. Upload actual video bytes
       await bunnyVideoService.uploadVideoAsset(videoId, fileData)
 
-      // 5. Persist video ID to the lesson metadata
-      await lessonRepository.update(lessonId, { video_id: videoId })
+      // 5. Persist video ID and publish status to the lesson metadata
+      await lessonRepository.update(lessonId, { video_id: videoId, status: 'published' })
 
       return {
         lessonId,
@@ -102,9 +102,9 @@ export const storageService = {
       // 4. Upload to Cloudflare R2
       const { key } = await uploadR2File(uniqueKey, fileData, contentType)
 
-      // 5. Persist the R2 object key to the lesson metadata
+      // 5. Persist the R2 object key and publish status to the lesson metadata
       //    We store the key (not the public URL) so we can always generate presigned URLs
-      await lessonRepository.update(lessonId, { pdf_url: key })
+      await lessonRepository.update(lessonId, { pdf_url: key, status: 'published' })
 
       return {
         lessonId,

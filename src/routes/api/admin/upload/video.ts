@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const videoMetadataSchema = z.object({
   lessonId: z.string().uuid('lessonId must be a valid UUID'),
-  title: z.string().min(1, 'title is required'),
+  title: z.string().optional(),
 })
 
 export const Route = createFileRoute('/api/admin/upload/video')({
@@ -29,19 +29,19 @@ export const Route = createFileRoute('/api/admin/upload/video')({
           const title = formData.get('title')
           const file = formData.get('file')
 
+          if (!lessonId) {
+            return Response.json({ error: 'Missing lessonId field' }, { status: 400 })
+          }
+
+          if (!file || !(file instanceof Blob)) {
+            return Response.json({ error: 'Missing file field' }, { status: 400 })
+          }
+
           // Validate metadata inputs
-          const parsed = videoMetadataSchema.safeParse({ lessonId, title })
+          const parsed = videoMetadataSchema.safeParse({ lessonId, title: title || undefined })
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', issues: parsed.error.issues },
-              { status: 400 },
-            )
-          }
-
-          // Validate file presence
-          if (!file || !(file instanceof Blob)) {
-            return Response.json(
-              { error: 'Validation failed: file is required' },
               { status: 400 },
             )
           }
@@ -50,9 +50,11 @@ export const Route = createFileRoute('/api/admin/upload/video')({
           const arrayBuffer = await file.arrayBuffer()
           const fileBuffer = Buffer.from(arrayBuffer)
 
+          const safeTitle = parsed.data.title || (file as any).name || 'Untitled Upload'
+
           const result = await storageService.uploadVideo(
             parsed.data.lessonId,
-            parsed.data.title,
+            safeTitle,
             (file as any).name ?? 'video.mp4',
             file.type ?? 'video/mp4',
             fileBuffer,

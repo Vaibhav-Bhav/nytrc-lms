@@ -61,31 +61,41 @@ export async function createBunnyVideo(
   const config = getBunnyConfig()
   const url = `https://video.bunnycdn.com/library/${config.libraryId}/videos`
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      AccessKey: config.apiKey,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      title: params.title,
-      collectionId: params.collectionId,
-    }),
-  })
+  const safeTitle = typeof params.title === 'string' && params.title.trim().length > 0 
+    ? params.title.trim() 
+    : 'Untitled Video';
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '')
-    throw new Error(`Bunny Stream API error (${res.status}): ${errText || res.statusText}`)
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        AccessKey: config.apiKey,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        title: safeTitle,
+        collectionId: params.collectionId,
+      }),
+    })
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error(`[BunnyStream] Create Video Slot failed. Status: ${res.status}, Body: ${errText}`)
+      throw new Error(`Bunny Stream API error (${res.status}): ${errText || res.statusText}`)
+    }
+
+    const data = await res.json()
+    const videoId = data.guid || data.id
+    if (!videoId) {
+      throw new Error('Bunny Stream response did not contain a valid video GUID')
+    }
+
+    return { videoId }
+  } catch (err) {
+    console.error('[BunnyStream] Network/Execution error in createBunnyVideo:', err)
+    throw err
   }
-
-  const data = await res.json()
-  const videoId = data.guid || data.id
-  if (!videoId) {
-    throw new Error('Bunny Stream response did not contain a valid video GUID')
-  }
-
-  return { videoId }
 }
 
 /**

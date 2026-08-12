@@ -65,7 +65,7 @@ export function StudentCourseDetail({
   onNavigate,
   selectedCourseId,
 }: {
-  onNavigate?: (s: Screen) => void;
+  onNavigate?: (s: Screen, params?: { courseId?: string, lessonId?: string }) => void;
   selectedCourseId?: string;
 }) {
   const { data: user } = useAuth();
@@ -197,12 +197,16 @@ export function StudentCourseDetail({
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Button
-                onClick={() => onNavigate?.("course-player")}
+                onClick={() => {
+                  const firstUncompleted = allLessons.find(l => !completedIds.has(l.id));
+                  const targetLessonId = firstUncompleted ? firstUncompleted.id : allLessons[0]?.id;
+                  onNavigate?.("course-player", { courseId: course?.id, lessonId: targetLessonId });
+                }}
                 className="flex-1 sm:flex-none"
-                disabled={loading}
+                disabled={loading || allLessons.length === 0}
               >
                 <Play className="w-4 h-4" />
-                {pct > 0 ? "Continue learning" : "Start course"}
+                {pct > 0 ? "Resume course" : "Start course"}
               </Button>
             </div>
           </div>
@@ -278,7 +282,7 @@ export function StudentCourseDetail({
                         return (
                           <button
                             key={lesson.id}
-                            onClick={() => onNavigate?.("course-player")}
+                            onClick={() => onNavigate?.("course-player", { courseId: course?.id, lessonId: lesson.id })}
                             className="w-full flex items-center gap-3 pl-12 pr-5 py-3 border-t border-border/40 text-left hover:bg-muted/30 transition-colors cursor-pointer"
                           >
                             <div className="flex-shrink-0">
