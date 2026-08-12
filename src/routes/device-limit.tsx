@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { DeviceSessionScreen } from '@/app/screens/auth/DeviceSessionScreen'
 import { DeviceLimitExceededScreen } from '@/app/screens/auth/DeviceLimitExceededScreen'
+import { pendingAuth } from '@/store/pendingAuth'
 import { Screen } from '@/data/types'
 
 export const Route = createFileRoute('/device-limit')({
@@ -13,6 +15,7 @@ function DeviceLimitRoute() {
     const routeMap: Partial<Record<Screen, string>> = {
       'login': '/login',
       'student-dashboard': '/student/dashboard',
+      'student-account': '/student/account',
     }
     const route = routeMap[screen]
     if (route) {
@@ -22,5 +25,9 @@ function DeviceLimitRoute() {
     }
   }
 
-  return <DeviceLimitExceededScreen onNavigate={handleNavigate} />
+  if (pendingAuth.email) {
+    return <DeviceLimitExceededScreen onNavigate={handleNavigate} />
+  }
+
+  return <DeviceSessionScreen onNavigate={handleNavigate} />
 }

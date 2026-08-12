@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { cn } from "./Button";
 import { Logo } from "./Logo";
-import { DarkToggle } from "./DarkToggle";
+import { NotificationModal } from "./NotificationModal";
 import { useAuth, authQueryKey } from "../../hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -26,14 +26,14 @@ type NavItem = {
   label: string;
   Icon: React.ElementType;
   matchPrefixes?: string[];
+  matchTab?: string;
   action?: () => void;
 };
 
 const MAIN_NAV: NavItem[] = [
   { to: "/student/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { to: "/student/courses", label: "My Learning", Icon: GraduationCap },
-  { to: "/student/course", label: "Course", Icon: BookOpen, matchPrefixes: ["/student/course"] },
-  { to: "/student/account", label: "Invoices", Icon: Receipt },
+  { to: "/student/course", label: "Course", Icon: BookOpen, matchPrefixes: ["/student/course/"] },
 ];
 
 export function StudentSidebar({
@@ -46,6 +46,7 @@ export function StudentSidebar({
   onClose?: () => void;
 }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const { data: user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -56,23 +57,48 @@ export function StudentSidebar({
     {
       label: "Notifications",
       Icon: Bell,
-      action: () => toast.info("No new notifications"),
+      action: () => setShowNotificationsModal(true),
     },
-    { to: "/student/account", label: "Settings", Icon: Settings },
+    { to: "/student/account?tab=settings", label: "Settings", Icon: Settings, matchTab: "settings" },
   ];
 
   const actualName = user?.name || "Student User";
   const actualEmail = user?.email || "student@example.com";
   const initials = actualName
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .substring(0, 2)
     .toUpperCase() || "ST";
 
   function isActive(item: NavItem) {
-    if (item.to && currentPath === item.to) return true;
-    if (item.matchPrefixes?.some((p) => currentPath.startsWith(p))) return true;
+    if (!item.to) return false;
+
+    if (item.matchTab) {
+      const searchParams = new URLSearchParams(location.search);
+      const tabParam = searchParams.get("tab");
+      const basePath = item.to.split("?")[0];
+      if (currentPath === basePath) {
+        if (tabParam) {
+          return tabParam === item.matchTab;
+        }
+        return item.matchTab === "invoices";
+      }
+      return false;
+    }
+
+    if (currentPath === item.to) return true;
+
+    if (
+      item.matchPrefixes?.some((p) => {
+        if (currentPath === p) return true;
+        const prefixWithSlash = p.endsWith("/") ? p : `${p}/`;
+        return currentPath.startsWith(prefixWithSlash);
+      })
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -275,6 +301,11 @@ export function StudentSidebar({
           )}
         </div>
       </div>
+
+      <NotificationModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
+      />
     </aside>
   );
 }

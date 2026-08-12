@@ -9,6 +9,7 @@ function StudentAccountRoute() {
     const map: Partial<Record<Screen, string>> = {
       'login': '/login',
       'student-dashboard': '/student/dashboard',
+      'auth-device-session': '/device-limit',
     }
     const route = map[screen]
     if (route) navigate({ to: route as '/' })

@@ -30,6 +30,16 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
 
   useEffect(() => {
     fetchSessionInfo();
+
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("tab") === "invoices" || window.location.hash === "#invoices") {
+        setTimeout(() => {
+          const elem = document.getElementById("billing-invoices-section");
+          if (elem) elem.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
   }, []);
 
   async function fetchSessionInfo() {
@@ -295,7 +305,7 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
           </div>
 
           {/* Past Invoices */}
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div id="billing-invoices-section" className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20">
               <h2 className="font-bold text-foreground text-base">Billing & Invoices</h2>
             </div>
