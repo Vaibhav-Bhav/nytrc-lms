@@ -139,7 +139,6 @@ export function AdminContent({
   const [uploadFileType, setUploadFileType] = useState<"video" | "pdf">("video");
   const [uploadTargetSection, setUploadTargetSection] = useState<string | null>(null);
   const [uploadTargetLesson, setUploadTargetLesson] = useState<string | null>(null);
-  const [simulateUploadFail, setSimulateUploadFail] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Add/Edit Lesson modal state
@@ -521,7 +520,6 @@ export function AdminContent({
 
     try {
       // Simulate the upload progression for now; real upload goes to storage service
-      if (simulateUploadFail) throw new Error("Simulated upload failure");
       clearInterval(interval);
       setUploadProgress(100);
       setTimeout(() => {
@@ -839,24 +837,10 @@ export function AdminContent({
         }
       >
         {uploadStage === "idle" ? (
-          <div className="flex flex-col gap-4">
-            <FileUpload
-              hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
-              onChange={handleFileSelected}
-            />
-            <div className="p-3 bg-muted/30 rounded-xl border border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Test error state:</span>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
-                <input
-                  type="checkbox"
-                  checked={simulateUploadFail}
-                  onChange={(e) => setSimulateUploadFail(e.target.checked)}
-                  className="rounded border-border"
-                />
-                Simulate failure
-              </label>
-            </div>
-          </div>
+          <FileUpload
+            hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
+            onChange={handleFileSelected}
+          />
         ) : (
           <div className="py-2">
             <UploadPipeline
