@@ -1,12 +1,13 @@
 import { BookOpen } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "./Button";
 
 export function Logo({ inverted = false }: { inverted?: boolean }) {
   return (
-    <div className="flex items-center gap-3 flex-shrink-0 select-none">
+    <Link to="/" className="flex items-center gap-3 flex-shrink-0 select-none cursor-pointer group">
       <div
         className={cn(
-          "w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform duration-200 hover:scale-105 bg-primary text-primary-foreground"
+          "w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform duration-200 group-hover:scale-105 bg-primary text-primary-foreground"
         )}
       >
         <BookOpen className="w-5 h-5 text-white" strokeWidth={2.5} />
@@ -29,6 +30,6 @@ export function Logo({ inverted = false }: { inverted?: boolean }) {
           LMS Portal
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

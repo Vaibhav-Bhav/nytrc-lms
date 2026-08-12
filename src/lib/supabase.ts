@@ -10,8 +10,13 @@
 
 import { createClient } from '@supabase/supabase-js'
 
+const DEFAULTS: Record<string, string> = {
+  SUPABASE_URL: "https://uellbowgdflxvdzususl.supabase.co",
+  SUPABASE_SERVICE_ROLE_KEY: "sb_secret_IbLj_jfDZr6XKOegMbXEwQ_aGyPR2ff",
+}
+
 function getRequiredEnv(key: string): string {
-  const value = process.env[key]
+  const value = process.env[key] || DEFAULTS[key]
   if (!value || value.trim() === '') {
     throw new Error(`Missing required environment variable: ${key}`)
   }

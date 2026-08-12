@@ -36,12 +36,20 @@ export function Nav() {
           ))}
         </div>
 
-        <Link
-          to="/subscription"
-          className="hidden md:inline-flex border border-ink px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
-        >
-          Partner With Us
-        </Link>
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/subscription"
+            className="border border-ink px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-ink hover:bg-ink hover:text-paper transition-all"
+          >
+            Partner With Us
+          </Link>
+          <Link
+            to="/login"
+            className="border border-clay bg-clay text-paper px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-ink hover:border-ink transition-all"
+          >
+            Login
+          </Link>
+        </div>
 
         <details className="md:hidden justify-self-end">
           <summary className="list-none cursor-pointer border border-ink/30 px-3 py-2 text-[10px] font-bold uppercase tracking-widest">
@@ -60,9 +68,15 @@ export function Nav() {
             ))}
             <Link
               to="/subscription"
-              className="mt-2 border border-ink px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center"
+              className="mt-2 border border-ink px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center text-ink"
             >
               Partner With Us
+            </Link>
+            <Link
+              to="/login"
+              className="border border-clay bg-clay text-paper px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center"
+            >
+              Login
             </Link>
           </div>
         </details>
