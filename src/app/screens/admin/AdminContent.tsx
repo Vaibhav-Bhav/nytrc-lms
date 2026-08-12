@@ -752,12 +752,6 @@ export function AdminContent({
                                   Edit
                                 </button>
                                 <button
-                                  onClick={() => promptDeleteLesson(section.id, lesson.id, lesson.title)}
-                                  className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3 h-3 text-destructive" />
-                                </button>
-                                <button
                                   onClick={() => {
                                     setUploadTargetSection(section.id);
                                     setUploadTargetLesson(lesson.id);
@@ -771,9 +765,7 @@ export function AdminContent({
                                   Upload
                                 </button>
                                 <button
-                                  onClick={() =>
-                                    setDeleteTarget({ sectionId: section.id, lessonId: lesson.id, title: lesson.title })
-                                  }
+                                  onClick={() => promptDeleteLesson(section.id, lesson.id, lesson.title)}
                                   className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3 text-destructive" />

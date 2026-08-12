@@ -82,7 +82,7 @@ export async function uploadR2File(
   key: string,
   fileBuffer: Buffer,
   contentType: string,
-): Promise<{ publicUrl: string }> {
+): Promise<{ key: string; publicUrl: string }> {
   const { client, config } = getR2Client()
   const cleanKey = key.replace(/^\//, '')
 
