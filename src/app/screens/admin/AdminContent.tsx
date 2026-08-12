@@ -139,7 +139,6 @@ export function AdminContent({
   const [uploadFileType, setUploadFileType] = useState<"video" | "pdf">("video");
   const [uploadTargetSection, setUploadTargetSection] = useState<string | null>(null);
   const [uploadTargetLesson, setUploadTargetLesson] = useState<string | null>(null);
-  const [simulateUploadFail, setSimulateUploadFail] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Add/Edit Lesson modal state
@@ -460,7 +459,7 @@ export function AdminContent({
     }
   }
 
-  // ── Upload handlers (local simulation; real upload wired to storage service) ──
+  // ── Upload handlers ──
 
   function handleFileSelected(file: File) {
     setSelectedFile(file);
@@ -476,14 +475,7 @@ export function AdminContent({
       return;
     }
     setUploadStage("uploading");
-    setUploadProgress(0);
-
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 90) return 90;
-        return prev + 15;
-      });
-    }, 150);
+    setUploadProgress(50);
 
     try {
       const formData = new FormData();
@@ -523,15 +515,10 @@ export function AdminContent({
         }))
       );
 
-      clearInterval(interval);
       setUploadProgress(100);
-      setUploadStage("processing");
-      setTimeout(() => {
-        setUploadStage("published");
-        toast.success("Media uploaded successfully");
-      }, 800);
+      setUploadStage("published");
+      toast.success("Media uploaded successfully");
     } catch (err: any) {
-      clearInterval(interval);
       setUploadStage("failed");
       toast.error(err.message || "Upload failed");
     }
@@ -822,18 +809,6 @@ export function AdminContent({
               hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
               onChange={handleFileSelected}
             />
-            <div className="p-3 bg-muted/30 rounded-xl border border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Test error state:</span>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
-                <input
-                  type="checkbox"
-                  checked={simulateUploadFail}
-                  onChange={(e) => setSimulateUploadFail(e.target.checked)}
-                  className="rounded border-border"
-                />
-                Simulate failure
-              </label>
-            </div>
           </div>
         ) : (
           <div className="py-2">
