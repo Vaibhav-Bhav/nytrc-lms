@@ -5,8 +5,10 @@ import { ResendEmailProvider } from './resend'
 import {
   renderAccountCreatedEmail,
   renderPaymentConfirmationEmail,
+  renderPasswordResetEmail,
   type AccountCreatedTemplateInput,
   type PaymentConfirmationTemplateInput,
+  type PasswordResetTemplateInput,
 } from './templates'
 import type { EmailAttachment } from './provider'
 
@@ -159,6 +161,60 @@ export const emailDispatcher = {
       }
     } catch (err: any) {
       console.error(`[emailDispatcher] Exception during payment confirmation dispatch:`, err)
+      if (logRecord) {
+        await emailLogRepository.updateStatus(logRecord.id, 'failed', undefined, err.message)
+      }
+      return { success: false, logId: logRecord?.id, error: err.message }
+    }
+  },
+
+  /**
+   * Dispatches the password reset link email.
+   * Logs the email to email_log for admin audit trail.
+   */
+  async sendPasswordResetEmail(
+    userId: string,
+    input: PasswordResetTemplateInput,
+  ): Promise<{ success: boolean; logId?: string; error?: string }> {
+    const { subject, html } = renderPasswordResetEmail(input)
+
+    let logRecord
+    try {
+      logRecord = await emailLogRepository.create({
+        user_id: userId,
+        template: 'password_reset',
+        to_address: input.email,
+        subject,
+        status: 'pending',
+        metadata: {
+          user_name: input.userName,
+          expires_in_minutes: input.expiresInMinutes || 60,
+        },
+      })
+    } catch (dbErr) {
+      console.error('[emailDispatcher] Failed to create pending email_log record for password reset:', dbErr)
+    }
+
+    try {
+      const result = await provider.send({
+        to: input.email,
+        subject,
+        html,
+      })
+
+      if (result.success && logRecord) {
+        await emailLogRepository.updateStatus(logRecord.id, 'sent', result.messageId)
+        console.log(`[emailDispatcher] Password reset email sent successfully to ${input.email} (Msg ID: ${result.messageId})`)
+        return { success: true, logId: logRecord.id }
+      } else {
+        if (logRecord) {
+          await emailLogRepository.updateStatus(logRecord.id, 'failed', undefined, result.error)
+        }
+        console.error(`[emailDispatcher] Password reset email failed for ${input.email}:`, result.error)
+        return { success: false, logId: logRecord?.id, error: result.error }
+      }
+    } catch (err: any) {
+      console.error(`[emailDispatcher] Exception during password reset email dispatch to ${input.email}:`, err)
       if (logRecord) {
         await emailLogRepository.updateStatus(logRecord.id, 'failed', undefined, err.message)
       }

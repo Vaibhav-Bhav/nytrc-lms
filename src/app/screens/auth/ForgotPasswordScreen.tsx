@@ -10,13 +10,34 @@ export function ForgotPasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!email || !email.trim()) return;
+
     setLoading(true);
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || "Failed to process password reset request.");
+      } else {
+        setSent(true);
+      }
+    } catch (err: any) {
+      setError(err?.message || "A network error occurred. Please try again.");
+    } finally {
       setLoading(false);
-      setSent(true);
-    }, 1000);
+    }
   }
 
   return (
@@ -48,6 +69,11 @@ export function ForgotPasswordScreen({ onNavigate }: { onNavigate: (s: Screen) =
         <>
           <h1 className="text-2xl font-semibold text-foreground mb-1">Forgot your password?</h1>
           <p className="text-muted-foreground text-sm mb-8">Enter your email and we'll send a reset link.</p>
+          {error && (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg mb-4 font-medium">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <FormInput
               label="Email address"

@@ -3,7 +3,7 @@
 import { userRepository } from '@/repositories/user'
 import { sessionRepository } from '@/repositories/session'
 import { verifyPassword, hashPassword, isPasswordStrong } from '@/lib/password'
-import { sendEmail } from '@/lib/resend'
+import { emailDispatcher } from '@/services/email/dispatcher'
 import type { LoginInput } from '@/schemas/users'
 
 type DeviceInfo = {
@@ -281,18 +281,16 @@ export const authService = {
     })
 
     try {
-      const resetLink = `${process.env['APP_URL'] || 'http://localhost:3000'}/reset-password?token=${resetToken}`
-      const emailSubject = 'Password Reset Request'
-      const emailHtml = `
-        <h1>Password Reset Request</h1>
-        <p>Dear ${user.name || 'User'},</p>
-        <p>We received a request to reset your password. Click the link below to set a new password:</p>
-        <p><a href="${resetLink}">${resetLink}</a></p>
-        <p>This link is valid for 1 hour. If you did not request this, please ignore this email.</p>
-        <p>Best Regards,<br/>NYTRC Team</p>
-      `
-      await sendEmail(user.email, emailSubject, emailHtml)
-      console.log(`[authService] Password reset email sent successfully to ${user.email}`)
+      const baseUrl = process.env['APP_URL'] || 'http://localhost:3000'
+      const resetLink = `${baseUrl}/reset-password?token=${resetToken}`
+      
+      await emailDispatcher.sendPasswordResetEmail(user.id, {
+        userName: user.name || 'Student',
+        email: user.email,
+        resetUrl: resetLink,
+        expiresInMinutes: 60,
+      })
+      console.log(`[authService] Password reset email dispatched to ${user.email}`)
     } catch (emailErr) {
       console.error('[authService] Failed to send password reset email:', emailErr)
     }

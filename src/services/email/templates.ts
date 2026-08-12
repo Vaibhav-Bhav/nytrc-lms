@@ -134,3 +134,59 @@ export function renderPaymentConfirmationEmail(input: PaymentConfirmationTemplat
     html,
   }
 }
+
+export interface PasswordResetTemplateInput {
+  userName: string
+  email: string
+  resetUrl: string
+  expiresInMinutes?: number
+}
+
+export function renderPasswordResetEmail(input: PasswordResetTemplateInput) {
+  const expiresIn = input.expiresInMinutes || 60
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; }
+        .logo { font-size: 20px; font-weight: 800; color: #4f46e5; margin-bottom: 24px; text-decoration: none; display: inline-block; }
+        h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+        p { margin-top: 0; margin-bottom: 16px; font-size: 15px; color: #334155; }
+        .button { display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 12px; }
+        .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="logo">NYTRC LMS</div>
+        <h1>Password Reset Request</h1>
+        <p>Dear ${input.userName || 'User'},</p>
+        <p>We received a request to reset the password for your NYTRC LMS account (<strong>${input.email}</strong>).</p>
+        <p>Click the button below to set a new password:</p>
+
+        <p style="text-align: center; margin-top: 24px;">
+          <a href="${input.resetUrl}" class="button" style="color: #ffffff;">Reset Your Password</a>
+        </p>
+
+        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">
+          This link is valid for <strong>${expiresIn} minutes</strong>. If you did not request a password reset, you can safely ignore this email — your password will remain unchanged.
+        </p>
+
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} NYTRC LMS. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  return {
+    subject: 'Password Reset Request — NYTRC LMS',
+    html,
+  }
+}
+
