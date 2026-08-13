@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
-import { DISTRICTS_BY_STATE } from "@/lib/india-districts";
+import { DISTRICTS_BY_STATE, STATES } from "@/lib/india-districts";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -14,7 +14,11 @@ export const Route = createFileRoute("/contact")({
           "Launch a programme, revive inactive CSCs, enrol for VLE training, or structure a rural impact investment. Our team responds within two working days.",
       },
       { property: "og:title", content: "Contact NYtrc" },
-      { property: "og:description", content: "Head office in Haryana. Field offices in Patna, Ranchi, Bhubaneswar, Jaipur, Lucknow, Bhopal." },
+      {
+        property: "og:description",
+        content:
+          "Head office in Haryana. Field offices in Patna, Ranchi, Bhubaneswar, Jaipur, Lucknow, Bhopal.",
+      },
       { property: "og:url", content: "/contact" },
     ],
     links: [{ rel: "canonical", href: "/contact" }],
@@ -22,19 +26,8 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const states = [
-  "Bihar",
-  "Jharkhand",
-  "Uttar Pradesh",
-  "Rajasthan",
-  "Madhya Pradesh",
-  "Odisha",
-  "West Bengal",
-  "Chhattisgarh",
-  "Other",
-];
-
 const roles = [
+  "Business Associate",
   "Aspiring VLE / Rural Entrepreneur",
   "Existing CSC Operator",
   "Impact Investor / Fund Manager",
@@ -43,18 +36,12 @@ const roles = [
   "Researcher / Academic",
 ];
 
-const fieldOffices = [
-  "Guwahati",
-  "Mohali",
-  "Zirakpur",
-  "Panchkula",
-  "Una (Amba)",
-];
+const fieldOffices = ["Guwahati", "Mohali", "Zirakpur", "Panchkula", "Una (Amba)", "Secunderabad"];
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [selectedState, setSelectedState] = useState("");
-  const districts = selectedState ? DISTRICTS_BY_STATE[selectedState] ?? [] : [];
+  const districts = selectedState ? (DISTRICTS_BY_STATE[selectedState] ?? []) : [];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -67,8 +54,7 @@ function ContactPage() {
             Get In Touch
           </span>
           <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight mb-8">
-            Let's Build the{" "}
-            <span className="italic text-clay">Future</span> Together.
+            Let's Build the <span className="italic text-clay">Future</span> Together.
           </h1>
         </div>
       </header>
@@ -79,9 +65,9 @@ function ContactPage() {
           {/* Left: intro + channels */}
           <div className="lg:col-span-5 space-y-12">
             <p className="text-lg text-ink/80 leading-relaxed border-l-2 border-clay/30 pl-6">
-              Whether you want to launch a programme, revive inactive CSCs, enrol
-              for VLE training, or structure a rural impact investment — our team
-              is ready to listen and respond within two working days.
+              Whether you want to launch a programme, revive inactive CSCs, enrol for VLE training,
+              or structure a rural impact investment — our team is ready to listen and respond
+              within two working days.
             </p>
 
             <div className="border-t border-ink/10 pt-8">
@@ -104,9 +90,7 @@ function ContactPage() {
                 {fieldOffices.map((c, i) => (
                   <span key={c} className="font-serif text-lg">
                     {c}
-                    {i < fieldOffices.length - 1 && (
-                      <span className="text-clay/40 ml-6">·</span>
-                    )}
+                    {i < fieldOffices.length - 1 && <span className="text-clay/40 ml-6">·</span>}
                   </span>
                 ))}
               </div>
@@ -146,9 +130,7 @@ function ContactPage() {
               <span className="font-mono text-[10px] uppercase tracking-widest text-clay font-bold block mb-2">
                 Send Us a Message
               </span>
-              <h2 className="font-serif text-3xl mb-2">
-                Fill in the form below
-              </h2>
+              <h2 className="font-serif text-3xl mb-2">Fill in the form below</h2>
               <p className="text-sm text-ink/60 mb-10">
                 Our team will get back to you within two working days.
               </p>
@@ -158,9 +140,7 @@ function ContactPage() {
                   <span className="font-mono text-[10px] uppercase tracking-widest text-clay font-bold block mb-3">
                     Received · Ledger Entry Filed
                   </span>
-                  <h3 className="font-serif text-2xl mb-3">
-                    Thank you — we've got it.
-                  </h3>
+                  <h3 className="font-serif text-2xl mb-3">Thank you — we've got it.</h3>
                   <p className="text-ink/70">
                     A member of our team will be in touch within two working days.
                   </p>
@@ -178,14 +158,20 @@ function ContactPage() {
                     <Field label="Last Name" name="lastName" placeholder="Kumar" required />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <Field label="Email" name="email" type="email" placeholder="you@example.com" required />
+                    <Field
+                      label="Email"
+                      name="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      required
+                    />
                     <Field label="Phone" name="phone" type="tel" placeholder="+91 97795 35329" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <SelectField
                       label="State"
                       name="state"
-                      options={states}
+                      options={STATES}
                       required
                       value={selectedState}
                       onChange={(v) => setSelectedState(v)}
@@ -195,6 +181,8 @@ function ContactPage() {
                   {districts.length > 0 && (
                     <div className="grid sm:grid-cols-2 gap-6">
                       <SelectField
+                        // Remount on state change so a stale district can't persist.
+                        key={selectedState}
                         label="District"
                         name="district"
                         options={districts}
@@ -225,8 +213,8 @@ function ContactPage() {
                     Send Message →
                   </button>
                   <p className="text-[11px] text-ink/50 leading-relaxed">
-                    By submitting, you agree to be contacted by NYtrc regarding
-                    your enquiry. We do not share your data with third parties.
+                    By submitting, you agree to be contacted by NYtrc regarding your enquiry. We do
+                    not share your data with third parties.
                   </p>
                 </form>
               )}

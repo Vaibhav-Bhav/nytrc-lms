@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import nytrcLogo from "@/assets/nytrc-logo.png.asset.json";
+import nytrcLogo from "@/assets/nytrc-logo.png";
 
 const links = [
   { to: "/", label: "Home" },
@@ -14,7 +14,7 @@ export function Nav() {
       <div className="max-w-7xl mx-auto px-6 h-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:flex md:justify-between">
         <Link to="/" className="flex items-center gap-3 min-w-0 shrink">
           <img
-            src={nytrcLogo.url}
+            src={nytrcLogo}
             alt="NYtrc logo"
             className="h-11 w-auto object-contain shrink-0"
           />
@@ -34,18 +34,12 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
-        </div>
 
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/subscription"
-            className="border border-ink px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-ink hover:bg-ink hover:text-paper transition-all"
-          >
-            Partner With Us
-          </Link>
+          {/* LMS entry point. The marketing site has no login; this is the one
+              addition to the restored nav, per the combined-app design (G§2.1). */}
           <Link
             to="/login"
-            className="border border-clay bg-clay text-paper px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-ink hover:border-ink transition-all"
+            className="text-xs font-bold uppercase tracking-widest bg-clay text-paper px-5 py-2.5 hover:bg-clay-deep transition-colors"
           >
             Login
           </Link>
@@ -66,15 +60,10 @@ export function Nav() {
                 {l.label}
               </Link>
             ))}
-            <Link
-              to="/subscription"
-              className="mt-2 border border-ink px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center text-ink"
-            >
-              Partner With Us
-            </Link>
+
             <Link
               to="/login"
-              className="border border-clay bg-clay text-paper px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-center"
+              className="text-sm font-bold uppercase tracking-widest bg-clay text-paper px-5 py-3 text-center hover:bg-clay-deep transition-colors"
             >
               Login
             </Link>

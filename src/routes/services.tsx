@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { BOOKING_FORM_URL, PAYMENT_URL } from "@/lib/links";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/services")({
       {
         name: "description",
         content:
-          "Services designed for the development of rural entrepreneurs — CSC activation & revival, VLE training, and impact investment advisory across India's gram panchayats.",
+          "Services designed for the development of rural entrepreneurs — our Business Associate Programme, CSC activation & revival, VLE training, and impact investment advisory across India's gram panchayats.",
       },
       { property: "og:title", content: "NYtrc Services" },
       {
@@ -27,24 +28,50 @@ export const Route = createFileRoute("/services")({
 const services = [
   {
     num: "01",
+    title: "Business Associate Programme",
+    hook: "Build a Bright Career in Rural Entrepreneurship.",
+    body: [
+      "We invite you to join our Business Associate Programme for one year (online and offline sessions) to work for the Empowering Rural Entrepreneurship Mission.",
+      "We will train you on many aspects of rural entrepreneurship and, more specifically, on the central government Ministry of Electronics and Information Technology's flagship programme, the Common Service Centre scheme.",
+      "We will equip you with working knowledge and prepare you as our Business Associate for our future mission to handhold the village-level entrepreneurs, who are presently facing a big challenge to succeed as desired by the scheme.",
+      "Join our mission and build a bright career in rural entrepreneurship. Welcome all of you to attend a two-hour free workshop.",
+    ],
+    features: [
+      "One-year programme — online and offline sessions",
+      "Training across the fundamentals of rural entrepreneurship",
+      "Deep dive into the Common Service Centre (CSC) scheme",
+      "Working knowledge to operate as a Business Associate",
+      "Preparation to handhold village-level entrepreneurs",
+      "Free two-hour introductory workshop, open to all",
+    ],
+    ctas: [
+      { label: "Join the NYtrc Family", href: BOOKING_FORM_URL, external: true },
+      ...(PAYMENT_URL
+        ? [{ label: "Make Payment to Join", href: PAYMENT_URL, external: true, secondary: true }]
+        : []),
+      { label: "Partner With Us", href: "/subscription", secondary: true },
+    ],
+  },
+  {
+    num: "02",
     title: "CSC Activation & Revival Services",
     hook: "Turn Inactive Centres into Viable Businesses.",
     body: [
-      "Between 35% and 47% of registered CSCs across India remain inactive, probably due to a structural failure. This service aims to address this through a three-tier process — Diagnose, Re-design, and Re-launch.",
-      "Our district-level teams conduct physical verification and root-cause investigation through interaction with the Village Level Entrepreneurs, demand surveys, and service-gap analysis. Every revival plan is unique and tailor-made to be specific to the root cause.",
+      "Between 35% - 47% of registered CSCs across India remain inactive, probably due to a structural failure. This service aims to address this through a three-tier process, i.e., Diagnose, Re-design, Re-launch.",
+      "Our district-level teams conduct verification and root-cause investigation through interaction with the VLEs, demand survey, and service gap analysis. Every revival plan is unique and tailormade to be specific to the root cause.",
     ],
     features: [
-      "Physical verification & root-cause audit",
+      "Verification & root-cause audit",
       "Revenue gap and service basket analysis",
       "VLE retraining in local languages",
       "New service onboarding (banking, insurance, postal)",
       "Community demand generation campaigns",
       "90-day performance monitoring post-revival",
     ],
-    cta: "Enquire About This Service",
+    ctas: [{ label: "Enquire About This Service", href: "/contact" }],
   },
   {
-    num: "02",
+    num: "03",
     title: "VLE Training & Capacity Building",
     hook: "Build the Skills That Make a CSC Profitable.",
     body: [
@@ -52,17 +79,17 @@ const services = [
       "The programme is delivered in regional languages and in person at the block level. It includes digital follow-up modules and peer mentoring from high-earning Village Level Entrepreneurs in the same geography.",
     ],
     features: [
-      "Portal mastery — G2C and B2C services",
+      "Government to Customers (G2C) and Business to Customers (B2C) services",
       "Financial literacy and bookkeeping",
       "Insurance and banking product training",
       "Customer communication in local languages",
       "Complaint resolution and grievance handling",
       "Business planning for ₹20,000+ per month income",
     ],
-    cta: "Register for Training",
+    ctas: [{ label: "Register for Training", href: "/contact" }],
   },
   {
-    num: "03",
+    num: "04",
     title: "Impact Investment & CSR Advisory",
     hook: "Structure Rural Impact Programmes That Deliver Measurable Outcomes.",
     body: [
@@ -75,9 +102,10 @@ const services = [
       "SROI (Social Return on Investment) measurement",
       "CSR-compliant programme documentation",
       "Quarterly impact reporting and field audits",
-      "SDG alignment mapping and ESG reporting support",
+      "Sustainable Development Goals (SDG) alignment mapping and Environmental, Social, and Governance (ESG) reporting support",
     ],
-    cta: "Discuss a Partnership",
+    ctas: [],
+    
   },
 ];
 
@@ -104,9 +132,7 @@ function ServicesPage() {
         {services.map((s, i) => (
           <article
             key={s.num}
-            className={`px-6 py-20 border-b border-ink/10 ${
-              i % 2 === 1 ? "bg-paper-warm/40" : ""
-            }`}
+            className={`px-6 py-20 border-b border-ink/10 ${i % 2 === 1 ? "bg-paper-warm/40" : ""}`}
           >
             <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12">
               <div className="lg:col-span-5">
@@ -115,16 +141,32 @@ function ServicesPage() {
                     {s.num}
                   </span>
                 </div>
-                <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-6">
-                  {s.title}
-                </h2>
+                <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-6">{s.title}</h2>
                 <p className="text-xl text-clay font-serif italic mb-8">{s.hook}</p>
-                <Link
-                  to="/contact"
-                  className="inline-flex bg-clay text-paper px-6 py-3 text-xs font-bold uppercase tracking-[0.15em] hover:brightness-110 transition-all"
-                >
-                  {s.cta}
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  {s.ctas.map((c) => {
+                    const styles = `inline-flex px-6 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
+                      "secondary" in c && c.secondary
+                        ? "border border-ink/25 hover:bg-ink/5"
+                        : "bg-clay text-paper hover:brightness-110"
+                    }`;
+                    return "external" in c && c.external ? (
+                      <a
+                        key={c.label}
+                        href={c.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles}
+                      >
+                        {c.label}
+                      </a>
+                    ) : (
+                      <Link key={c.label} to={c.href} className={styles}>
+                        {c.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="lg:col-span-7 lg:pl-8 lg:border-l border-ink/10">
@@ -139,13 +181,8 @@ function ServicesPage() {
                   </span>
                   <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
                     {s.features.map((f) => (
-                      <li
-                        key={f}
-                        className="text-sm text-ink/80 flex gap-3 items-baseline"
-                      >
-                        <span className="font-mono text-clay text-[10px] shrink-0">
-                          [+]
-                        </span>
+                      <li key={f} className="text-sm text-ink/80 flex gap-3 items-baseline">
+                        <span className="font-mono text-clay text-[10px] shrink-0">[+]</span>
                         <span>{f}</span>
                       </li>
                     ))}

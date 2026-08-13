@@ -1,6 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import heroWoodblock from "@/assets/hero-woodblock.jpg";
+import networkMap from "@/assets/network-map.jpg";
+import sessionVideo from "@/assets/session_video.mp4";
+import { BOOKING_FORM_URL } from "@/lib/links";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,7 +20,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Strengthening rural entrepreneurship across India. Empanelled training, CSC licence support, and LMS mentorship portal.",
+          "Activating and reviving Common Service Centres, training VLEs, integrating state e-services, and structuring rural impact investment across India's gram panchayats.",
       },
       { property: "og:url", content: "/" },
     ],
@@ -24,34 +29,58 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const stats = [
-  { label: "CSC Operators Mentored", value: "10,000+" },
-  { label: "Dormant CSCs Revived (Assam Pilot)", value: "40+" },
-  { label: "Leadership Experience", value: "35+ Years" },
-  { label: "Target Monthly VLE Earnings", value: "₹25,000+" },
+
+const tickerItems = [
+  "VLE Capacity Building",
+  "CSC Activation & Revival",
+  "Rural Financial Inclusion",
+  "Women Entrepreneurship",
+  "Digital Seva Integration",
+  "Agri-Tech Linkages",
+  "B2C Service Expansion",
+  "Impact Investment Advisory",
 ];
 
 const pillars = [
   {
     num: "01",
-    title: "CSC Activation & Revival",
-    description:
-      "Addressing the 35%–47% inactivity rate across registered CSCs through ground-level audits, custom service re-design, local language retraining, and 90-day post-launch support.",
-    link: "/services",
+    kicker: "Activate",
+    title: "Revive Dormant Centres",
+    body: "We identify struggling and inactive Common Service Centres(CSCs) diagnose root causes on the ground, and deploy targeted revival plans — service basket expansion, Village-level Entrepreneurs (VLE) retraining, local demand generation.",
+    marks: ["Demand mapping", "Service gap analysis", "VLE retraining"],
   },
   {
     num: "02",
-    title: "VLE Capacity Building",
-    description:
-      "Transforming village youth and defence veterans into sustainable micro-entrepreneurs proficient in G2C/B2C portals, digital financial services, and customer relationship management.",
-    link: "/services",
+    kicker: "Connect",
+    title: "Integrate Services",
+    body: "We bridge CSC operators with state e-service portals, banking correspondents, insurance providers, and agri-platforms — turning a single-service kiosk into a multi-revenue village hub.",
+    marks: ["Banking terminals", "Insurance onboarding", "Portal integration"],
   },
   {
     num: "03",
-    title: "Impact & CSR Advisory",
-    description:
-      "Structuring measurable rural impact initiatives for CSR funds, corporate foundations, and impact investors aligned with Sustainable Development Goals and SROI benchmarks.",
-    link: "/subscription",
+    kicker: "Sustain",
+    title: "Scale for Growth",
+    body: "Performance monitoring, peer mentoring, and community linkages so entrepreneurs grow and earn sustainably — not just launch and go quiet three months later.",
+    marks: ["Peer mentoring", "Outcome tracking", "Community linkage"],
+  },
+];
+
+
+const audiences = [
+  {
+    kicker: "For Entrepreneurs",
+    title: "Aspiring VLEs & Rural Self-Starters",
+    body: "Training, tools, and connections to open or expand a CSC and diversify into insurance, banking, and agri-services.",
+  },
+  {
+    kicker: "For Government",
+    title: "State Bodies & District Administrations",
+    body: "Partnering with State Designated Agencies (SDAs), District e-Governance Society (DeGS) units, and state information Technology (IT) departments to identify, revive, and monitor CSC performance with full Digital Seva Portal integration.",
+  },
+  {
+    kicker: "For Investors & Corporate Social Responsibility (CSR)",
+    title: "Impact Funds & Corporate Foundations",
+    body: "Structuring last-mile investment and CSR programmes with rigorous outcome tracking against SDG and Digital India benchmarks.",
   },
 ];
 
@@ -60,175 +89,264 @@ function HomePage() {
     <div className="min-h-screen bg-paper text-ink">
       <Nav />
 
-      {/* Hero Section */}
-      <header className="pt-16 md:pt-24 pb-20 px-6 border-b border-ink/10">
-        <div className="max-w-6xl mx-auto">
-          <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-harvest font-semibold block mb-6">
-            NAVYUG Training & Research Consultants
-          </span>
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight mb-10 text-ink">
-            Where Ambition Meets{" "}
-            <span className="italic text-clay">Opportunity</span>.
-          </h1>
-          <p className="max-w-3xl text-lg md:text-2xl text-ink/70 leading-relaxed border-l-2 border-clay/40 pl-6 mb-12">
-            Activating and reviving Common Service Centres, training VLEs,
-            integrating state e-services, and structuring rural impact investment
-            across India's gram panchayats.
-          </p>
+      {/* Hero */}
+      <header className="relative pt-16 pb-20 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-end">
+          <div className="lg:col-span-8 animate-ink-in">
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-harvest font-semibold block mb-6">
+              Rural Entrepreneurship · CSC Services · Inclusive Growth
+            </span>
+            <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tight mb-8">
+              Where Rural <br />
+              <span className="italic font-light text-clay">Aspirations</span>{" "}
+              Transform <br />
+              into Reality
+            </h1>
+            <p className="max-w-xl text-lg text-ink/70 leading-relaxed border-l-2 border-clay/30 pl-6">
+              NYtrc partners with rural entrepreneurs, government programmes, and
+              impact investors to build a thriving ecosystem of grassroots enterprise
+              across India's villages and gram panchayats.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link
+                to="/services"
+                className="bg-clay text-paper px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:brightness-110 transition-all"
+              >
+                Explore Our Services
+              </Link>
+              <Link
+                to="/subscription"
+                className="border border-ink/25 px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-ink/5 transition-all"
+              >
+                Partner With Us
+              </Link>
+            </div>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <Link
-              to="/subscription"
-              className="bg-clay text-paper border border-clay px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-ink hover:border-ink transition-all shadow-sm"
-            >
-              Partner With Us →
-            </Link>
-            <Link
-              to="/login"
-              className="border border-ink bg-paper px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] text-ink hover:bg-ink hover:text-paper transition-all"
-            >
-              Access LMS Portal
-            </Link>
+          <div className="lg:col-span-4 hidden lg:block animate-ink-in">
+            <div className="relative border border-clay/15 bg-clay/5 p-3">
+              <img
+                src={heroWoodblock}
+                alt="Woodblock print of a stylized Indian village landscape — huts, peepal tree, terraced fields."
+                width={800}
+                height={1008}
+                className="w-full h-auto aspect-[4/5] object-cover"
+              />
+              <span className="absolute top-4 right-4 bg-paper/90 px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-clay">
+                Field Archive 01
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Impact Stats Banner */}
-      <section className="bg-paper-warm/50 border-b border-ink/10 py-16 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px bg-ink/10 border border-ink/10">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-paper p-8">
-              <span className="font-serif text-3xl md:text-4xl text-clay italic font-light block mb-2">
-                {s.value}
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-ink/60 font-semibold block">
-                {s.label}
-              </span>
-            </div>
+
+      {/* Scrolling ticker */}
+      <div className="bg-ink text-paper/90 py-4 overflow-hidden border-b border-ink">
+        <div className="flex whitespace-nowrap animate-ticker">
+          {[...tickerItems, ...tickerItems].map((item, i) => (
+            <span
+              key={i}
+              className="font-mono text-xs uppercase tracking-[0.25em] px-8 shrink-0"
+            >
+              {item} <span className="text-harvest ml-8">✦</span>
+            </span>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* LMS Learning Portal Feature Banner */}
-      <section className="py-20 px-6 bg-indigo text-paper border-b border-ink/10">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-harvest font-semibold block">
-              NYtrc Learning Management System
-            </span>
-            <h2 className="font-serif text-3xl md:text-5xl leading-tight">
-              Interactive Digital Learning & Mentorship Portal
-            </h2>
-            <p className="text-paper/80 text-base md:text-lg leading-relaxed">
-              Enrolled VLEs and trainees access structured 6–8 week online & hybrid
-              curriculum modules, interactive courseware, progress tracking, and
-              direct mentorship support through our dedicated LMS portal.
-            </p>
-            <div className="pt-2">
-              <Link
-                to="/login"
-                className="inline-flex bg-harvest text-indigo px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-paper transition-all"
-              >
-                Sign In to LMS Portal →
-              </Link>
-            </div>
-          </div>
-          <div className="lg:col-span-5 border border-paper/20 bg-indigo-dark/40 p-8 space-y-4">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-harvest font-bold border-b border-paper/10 pb-3">
-              Portal Highlights
-            </div>
-            <ul className="space-y-3 text-sm text-paper/85">
-              <li className="flex items-center gap-3">
-                <span className="text-harvest font-mono text-xs">[✓]</span>
-                <span>VLE Certification & Training Modules</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="text-harvest font-mono text-xs">[✓]</span>
-                <span>G2C & B2C Service Onboarding Guides</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="text-harvest font-mono text-xs">[✓]</span>
-                <span>1-Year Mentorship & Progress Dashboard</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="text-harvest font-mono text-xs">[✓]</span>
-                <span>Multi-role Admin & Student Management</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategic Pillars */}
-      <section className="py-24 px-6 border-b border-ink/10">
+      {/* Pillars */}
+      <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16 max-w-2xl">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold block mb-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold">
               What We Do
             </span>
-            <h2 className="font-serif text-4xl md:text-5xl leading-tight">
-              Building Sustainable Rural Service Ecosystems
+            <h2 className="font-serif text-4xl md:text-5xl mt-4 leading-tight">
+              Three Pillars of Rural Enterprise Development
             </h2>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-px bg-ink/10 border border-ink/10">
             {pillars.map((p) => (
-              <div
-                key={p.num}
-                className="border border-ink/10 bg-paper p-8 flex flex-col justify-between hover:border-clay/40 transition-colors"
-              >
-                <div>
-                  <span className="font-serif text-4xl text-clay italic font-light block mb-4">
-                    {p.num}
-                  </span>
-                  <h3 className="font-serif text-2xl mb-4 leading-tight">{p.title}</h3>
-                  <p className="text-ink/75 leading-relaxed text-sm mb-8">
-                    {p.description}
-                  </p>
-                </div>
-                <Link
-                  to={p.link}
-                  className="font-mono text-[10px] uppercase tracking-widest text-clay font-bold hover:underline"
-                >
-                  Learn More →
-                </Link>
+              <div key={p.num} className="bg-paper p-10">
+                <span className="font-serif text-2xl italic text-clay mb-6 block underline underline-offset-8 decoration-1">
+                  {p.num}. {p.kicker}
+                </span>
+                <h3 className="font-bold uppercase tracking-widest text-xs mb-4">
+                  {p.title}
+                </h3>
+                <p className="text-sm text-ink/70 leading-relaxed mb-6">{p.body}</p>
+                <ul className="space-y-2 pt-4 border-t border-ink/10">
+                  {p.marks.map((m) => (
+                    <li
+                      key={m}
+                      className="text-[11px] font-mono text-ink/50 uppercase tracking-wider"
+                    >
+                      [+] {m}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-24 px-6 bg-paper-warm/30">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-clay font-bold block">
-            Start Your Journey
+
+      {/* Who we serve */}
+      <section className="bg-indigo text-paper py-24 px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-20">
+          <div>
+            <span className="font-mono text-base uppercase tracking-widest text-harvest">
+              Who We Serve
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl mt-6 leading-tight">
+              Built for Every Stakeholder in the Rural Ecosystem
+            </h2>
+            <div className="mt-12 border border-paper/10 p-3 bg-indigo">
+              <img
+                src={networkMap}
+                alt="Abstract network map of India in gold linework on indigo, representing NYtrc's district footprint."
+                width={1200}
+                height={608}
+                loading="lazy"
+                className="w-full h-auto aspect-[2/1] object-cover"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-10 lg:pt-12">
+            {audiences.map((a, i, arr) => (
+              <div
+                key={a.kicker}
+                className={
+                  i < arr.length - 1 ? "border-b border-paper/10 pb-10" : ""
+                }
+              >
+                <h4 className="text-harvest font-mono text-xs uppercase tracking-[0.2em] mb-4">
+                  {a.kicker}
+                </h4>
+                <p className="text-xl font-serif mb-4">{a.title}</p>
+                <p className="text-sm text-paper/70 leading-relaxed">{a.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial as stamped seal */}
+      <section className="py-28 px-6 bg-paper-warm/40">
+        <div className="max-w-3xl mx-auto text-center relative">
+          <div
+            className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-[0.09] pointer-events-none"
+            aria-hidden="true"
+          >
+            <div className="size-40 border-4 border-clay rounded-full flex items-center justify-center rotate-[-8deg]">
+              <span className="font-serif text-3xl text-clay font-black uppercase tracking-widest">
+                Verified
+              </span>
+            </div>
+          </div>
+          <span className="font-mono text-base uppercase tracking-[0.25em] text-clay block mb-4 relative">
+            Testimonials
           </span>
-          <h2 className="font-serif text-4xl md:text-6xl leading-tight">
-            Ready to empower your local community?
-          </h2>
-          <p className="text-ink/70 text-lg max-w-2xl mx-auto leading-relaxed">
-            Join the NYtrc network of Village Level Entrepreneurs and transform your CSC
-            into a thriving local digital enterprise.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <Link
-              to="/subscription"
-              className="bg-clay text-paper border border-clay px-10 py-5 text-xs font-bold uppercase tracking-[0.15em] hover:bg-ink hover:border-ink transition-all"
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-clay block mb-8 relative">
+            District Field Report · Nagaon, Assam
+          </span>
+          <blockquote className="font-serif text-2xl md:text-3xl leading-snug mb-8 text-balance">
+            "Before NYtrc's intervention, I had registered my CSC but had no idea
+            how to bring in regular income. Within six months of their training and
+            service integration support, I now earn over{" "}
+            <span className="text-clay">₹12,000 a month</span> serving my entire
+            panchayat."
+          </blockquote>
+          <cite className="not-italic">
+            <span className="block font-bold uppercase tracking-widest text-xs text-ink">
+              Savitri Devi
+            </span>
+            <span className="block font-mono text-[10px] text-ink/50 mt-1 uppercase tracking-wider">
+              VLE, Nagaon, Assam
+            </span>
+          </cite>
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="py-24 px-6 border-t border-ink/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <span className="font-mono text-base uppercase tracking-widest text-clay font-bold">
+            Get Started Today
+          </span>
+          <div className="mt-8 mb-10 border border-ink/15 bg-ink/5">
+            <SessionVideo />
+          </div>
+          <div className="flex justify-center">
+            <a
+              href={BOOKING_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-clay text-paper px-8 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:brightness-110 transition-all"
             >
-              Enrol in VLE Mentorship Program →
-            </Link>
-            <Link
-              to="/contact"
-              className="border border-ink px-10 py-5 text-xs font-bold uppercase tracking-[0.15em] text-ink hover:bg-ink hover:text-paper transition-all"
-            >
-              Contact Our Office
-            </Link>
+              Click Here to Book a Free Session
+            </a>
           </div>
         </div>
       </section>
 
       <Footer />
     </div>
+  );
+}
+
+/**
+ * Plays the session video once the CTA section scrolls into view and pauses it
+ * on the way out. Browser autoplay policies only permit this while the video is
+ * muted, so it starts muted — viewers can unmute with the controls. Skipped
+ * entirely for visitors who ask for reduced motion.
+ */
+function SessionVideo() {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // React sets `muted` as a DOM property, which can land after the first
+    // play() attempt — set it directly so autoplay is never rejected.
+    el.muted = true;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Rejects if the browser still blocks playback; the controls remain.
+          void el.play().catch(() => {});
+        } else if (!el.paused) {
+          el.pause();
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      src={sessionVideo}
+      muted
+      loop
+      controls
+      playsInline
+      preload="metadata"
+      className="w-full aspect-video block"
+    >
+      Your browser does not support the video tag.
+    </video>
   );
 }
