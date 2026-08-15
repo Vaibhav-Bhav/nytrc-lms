@@ -9,7 +9,6 @@ import {
   ChevronRight,
   CreditCard,
   BarChart2,
-  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
@@ -98,10 +97,6 @@ export function AdminDashboard() {
               <p className="text-muted-foreground text-sm mt-1">Platform overview · LMS Admin Portal</p>
             </div>
             <div className="flex gap-2.5 self-start flex-shrink-0">
-              <Button variant="secondary" size="sm" onClick={() => navigate({ to: "/admin/students" })}>
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
               <Button onClick={() => navigate({ to: "/admin/create-course" })}>
                 <Plus className="w-4 h-4" />
                 New course
