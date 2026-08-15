@@ -274,13 +274,14 @@ export function AdminContent({
     setLessonLoading(true);
     try {
       if (addLessonModal.lessonId) {
-        // Edit existing — only update title and description.
-        // Never touch video_id or pdf_url here; media is managed by the Upload modal.
+        // Edit existing
         const updated: DbLesson = await apiAdmin(`/api/admin/lessons/${addLessonModal.lessonId}`, {
           method: "PUT",
           body: JSON.stringify({
             title: newLessonTitle.trim(),
             description: newLessonDesc.trim() || undefined,
+            video_id: newLessonType === "video" ? (newLessonVideoId.trim() || "pending") : null,
+            pdf_url: newLessonType === "pdf" ? (newLessonPdfUrl.trim() || null) : null,
           }),
         });
         // Merge the server response back, but preserve any uploaded media IDs
@@ -308,6 +309,8 @@ export function AdminContent({
             title: newLessonTitle.trim(),
             description: newLessonDesc.trim() || undefined,
             status: "published",
+            video_id: newLessonType === "video" ? (newLessonVideoId.trim() || "pending") : null,
+            pdf_url: newLessonType === "pdf" ? (newLessonPdfUrl.trim() || null) : null,
           }),
         });
         const newLesson = { ...toUiLesson(created), published: true, status: 'published' as const };
@@ -464,7 +467,14 @@ export function AdminContent({
   function handleFileSelected(file: File) {
     setSelectedFile(file);
     const isPdf = file.name.endsWith(".pdf") || file.type.includes("pdf");
-    setUploadFileType(isPdf ? "pdf" : "video");
+    if (uploadFileType === "video" && isPdf) {
+      toast.error("Please select a video file for a video lesson.");
+      return;
+    }
+    if (uploadFileType === "pdf" && !isPdf) {
+      toast.error("Please select a PDF file for a document lesson.");
+      return;
+    }
     handleStartUpload(file);
   }
 
@@ -706,15 +716,15 @@ export function AdminContent({
                                 </button>
                               )}
 
-                              <div className="flex items-center gap-1 opacity-0 group-hover/l:opacity-100 transition-opacity flex-shrink-0">
+                              <div className="flex items-center gap-1 transition-opacity flex-shrink-0">
                                 <button
                                   onClick={() => {
                                     setAddLessonModal({ sectionId: section.id, lessonId: lesson.id });
                                     setNewLessonTitle(lesson.title);
                                     setNewLessonDesc(lesson.description || "");
                                     setNewLessonType(lesson.type);
-                                    setNewLessonVideoId("");
-                                    setNewLessonPdfUrl("");
+                                    setNewLessonVideoId(lesson.videoId === "pending" ? "" : (lesson.videoId || ""));
+                                    setNewLessonPdfUrl(lesson.pdfUrl || "");
                                   }}
                                   title="Edit Lesson"
                                   className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"

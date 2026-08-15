@@ -2,7 +2,7 @@
 
 import { lessonRepository } from '@/repositories/lesson'
 import { bunnyVideoService } from '@/services/video/bunny'
-import { uploadR2File, getSignedDownloadUrl, getR2Config } from '@/lib/r2'
+import { uploadR2File, getSignedDownloadUrl, getR2Config, deleteR2File } from '@/lib/r2'
 
 // Allowed MIME types
 const ALLOWED_VIDEO_TYPES = [
@@ -44,6 +44,15 @@ export const storageService = {
     }
 
     try {
+      // --- Garbage Collect Old Video ---
+      if (lesson.video_id && lesson.video_id !== 'pending' && !lesson.video_id.startsWith('http')) {
+        try {
+          await bunnyVideoService.deleteVideoAsset(lesson.video_id)
+        } catch (err) {
+          console.warn(`[storageService] Failed to delete old video asset ${lesson.video_id}:`, err)
+        }
+      }
+
       // 3. Register video slot in Bunny Stream via bunnyVideoService
       const { videoId } = await bunnyVideoService.createVideoAsset({ title })
 
@@ -96,6 +105,15 @@ export const storageService = {
     }
 
     try {
+      // --- Garbage Collect Old Document ---
+      if (lesson.pdf_url && !lesson.pdf_url.startsWith('http')) {
+        try {
+          await deleteR2File(lesson.pdf_url)
+        } catch (err) {
+          console.warn(`[storageService] Failed to delete old document asset ${lesson.pdf_url}:`, err)
+        }
+      }
+
       // 3. Construct unique file key: lessons/{lessonId}/{timestamp}-{filename}
       const uniqueKey = `lessons/${lessonId}/${Date.now()}-${filename}`
 

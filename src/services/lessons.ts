@@ -4,6 +4,8 @@ import { courseRepository } from '@/repositories/course'
 import { courseAccessRepository } from '@/repositories/courseAccess'
 import { userRepository } from '@/repositories/user'
 import { sendEmail } from '@/lib/resend'
+import { bunnyVideoService } from '@/services/video/bunny'
+import { deleteR2File } from '@/lib/r2'
 import type { NewLesson, UpdateLesson } from '@/schemas/lessons'
 
 export const lessonService = {
@@ -51,6 +53,28 @@ export const lessonService = {
   },
 
   async remove(id: string) {
+    const lesson = await lessonRepository.findById(id)
+    if (!lesson) {
+      throw new Error('LESSON_NOT_FOUND')
+    }
+
+    // --- Deep Delete Remote Media ---
+    if (lesson.video_id && lesson.video_id !== 'pending' && !lesson.video_id.startsWith('http')) {
+      try {
+        await bunnyVideoService.deleteVideoAsset(lesson.video_id)
+      } catch (err) {
+        console.warn(`[lessonService] Failed to clean up video for deleted lesson ${id}:`, err)
+      }
+    }
+    
+    if (lesson.pdf_url && !lesson.pdf_url.startsWith('http')) {
+      try {
+        await deleteR2File(lesson.pdf_url)
+      } catch (err) {
+        console.warn(`[lessonService] Failed to clean up document for deleted lesson ${id}:`, err)
+      }
+    }
+
     const removed = await lessonRepository.remove(id)
     if (!removed) {
       throw new Error('LESSON_NOT_FOUND')
