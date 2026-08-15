@@ -10,8 +10,20 @@ import { Button, cn } from "../../components/Button";
 import { InvoiceCard } from "../../components/InvoiceCard";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GSTInvoiceModal } from "../../components/GSTInvoiceModal";
+import { useAuth } from "../../../hooks/useAuth";
 
 export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void }) {
+  const { data: user } = useAuth();
+  const studentName = user?.name || "Student User";
+  const studentEmail = user?.email || "student@example.com";
+  const initials =
+    studentName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase() || "ST";
+
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Active Sessions state
@@ -144,11 +156,11 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
             <div className="px-5 sm:px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-amber-700 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <span className="text-base font-extrabold text-white">SC</span>
+                  <span className="text-base font-extrabold text-white">{initials}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-foreground text-base">Sarah Chen</p>
-                  <p className="text-sm text-muted-foreground truncate">sarah.chen@example.com</p>
+                  <p className="font-bold text-foreground text-base">{studentName}</p>
+                  <p className="text-sm text-muted-foreground truncate">{studentEmail}</p>
                 </div>
               </div>
               <span className="text-xs px-3 py-1 bg-success-light text-success-foreground border border-success/20 font-semibold rounded-full flex items-center gap-1.5">

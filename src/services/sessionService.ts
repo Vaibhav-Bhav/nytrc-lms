@@ -119,13 +119,82 @@ export function detectDeviceDetails(): { device_name: string; browser: string; o
   return { device_name, browser, os, type };
 }
 
+function formatLoginTime(createdAtStr?: string): string {
+  if (!createdAtStr) return "Just now";
+  try {
+    const d = new Date(createdAtStr);
+    if (isNaN(d.getTime())) return createdAtStr;
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const timeStr = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return isToday ? `Today, ${timeStr}` : d.toLocaleDateString([], { month: "short", day: "numeric" }) + `, ${timeStr}`;
+  } catch {
+    return createdAtStr;
+  }
+}
+
+function getDeviceName(os?: string, identifier?: string): string {
+  if (identifier && identifier !== "unknown" && identifier !== "Device") return identifier;
+  if (!os) return "Desktop Device";
+  if (os.includes("Windows")) return "Windows Laptop";
+  if (os.includes("macOS") || os.includes("Mac")) return "MacBook Pro";
+  if (os.includes("iOS") || os.includes("iPhone")) return "iPhone 15";
+  if (os.includes("Android")) return "Android Mobile";
+  if (os.includes("iPad")) return "iPad";
+  return `${os} Device`;
+}
+
+function getDeviceType(os?: string): "desktop" | "mobile" | "tablet" {
+  if (!os) return "desktop";
+  if (/iPad/i.test(os)) return "tablet";
+  if (/iPhone|Android|Mobile/i.test(os)) return "mobile";
+  return "desktop";
+}
+
 export const sessionService = {
   /**
    * GET /api/auth/sessions
    * Returns list of all active device sessions for current account
    */
   async getSessions(): Promise<SessionApiResponse> {
-    await delay(150);
+    try {
+      const res = await fetch("/api/auth/sessions", { credentials: "include" });
+      if (res.ok) {
+        const rawSessions = await res.json();
+        if (Array.isArray(rawSessions)) {
+          const devices: DeviceSession[] = rawSessions.map((s: any) => {
+            const devName = getDeviceName(s.os, s.device_identifier);
+            const devType = getDeviceType(s.os);
+            const loginTime = formatLoginTime(s.created_at);
+            const isCurrent = Boolean(s.is_current_device);
+            return {
+              id: s.id,
+              device_name: devName,
+              browser: s.browser || "Chrome",
+              os: s.os || "Windows 11",
+              login_time: loginTime,
+              last_active: "Just now",
+              is_current_device: isCurrent,
+              status: "active",
+              type: devType,
+              location: s.location_metadata?.city ? `${s.location_metadata.city}, ${s.location_metadata.region || ""}` : (s.ip_address || "Unknown Location"),
+              name: devName,
+              current: isCurrent,
+              lastActive: "Just now",
+            };
+          });
+
+          return {
+            max_devices: MAX_ALLOWED_DEVICES,
+            active_devices: devices.length,
+            devices,
+          };
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch sessions from API, falling back to stored sessions:", e);
+    }
+
     const currentId = getCurrentDeviceIdFromStorage();
     const stored = loadSessionsFromStorage();
 
@@ -151,16 +220,9 @@ export const sessionService = {
    * Returns the current device session details
    */
   async getCurrentSession(): Promise<DeviceSession | null> {
-    await delay(100);
-    const currentId = getCurrentDeviceIdFromStorage();
-    const sessions = loadSessionsFromStorage();
-    const current = sessions.find((s) => s.id === currentId && s.status === "active");
-    if (!current) return null;
-    return {
-      ...current,
-      is_current_device: true,
-      current: true,
-    };
+    const res = await this.getSessions();
+    const current = res.devices.find((s) => s.is_current_device);
+    return current || (res.devices.length > 0 ? res.devices[0] : null);
   },
 
   /**
@@ -260,6 +322,15 @@ export const sessionService = {
    * Revokes/logs out a specific device session by ID
    */
   async revokeSession(sessionId: string): Promise<SessionApiResponse> {
+    try {
+      const res = await fetch(`/api/auth/sessions/${sessionId}`, { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        return this.getSessions();
+      }
+    } catch (e) {
+      console.error("Failed to revoke session via API:", e);
+    }
+
     await delay(250);
     let sessions = loadSessionsFromStorage();
     sessions = sessions.filter((s) => s.id !== sessionId);
@@ -280,7 +351,12 @@ export const sessionService = {
    * Logs out current device session
    */
   async logoutCurrentSession(): Promise<void> {
-    await delay(200);
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch (e) {
+      console.error("Failed to logout current session via API:", e);
+    }
+
     const currentId = getCurrentDeviceIdFromStorage();
     let sessions = loadSessionsFromStorage();
     sessions = sessions.filter((s) => s.id !== currentId);
@@ -292,7 +368,15 @@ export const sessionService = {
    * Revokes all active sessions
    */
   async logoutAllSessions(): Promise<SessionApiResponse> {
-    await delay(300);
+    try {
+      const res = await fetch("/api/auth/sessions", { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        return this.getSessions();
+      }
+    } catch (e) {
+      console.error("Failed to logout all sessions via API:", e);
+    }
+
     saveSessionsToStorage([]);
     return {
       max_devices: MAX_ALLOWED_DEVICES,

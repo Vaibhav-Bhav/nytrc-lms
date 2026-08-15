@@ -210,6 +210,7 @@ export const authService = {
     const user = await this.getCurrentUser(token)
     await sessionRepository.deactivateExpiredSessions()
     const sessions = await sessionRepository.findActiveByUserId(user.id)
+    const currentSession = await sessionRepository.findByToken(token)
 
     return sessions.map((s) => ({
       id: s.id,
@@ -220,6 +221,7 @@ export const authService = {
       location_metadata: s.location_metadata,
       expires_at: s.expires_at,
       created_at: s.created_at,
+      is_current_device: currentSession ? s.id === currentSession.id : false,
     }))
   },
 
