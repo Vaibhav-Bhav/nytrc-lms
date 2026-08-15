@@ -33,7 +33,7 @@ export function Footer() {
               Programme
             </h5>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/subscription" className="hover:text-clay transition-colors">Join the NYtrc Family</Link></li>
+              <li><Link to="/services" className="hover:text-clay transition-colors">Business Associate Programme</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">CSC Revival</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">VLE Training</Link></li>
               <li><Link to="/services" className="hover:text-clay transition-colors">Impact Advisory</Link></li>
@@ -61,9 +61,6 @@ export function Footer() {
         <div className="pt-8 border-t border-paper/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] font-mono text-paper/40 uppercase tracking-widest text-center md:text-left">
             &copy; {year} NYtrc — a public initiative of NYTRC. All rights reserved.
-          </p>
-          <p className="text-[10px] font-mono text-paper/40 uppercase tracking-widest text-center md:text-right">
-            MSME Registered · CIN pending publication
           </p>
         </div>
       </div>

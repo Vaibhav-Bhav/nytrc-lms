@@ -1,3 +1,10 @@
+// Load .env into process.env before anything else imports it.
+// Server-side secrets are NOT injected by Vite (only VITE_* reach the client),
+// so without this the built server sees only real environment variables and a
+// local .env is silently ignored. In production on the droplet the real env
+// wins — dotenv leaves existing variables untouched and no-ops with no .env.
+import "dotenv/config";
+
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";

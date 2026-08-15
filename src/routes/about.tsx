@@ -28,12 +28,12 @@ const values = [
   {
     num: "01",
     title: "Ground Truth First",
-    body: "No programme is designed without field-level data. What we build is shaped by what VLEs, citizens, and local administrators actually say — not by dashboards from Delhi.",
+    body: "No programme is designed without field-level data. What we build is shaped by what VLEs, citizens, and local administrators based on research and experience.",
   },
   {
     num: "02",
     title: "Viability Over Numbers",
-    body: "Success is measured by whether a VLE earns a dignified income — not by how many centres are registered on paper. A viable entrepreneur beats a hundred ghost CSCs.",
+    body: "Success is measured by whether a VLE earns a dignified income — not by how many centres are registered on paper.",
   },
   {
     num: "03",
@@ -108,7 +108,7 @@ function AboutPage() {
             <div className="mt-8 flex flex-col gap-2 font-mono text-[10px] uppercase tracking-widest text-ink/50">
               <div>Registered April 2026</div>
               <div>Gurgaon · Haryana</div>
-              <div>Registered LLP · MSME</div>
+              <div>Registered LLP</div>
               <div>Legal entity: NYTRC</div>
             </div>
             <Link
@@ -128,33 +128,37 @@ function AboutPage() {
             </p>
             <p>
               During our journey, we could interact with various segments of
-              society, keeping close focus on our rural areas. In our research, we
-              identified voids in the implementation of various central and state
-              government schemes — largely due to a lack of information and
-              publicity to make the common citizen aware of these schemes and
-              their potential.
+              society, especially keeping close focus on our rural areas. During
+              our research, we could identify the voids in the implementation of
+              various central and state government schemes, due to a lack of
+              information/publicity to make the common citizen aware of these
+              schemes and their potential.
             </p>
             <p>
               We began with a single mission: to empower unemployed youth and
-              retired defence personnel below officer rank and make them
+              retired defence personnel (below officer rank) and make them
               self-reliant. With this mission in mind, we made a humble start by
               first identifying struggling and inactive Common Service Centre
-              operators and equipping them to earn a decent monthly income —
-              helping stop rural migration to urban areas that deprives families
-              of working on their agricultural lands concurrently.
+              (CSC) operators and equipping them to earn a decent monthly
+              income. This will help stop rural migration to urban areas, which
+              deprives them of working on their agricultural lands concurrently.
             </p>
             <p>
-              What started as a pilot in <strong>2018</strong> involved the
-              identification of <strong>40 dormant Village Level Entrepreneurs</strong>{" "}
-              across certain districts of <strong>Assam</strong>, mentored to
+              What started as a pilot project in <strong>2018</strong> with the
+              identification of{" "}
+              <strong>40 dormant Village Level Entrepreneurs (VLEs)</strong> in
+              certain districts of <strong>Assam</strong> and mentored them to
               restart their rural entrepreneurship journey. During this
-              interaction, we realised the problems being faced by aspiring rural
-              entrepreneurs — which ultimately prompted us to start this venture.
+              interaction, we realized the problems being faced by aspiring rural
+              entrepreneurs, which ultimately prompted us to start this venture.
             </p>
             <p>
               We are a registered LLP working to bring private-sector discipline,
-              speed, and accountability to public service delivery. Publicly we
-              operate under the NYtrc brand; the underlying legal entity is{" "}
+              speed, and accountability to public service delivery.
+            </p>
+            <p>
+              Publicly, we operate under the NYtrc brand; the underlying legal
+              entity is{" "}
               <strong>NAVYUG Training and Research Consultants (NYTRC)</strong>.
             </p>
           </div>
