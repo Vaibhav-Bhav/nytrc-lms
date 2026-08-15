@@ -81,13 +81,13 @@ export function LoginScreen({
       // Route based on forced password change status or role
       if (data.user?.force_password_change) {
         if (onNavigate) onNavigate("force-password");
-        navigate({ to: '/force-password' });
+        else navigate({ to: '/force-password' });
       } else if (data.user?.role === 'admin') {
         if (onNavigate) onNavigate("admin-dashboard");
-        window.location.href = '/admin/dashboard';
+        else navigate({ to: '/admin/dashboard' });
       } else {
         if (onNavigate) onNavigate("student-dashboard");
-        window.location.href = '/student/dashboard';
+        else navigate({ to: '/student/dashboard' });
       }
 
     } catch (err) {
