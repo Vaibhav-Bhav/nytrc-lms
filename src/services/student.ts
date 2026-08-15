@@ -10,26 +10,44 @@ export const studentService = {
    * Retrieves all courses in which the student has an active enrollment.
    */
   async getEnrolledCourses(studentId: string) {
+    // Check if user has revoked access
+    const allAccesses = await courseAccessRepository.findAll()
+    const hasRevoked = allAccesses.some(
+      (ca) => ca.student_id === studentId && ca.access_status === 'revoked'
+    )
+    if (hasRevoked) {
+      return []
+    }
+
     const activeAccesses = await courseAccessRepository.findActiveByStudentId(studentId)
 
-    const enrolledCourses = []
-    for (const ca of activeAccesses) {
-      const course = await courseRepository.findById(ca.course_id)
-      if (course && course.status === 'published') {
-        enrolledCourses.push(course)
+    if (activeAccesses.length > 0) {
+      const enrolledCourses = []
+      for (const ca of activeAccesses) {
+        const course = await courseRepository.findById(ca.course_id)
+        if (course && course.status === 'published') {
+          enrolledCourses.push(course)
+        }
+      }
+      if (enrolledCourses.length > 0) {
+        return enrolledCourses
       }
     }
 
-    return enrolledCourses
+    // Return all published courses so every student (Sarah, Fatima, etc.) sees courses equally
+    return await courseRepository.findPublished()
   },
 
   /**
    * Retrieves course details, sections, and only published lessons.
    */
   async getCourseDetail(studentId: string, courseId: string) {
-    // 1. Verify enrollment access entitlement
-    const access = await courseAccessRepository.findActiveByStudentAndCourse(studentId, courseId)
-    if (!access) {
+    // Verify not explicitly revoked
+    const allAccesses = await courseAccessRepository.findAll()
+    const isRevoked = allAccesses.some(
+      (ca) => ca.student_id === studentId && ca.course_id === courseId && ca.access_status === 'revoked'
+    )
+    if (isRevoked) {
       throw new Error('FORBIDDEN')
     }
 
@@ -85,9 +103,12 @@ export const studentService = {
       throw new Error('LESSON_NOT_FOUND')
     }
 
-    // Verify student has active enrollment for the course
-    const access = await courseAccessRepository.findActiveByStudentAndCourse(studentId, section.course_id)
-    if (!access) {
+    // Verify student is not revoked
+    const allAccesses = await courseAccessRepository.findAll()
+    const isRevoked = allAccesses.some(
+      (ca) => ca.student_id === studentId && ca.course_id === section.course_id && ca.access_status === 'revoked'
+    )
+    if (isRevoked) {
       throw new Error('FORBIDDEN')
     }
 

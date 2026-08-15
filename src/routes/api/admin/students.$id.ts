@@ -38,10 +38,9 @@ export const Route = createFileRoute('/api/admin/students/$id')({
                     const allAccesses = await courseAccessRepository.findAll()
                     const accesses = allAccesses.filter((a: any) => a.student_id === studentId)
                     const activeAccess = accesses.find((a: any) => a.access_status === 'active')
+                    const revokedAccess = accesses.find((a: any) => a.access_status === 'revoked')
 
                     // Fetch invoices (mocked filtered because invoice has payment_id not student_id directly)
-                    const allInvoices = await invoiceRepository.findAll()
-                    // If invoice had a student_id, we'd filter it. Since we might not, let's just return empty for now.
                     const userInvoices: any[] = [] 
 
                     // Construct full student detail
@@ -49,16 +48,20 @@ export const Route = createFileRoute('/api/admin/students/$id')({
                         id: user.id,
                         name: user.name,
                         email: user.email,
-                        mobile: "-", 
+                        mobile: user.mobile || "-", 
                         joined: new Date(user.created_at).toISOString().split('T')[0],
                         lastLogin,
                         progress: totalProgress,
                         status: user.is_active ? "active" : "locked",
-                        access: activeAccess ? {
-                            status: activeAccess.access_status,
-                            grantedAt: activeAccess.granted_at,
-                            revokedAt: activeAccess.access_status === 'revoked' ? activeAccess.updated_at : null
-                        } : null,
+                        access: (activeAccess || revokedAccess) ? {
+                            status: activeAccess ? 'active' : 'revoked',
+                            grantedAt: (activeAccess || revokedAccess)?.granted_at,
+                            revokedAt: revokedAccess ? revokedAccess.updated_at : null
+                        } : {
+                            status: user.is_active ? 'active' : 'revoked',
+                            grantedAt: new Date(user.created_at).toISOString().split('T')[0],
+                            revokedAt: user.is_active ? null : new Date().toISOString()
+                        },
                         sessions: sessions.map((s: any) => ({
                             id: s.id,
                             os: s.os,
@@ -78,7 +81,75 @@ export const Route = createFileRoute('/api/admin/students/$id')({
 
                     return Response.json(detail, { status: 200 })
                 } catch (err) {
-                    console.error('[API] /api/admin/students/$id Error:', err)
+                    console.error('[API] /api/admin/students/$id GET Error:', err)
+                    return Response.json({ error: 'Internal server error' }, { status: 500 })
+                }
+            },
+            PATCH: async ({ request, params }) => {
+                await requireAdmin(request)
+
+                try {
+                    const studentId = params.id
+                    const user = await userRepository.findById(studentId)
+                    if (!user) {
+                        return Response.json({ error: 'Student not found' }, { status: 404 })
+                    }
+
+                    const body = await request.json().catch(() => ({}))
+                    const action = body.action || (body.status === 'revoked' ? 'revoke' : 'restore')
+
+                    if (action === 'revoke') {
+                        // Deactivate user access
+                        await userRepository.update(studentId, { is_active: false })
+                        const accesses = await courseAccessRepository.findActiveByStudentId(studentId)
+                        for (const acc of accesses) {
+                            await courseAccessRepository.update(acc.id, {
+                                access_status: 'revoked',
+                                revoked_at: new Date().toISOString()
+                            })
+                        }
+                        return Response.json({ message: 'Student access revoked', status: 'revoked' })
+                    } else if (action === 'restore') {
+                        await userRepository.update(studentId, { is_active: true })
+                        const allAccesses = await courseAccessRepository.findAll()
+                        const studentAccesses = allAccesses.filter((a: any) => a.student_id === studentId)
+                        for (const acc of studentAccesses) {
+                            await courseAccessRepository.update(acc.id, {
+                                access_status: 'active',
+                                revoked_at: null
+                            })
+                        }
+                        return Response.json({ message: 'Student access restored', status: 'active' })
+                    }
+
+                    return Response.json({ error: 'Invalid action' }, { status: 400 })
+                } catch (err) {
+                    console.error('[API] /api/admin/students/$id PATCH Error:', err)
+                    return Response.json({ error: 'Internal server error' }, { status: 500 })
+                }
+            },
+            DELETE: async ({ request, params }) => {
+                await requireAdmin(request)
+
+                try {
+                    const studentId = params.id
+                    const user = await userRepository.findById(studentId)
+                    if (!user) {
+                        return Response.json({ error: 'Student not found' }, { status: 404 })
+                    }
+
+                    // Delete student access records & user permanently
+                    const allAccesses = await courseAccessRepository.findAll()
+                    const studentAccesses = allAccesses.filter((a: any) => a.student_id === studentId)
+                    for (const acc of studentAccesses) {
+                        await courseAccessRepository.remove(acc.id)
+                    }
+
+                    await userRepository.remove(studentId)
+
+                    return Response.json({ message: 'Student permanently deleted from backend' }, { status: 200 })
+                } catch (err) {
+                    console.error('[API] /api/admin/students/$id DELETE Error:', err)
                     return Response.json({ error: 'Internal server error' }, { status: 500 })
                 }
             },

@@ -5,6 +5,7 @@ import { PaymentInvoice } from "../../data/types";
 import { Logo } from "./Logo";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
+import { generateInvoicePdf } from "../../lib/pdf";
 
 export function GSTInvoiceModal({
   isOpen,
@@ -25,10 +26,45 @@ export function GSTInvoiceModal({
   const total = invoice.totalAmount || subtotal + cgst + sgst + igst;
 
   function handleDownloadSignedPdf() {
-    toast.success(`Fetching Cloudflare R2 signed URL for ${invoice?.invoice || invoice?.invoiceNumber}...`);
-    setTimeout(() => {
-      toast.success("Download started: Official Tax Invoice PDF");
-    }, 600);
+    try {
+      const invNum = invoice?.invoice || invoice?.invoiceNumber || "INV-001";
+      const pdfBytes = generateInvoicePdf({
+        invoiceNumber: invNum,
+        invoiceDate: invoice?.date || new Date().toISOString().split("T")[0],
+        sellerName: "NYTRC Learning Portal Pvt. Ltd.",
+        sellerGstin: invoice?.gstin || "27AAAAA0000A1Z5",
+        sellerState: "MAHARASHTRA",
+        buyerName: invoice?.customerName || "Student Account",
+        buyerEmail: invoice?.customerEmail || "student@example.com",
+        buyerState: invoice?.customerState || "Maharashtra",
+        placeOfSupply: invoice?.customerState || "Maharashtra",
+        courseName: "Online LMS Course Enrollment",
+        sacCode: invoice?.hsnCode || "999299",
+        taxableValue: subtotal,
+        gstRate: 0.18,
+        gstAmount: isSameState ? cgst + sgst : igst,
+        taxType: isSameState ? "cgst_sgst" : "igst",
+        cgst,
+        sgst,
+        igst,
+        totalAmount: total,
+      });
+
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `GST_Tax_Invoice_${invNum}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded Tax Invoice PDF: ${invNum}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate invoice PDF");
+    }
   }
 
   function handlePrint() {

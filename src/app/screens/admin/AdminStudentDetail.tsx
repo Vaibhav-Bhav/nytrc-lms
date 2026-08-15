@@ -92,6 +92,49 @@ export function AdminStudentDetail({
     }, 1200);
   }
 
+  async function handleRevokeAccess() {
+    setActionLoading("revoke");
+    try {
+      const action = accessRevoked ? "restore" : "revoke";
+      const res = await fetch(`/api/admin/students/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) throw new Error("Failed to update access");
+      setAccessRevoked(!accessRevoked);
+      setRevokeModal(false);
+      toast.success(accessRevoked ? "Access reinstated successfully" : "Access temporarily revoked");
+      setNotifState({ action: "revoke", status: "sent" });
+      setTimeout(() => setNotifState(null), 3000);
+    } catch (e) {
+      toast.error("Failed to update student access");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleRemoveAccess() {
+    setActionLoading("remove");
+    try {
+      const res = await fetch(`/api/admin/students/${studentId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to remove student");
+      setRemoveModal(false);
+      toast.success("Student data and access permanently deleted from backend");
+      if (onNavigate) {
+        onNavigate("admin-students");
+      } else {
+        window.location.href = "/admin/students";
+      }
+    } catch (e) {
+      toast.error("Failed to remove student");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   const PROFILE_FIELDS = [
     { label: "Email", value: activeStudent.email, icon: Mail },
     { label: "Mobile", value: activeStudent.mobile, icon: Phone },
@@ -189,7 +232,7 @@ export function AdminStudentDetail({
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Access revoked</p>
                   <p className="text-sm font-semibold text-foreground mt-0.5">
-                    {accessRevoked ? "2024-12-20 11:00" : <span className="text-muted-foreground">—</span>}
+                    {accessRevoked ? new Date().toISOString().split('T')[0] : <span className="text-muted-foreground">—</span>}
                   </p>
                 </div>
               </div>
@@ -302,9 +345,9 @@ export function AdminStudentDetail({
                     <RefreshCw className="w-4 h-4" />
                     Reset password
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => setRevokeModal(true)}>
+                  <Button variant={accessRevoked ? "primary" : "destructive"} size="sm" onClick={() => setRevokeModal(true)}>
                     <UserX className="w-4 h-4" />
-                    Revoke access
+                    {accessRevoked ? "Reinstate access" : "Revoke access"}
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => setRemoveModal(true)}>
                     <Trash2 className="w-4 h-4" />
@@ -321,7 +364,7 @@ export function AdminStudentDetail({
                           : notifState.action === "reset-pw"
                           ? "Password reset email sent"
                           : notifState.action === "revoke"
-                          ? "Access revoked · Student notified"
+                          ? (accessRevoked ? "Access revoked · Student notified" : "Access reinstated")
                           : "Action completed"
                       }
                     />
@@ -360,23 +403,27 @@ export function AdminStudentDetail({
       <ConfirmDialog
         isOpen={revokeModal}
         onClose={() => setRevokeModal(false)}
-        onConfirm={() => runAction("revoke", () => setRevokeModal(false), "Access revoked", () => setAccessRevoked(true))}
+        onConfirm={handleRevokeAccess}
         loading={actionLoading === "revoke"}
-        title="Revoke access?"
-        description={`${activeStudent.name} will lose access to all course content immediately. Their progress is preserved and access can be reinstated at any time.`}
-        warning="This action does not trigger a refund. If a refund is needed, process it separately in the payment provider dashboard before revoking."
-        confirmText="Revoke access"
-        variant="destructive"
+        title={accessRevoked ? "Reinstate access?" : "Revoke access?"}
+        description={
+          accessRevoked
+            ? `${activeStudent.name} will regain full access to all course content.`
+            : `${activeStudent.name} will lose access to all course content immediately. Their progress is preserved and access can be reinstated at any time.`
+        }
+        warning={accessRevoked ? undefined : "This action does not trigger a refund."}
+        confirmText={accessRevoked ? "Reinstate access" : "Revoke access"}
+        variant={accessRevoked ? "primary" : "destructive"}
         icon={AlertTriangle}
       />
 
       <ConfirmDialog
         isOpen={removeModal}
         onClose={() => setRemoveModal(false)}
-        onConfirm={() => runAction("remove", () => setRemoveModal(false), "Access permanently removed")}
+        onConfirm={handleRemoveAccess}
         loading={actionLoading === "remove"}
         title="Remove access permanently?"
-        description={`This will permanently remove ${activeStudent.name}'s course access.`}
+        description={`This will permanently remove ${activeStudent.name}'s account and course access from the database.`}
         warning="All course progress data will be deleted. This action cannot be reversed. Consider using Revoke Access if you may need to reinstate this student later."
         confirmText="Remove permanently"
         variant="destructive"

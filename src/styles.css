@@ -76,19 +76,44 @@
   --ring: #8E3E1F;
 }
 
+.dark {
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #131926;
+  --card-foreground: #F8FAFC;
+  --popover: #131926;
+  --popover-foreground: #F8FAFC;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E293B;
+  --secondary-foreground: #93C5FD;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #2563EB;
+
+  --color-paper: #0B0F17;
+  --color-ink: #F8FAFC;
+}
+
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: var(--border);
   }
   body {
-    background-color: var(--color-paper);
-    color: var(--color-ink);
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background-color: color-mix(in srgb, var(--color-clay) 18%, transparent);
+    background-color: color-mix(in srgb, var(--primary) 18%, transparent);
   }
 }
 
