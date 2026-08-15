@@ -547,7 +547,7 @@ export const paymentService = {
         const invoiceDateFormatted = new Date(invoice.invoice_date).toLocaleDateString('en-IN')
 
         console.log(`[paymentService] Generating Statutory GST PDF invoice from persisted record: ${invoice.invoice_number}`)
-        const pdfBuffer = generateInvoicePdf({
+        const pdfBuffer = Buffer.from(generateInvoicePdf({
           invoiceNumber: invoice.invoice_number,
           invoiceDate: invoiceDateFormatted,
           sellerName: invoice.seller_name || sellerName,
@@ -567,7 +567,7 @@ export const paymentService = {
           sgst: invoice.sgst ?? 0,
           igst: invoice.igst ?? 0,
           totalAmount: invoice.total_amount,
-        })
+        }))
 
         const r2Key = `invoices/${invoice.invoice_number}.pdf`
         console.log(`[paymentService] Uploading PDF invoice to R2: ${r2Key}`)

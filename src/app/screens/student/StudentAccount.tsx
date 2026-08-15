@@ -321,14 +321,21 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
             <div className="px-5 sm:px-6 py-4 border-b border-border bg-muted/20">
               <h2 className="font-bold text-foreground text-base">Billing & Invoices</h2>
             </div>
-            {PAYMENT_HISTORY.map((inv) => (
-              <InvoiceCard
-                key={inv.id}
-                inv={inv}
-                onViewInvoice={(selected) => setSelectedInvoice(selected)}
-                onDownload={() => setSelectedInvoice(inv)}
-              />
-            ))}
+            {PAYMENT_HISTORY.map((inv) => {
+              const studentInvoice = {
+                ...inv,
+                customerName: user?.name || inv.customerName,
+                customerEmail: user?.email || inv.customerEmail,
+              };
+              return (
+                <InvoiceCard
+                  key={inv.id}
+                  inv={studentInvoice}
+                  onViewInvoice={(selected) => setSelectedInvoice(selected)}
+                  onDownload={() => setSelectedInvoice(studentInvoice)}
+                />
+              );
+            })}
           </div>
         </div>
       </main>

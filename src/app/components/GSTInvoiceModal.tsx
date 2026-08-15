@@ -50,7 +50,7 @@ export function GSTInvoiceModal({
         totalAmount: total,
       });
 
-      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+      const blob = new Blob([pdfBytes as unknown as BlobPart], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -124,8 +124,8 @@ export function GSTInvoiceModal({
           <div className="bg-muted/30 rounded-xl p-4 border border-border grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
               <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">Billed To (Student)</p>
-              <p className="font-bold text-foreground text-sm">{invoice.customerName || "Sarah Chen"}</p>
-              <p className="text-muted-foreground">{invoice.customerEmail || "sarah.chen@example.com"}</p>
+              <p className="font-bold text-foreground text-sm">{invoice.customerName || "Student Account"}</p>
+              <p className="text-muted-foreground">{invoice.customerEmail || "student@example.com"}</p>
               <p className="text-muted-foreground">{invoice.customerMobile || "+91 98765 43210"}</p>
             </div>
             <div>
