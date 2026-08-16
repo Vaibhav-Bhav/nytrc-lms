@@ -280,9 +280,17 @@ export function StudentCourseDetail({
                       {lessons.map((lesson) => {
                         const isDone = completedIds.has(lesson.id);
                         return (
-                          <button
+                          <div
                             key={lesson.id}
+                            role="button"
+                            tabIndex={0}
                             onClick={() => onNavigate?.("course-player", { courseId: course?.id, lessonId: lesson.id })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onNavigate?.("course-player", { courseId: course?.id, lessonId: lesson.id });
+                              }
+                            }}
                             className="w-full flex items-center gap-3 pl-12 pr-5 py-3 border-t border-border/40 text-left hover:bg-muted/30 transition-colors cursor-pointer"
                           >
                             <div className="flex-shrink-0">
@@ -319,7 +327,7 @@ export function StudentCourseDetail({
                                 Done
                               </span>
                             )}
-                          </button>
+                          </div>
                         );
                       })}
                     </div>

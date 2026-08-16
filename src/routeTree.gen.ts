@@ -72,6 +72,7 @@ import { Route as ApiSectionsSectionIdLessonsRouteImport } from './routes/api/se
 import { Route as ApiStudentCoursesIdRouteImport } from './routes/api/student/courses.$id'
 import { Route as ApiStudentLessonsIdRouteImport } from './routes/api/student/lessons.$id'
 import { Route as ApiStudentProgressLessonIdRouteImport } from './routes/api/student/progress.$lessonId'
+import { Route as ApiAdminLessonsIdPreviewRouteImport } from './routes/api/admin/lessons.$id.preview'
 import { Route as ApiAdminLessonsIdProgressCheckRouteImport } from './routes/api/admin/lessons.$id.progress-check'
 import { Route as ApiAdminLessonsIdPublishRouteImport } from './routes/api/admin/lessons.$id.publish'
 import { Route as ApiAdminLessonsIdUnpublishRouteImport } from './routes/api/admin/lessons.$id.unpublish'
@@ -399,6 +400,12 @@ const ApiStudentProgressLessonIdRoute =
     path: '/$lessonId',
     getParentRoute: () => ApiStudentProgressRoute,
   } as any)
+const ApiAdminLessonsIdPreviewRoute =
+  ApiAdminLessonsIdPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => ApiAdminLessonsIdRoute,
+  } as any)
 const ApiAdminLessonsIdProgressCheckRoute =
   ApiAdminLessonsIdProgressCheckRouteImport.update({
     id: '/progress-check',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/preview': typeof ApiAdminLessonsIdPreviewRoute
   '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
@@ -585,6 +593,7 @@ export interface FileRoutesByTo {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/preview': typeof ApiAdminLessonsIdPreviewRoute
   '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
@@ -659,6 +668,7 @@ export interface FileRoutesById {
   '/api/student/courses/$id': typeof ApiStudentCoursesIdRouteWithChildren
   '/api/student/lessons/$id': typeof ApiStudentLessonsIdRouteWithChildren
   '/api/student/progress/$lessonId': typeof ApiStudentProgressLessonIdRoute
+  '/api/admin/lessons/$id/preview': typeof ApiAdminLessonsIdPreviewRoute
   '/api/admin/lessons/$id/progress-check': typeof ApiAdminLessonsIdProgressCheckRoute
   '/api/admin/lessons/$id/publish': typeof ApiAdminLessonsIdPublishRoute
   '/api/admin/lessons/$id/unpublish': typeof ApiAdminLessonsIdUnpublishRoute
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/preview'
     | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
@@ -807,6 +818,7 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/preview'
     | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
@@ -880,6 +892,7 @@ export interface FileRouteTypes {
     | '/api/student/courses/$id'
     | '/api/student/lessons/$id'
     | '/api/student/progress/$lessonId'
+    | '/api/admin/lessons/$id/preview'
     | '/api/admin/lessons/$id/progress-check'
     | '/api/admin/lessons/$id/publish'
     | '/api/admin/lessons/$id/unpublish'
@@ -1390,6 +1403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudentProgressLessonIdRouteImport
       parentRoute: typeof ApiStudentProgressRoute
     }
+    '/api/admin/lessons/$id/preview': {
+      id: '/api/admin/lessons/$id/preview'
+      path: '/preview'
+      fullPath: '/api/admin/lessons/$id/preview'
+      preLoaderRoute: typeof ApiAdminLessonsIdPreviewRouteImport
+      parentRoute: typeof ApiAdminLessonsIdRoute
+    }
     '/api/admin/lessons/$id/progress-check': {
       id: '/api/admin/lessons/$id/progress-check'
       path: '/progress-check'
@@ -1476,12 +1496,14 @@ const ApiAdminCoursesRouteWithChildren = ApiAdminCoursesRoute._addFileChildren(
 )
 
 interface ApiAdminLessonsIdRouteChildren {
+  ApiAdminLessonsIdPreviewRoute: typeof ApiAdminLessonsIdPreviewRoute
   ApiAdminLessonsIdProgressCheckRoute: typeof ApiAdminLessonsIdProgressCheckRoute
   ApiAdminLessonsIdPublishRoute: typeof ApiAdminLessonsIdPublishRoute
   ApiAdminLessonsIdUnpublishRoute: typeof ApiAdminLessonsIdUnpublishRoute
 }
 
 const ApiAdminLessonsIdRouteChildren: ApiAdminLessonsIdRouteChildren = {
+  ApiAdminLessonsIdPreviewRoute: ApiAdminLessonsIdPreviewRoute,
   ApiAdminLessonsIdProgressCheckRoute: ApiAdminLessonsIdProgressCheckRoute,
   ApiAdminLessonsIdPublishRoute: ApiAdminLessonsIdPublishRoute,
   ApiAdminLessonsIdUnpublishRoute: ApiAdminLessonsIdUnpublishRoute,

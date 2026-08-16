@@ -88,7 +88,7 @@ function toUiLesson(l: DbLesson) {
     id: l.id,
     sectionId: l.section_id,
     title: l.title,
-    type: (l.video_id ? "video" : "pdf") as "video" | "pdf",
+    type: ((l.pdf_url && l.pdf_url !== "") ? "pdf" : "video") as "video" | "pdf",
     order: l.lesson_order,
     status: l.status,
     published: l.status === "published",
@@ -98,8 +98,8 @@ function toUiLesson(l: DbLesson) {
     locked: false,
     notPublished: l.status === "draft",
     description: l.description,
-    videoId: l.video_id,
-    pdfUrl: l.pdf_url,
+    videoId: l.video_id === "00000000-0000-4000-8000-000000000000" ? "" : l.video_id,
+    pdfUrl: l.pdf_url === "https://nytrc.in/empty.pdf" ? "" : l.pdf_url,
   };
 }
 
@@ -132,17 +132,14 @@ export function AdminContent({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  // Upload modal state
-  const [uploadModal, setUploadModal] = useState(false);
+  // Upload state
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<UploadStage>("idle");
-  const [uploadFileType, setUploadFileType] = useState<"video" | "pdf">("video");
-  const [uploadTargetSection, setUploadTargetSection] = useState<string | null>(null);
-  const [uploadTargetLesson, setUploadTargetLesson] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Add/Edit Lesson modal state
   const [addLessonModal, setAddLessonModal] = useState<{ sectionId: string; lessonId?: string } | null>(null);
+  const [previewModal, setPreviewModal] = useState<{ url: string, type: 'video' | 'pdf' } | null>(null);
   const [newLessonTitle, setNewLessonTitle] = useState("");
   const [newLessonDesc, setNewLessonDesc] = useState("");
   const [newLessonType, setNewLessonType] = useState<"video" | "pdf" | "text" | "link">("video");
@@ -268,40 +265,51 @@ export function AdminContent({
 
   // ── Lesson handlers ────────────────────────────────────────────────────────
 
-  async function handleAddLesson() {
-    if (!newLessonTitle.trim() || !addLessonModal) return;
+  async function handlePreview(lessonId: string) {
+    const section = sections.find(s => s.lessons?.some(l => l.id === lessonId));
+    const lesson = section?.lessons?.find(l => l.id === lessonId);
+    
+    if (!lesson || (!lesson.videoId && !lesson.pdfUrl)) {
+      toast.error("No media uploaded yet to preview.");
+      return;
+    }
 
-    setLessonLoading(true);
     try {
-      if (addLessonModal.lessonId) {
-        // Edit existing
-        const updated: DbLesson = await apiAdmin(`/api/admin/lessons/${addLessonModal.lessonId}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            title: newLessonTitle.trim(),
-            description: newLessonDesc.trim() || undefined,
-            video_id: newLessonType === "video" ? (newLessonVideoId.trim() || "pending") : null,
-            pdf_url: newLessonType === "pdf" ? (newLessonPdfUrl.trim() || null) : null,
-          }),
-        });
-        // Merge the server response back, but preserve any uploaded media IDs
-        // that toUiLesson would correctly carry from the updated DB row.
-        const updatedLesson = toUiLesson(updated);
-        setSections((prev) =>
-          prev.map((s) =>
-            s.id === addLessonModal.sectionId
-              ? {
-                  ...s,
-                  lessons: s.lessons?.map((l) =>
-                    l.id === addLessonModal.lessonId ? { ...updatedLesson, published: true, status: 'published' } : l
-                  ),
-                }
-              : s
-          )
-        );
-        toast.success("Lesson updated successfully.");
-      } else {
-        // Create new — always published so students can see it immediately after upload.
+      const res = await apiAdmin(`/api/admin/lessons/${lessonId}/preview`);
+      setPreviewModal(res);
+    } catch (err: any) {
+      toast.error(err.message || "Preview not available");
+    }
+  }
+
+  async function handleFileSelected(file: File) {
+    const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type.includes("pdf");
+    const isVideo = file.name.toLowerCase().match(/\.(mp4|mov)$/) || file.type.includes("video");
+
+    if (newLessonType === "video" && isPdf) {
+      toast.error("Please select the PDF tab to upload documents.");
+      return;
+    }
+    if (newLessonType === "pdf" && isVideo) {
+      toast.error("Please select the Video tab to upload videos.");
+      return;
+    }
+
+    if (!newLessonTitle.trim()) {
+      toast.error("Please enter a lesson title first.");
+      return;
+    }
+    
+    setSelectedFile(file);
+    setUploadStage("uploading");
+    setUploadProgress(0);
+    setLessonLoading(true);
+
+    try {
+      let targetLessonId = addLessonModal?.lessonId;
+
+      if (!targetLessonId && addLessonModal) {
+        // Create lesson placeholder
         const created: DbLesson = await apiAdmin("/api/admin/lessons", {
           method: "POST",
           body: JSON.stringify({
@@ -309,8 +317,113 @@ export function AdminContent({
             title: newLessonTitle.trim(),
             description: newLessonDesc.trim() || undefined,
             status: "published",
-            video_id: newLessonType === "video" ? (newLessonVideoId.trim() || "pending") : null,
-            pdf_url: newLessonType === "pdf" ? (newLessonPdfUrl.trim() || null) : null,
+            video_id: newLessonType === "video" ? "00000000-0000-4000-8000-000000000000" : null,
+            pdf_url: newLessonType === "pdf" ? "https://nytrc.in/empty.pdf" : null,
+          }),
+        });
+        targetLessonId = created.id;
+        setAddLessonModal({ sectionId: addLessonModal.sectionId, lessonId: targetLessonId });
+        
+        const newLesson = { ...toUiLesson(created), published: true, status: 'published' as const };
+        setSections((prev) =>
+          prev.map((s) =>
+            s.id === addLessonModal.sectionId
+              ? { ...s, lessons: [...(s.lessons || []), newLesson] }
+              : s
+          )
+        );
+      }
+
+      if (!targetLessonId) throw new Error("No target lesson");
+
+      const endpoint = newLessonType === "video" ? "/api/admin/upload/video" : "/api/admin/upload/document";
+      const ticketRes = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lessonId: targetLessonId,
+          title: newLessonTitle,
+          filename: file.name,
+          contentType: file.type || "application/octet-stream"
+        })
+      });
+
+      if (!ticketRes.ok) {
+        const errData = await ticketRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to get upload ticket");
+      }
+      
+      const ticket = await ticketRes.json();
+      
+      // Direct Upload via XHR
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const uploadUrl = ticket.uploadUrl;
+          
+        xhr.open("PUT", uploadUrl, true);
+        
+        if (newLessonType === "video") {
+          xhr.setRequestHeader("AccessKey", ticket.accessKey);
+          xhr.setRequestHeader("Content-Type", "application/octet-stream");
+        } else {
+          xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        }
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const p = Math.round((e.loaded * 100) / e.total);
+            setUploadProgress(p);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.responseText);
+          } else {
+            reject(new Error(`Upload failed with status: ${xhr.status}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error("Network error during upload"));
+        xhr.send(file);
+      });
+
+      if (newLessonType === "video") {
+        setNewLessonVideoId(ticket.videoId);
+      } else {
+        setNewLessonPdfUrl(ticket.key || ticket.url || "");
+      }
+      
+      setUploadStage("published");
+    } catch (err: any) {
+      console.error("[Upload] error:", err);
+      toast.error(err.message || "Failed to upload file");
+      setUploadStage("failed");
+    } finally {
+      setLessonLoading(false);
+    }
+  }
+
+  async function handleAddLesson() {
+    if (!newLessonTitle.trim() || !addLessonModal) return;
+
+    setLessonLoading(true);
+    let targetLessonId = addLessonModal.lessonId;
+    let finalVideoId = newLessonType === "video" ? (newLessonVideoId.trim() || "00000000-0000-4000-8000-000000000000") : null;
+    let finalPdfUrl = newLessonType === "pdf" ? (newLessonPdfUrl.trim() || "https://nytrc.in/empty.pdf") : null;
+
+    try {
+      if (!targetLessonId) {
+        // 1. Create target lesson if not editing
+        const created: DbLesson = await apiAdmin("/api/admin/lessons", {
+          method: "POST",
+          body: JSON.stringify({
+            section_id: addLessonModal.sectionId,
+            title: newLessonTitle.trim(),
+            description: newLessonDesc.trim() || undefined,
+            status: "published",
+            video_id: finalVideoId,
+            pdf_url: finalPdfUrl,
           }),
         });
         const newLesson = { ...toUiLesson(created), published: true, status: 'published' as const };
@@ -321,7 +434,32 @@ export function AdminContent({
               : s
           )
         );
-        toast.success("Lesson added successfully.");
+        toast.success("Lesson created successfully.");
+      } else {
+        // 2. Final update to lesson
+        const updated: DbLesson = await apiAdmin(`/api/admin/lessons/${targetLessonId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            title: newLessonTitle.trim(),
+            description: newLessonDesc.trim() || undefined,
+            video_id: finalVideoId,
+            pdf_url: finalPdfUrl,
+          }),
+        });
+        const updatedLesson = toUiLesson(updated);
+        setSections((prev) =>
+          prev.map((s) =>
+            s.id === addLessonModal.sectionId
+              ? {
+                  ...s,
+                  lessons: s.lessons?.map((l) =>
+                    l.id === targetLessonId ? { ...updatedLesson, published: true, status: 'published' } : l
+                  ),
+                }
+              : s
+          )
+        );
+        toast.success("Lesson saved successfully.");
       }
 
       setAddLessonModal(null);
@@ -329,9 +467,10 @@ export function AdminContent({
       setNewLessonDesc("");
       setNewLessonVideoId("");
       setNewLessonPdfUrl("");
+      setSelectedFile(null);
     } catch (err: any) {
       console.error("[handleAddLesson] error:", err);
-      toast.error(err.message || "Failed to save lesson");
+      toast.error("Save failed: " + (err.message || "Unknown error"));
     } finally {
       setLessonLoading(false);
     }
@@ -459,96 +598,6 @@ export function AdminContent({
       toast.error(err.message || "Failed to delete course");
     } finally {
       setDeleteCourseLoading(false);
-    }
-  }
-
-  // ── Upload handlers ──
-
-  function handleFileSelected(file: File) {
-    setSelectedFile(file);
-    const isPdf = file.name.endsWith(".pdf") || file.type.includes("pdf");
-    if (uploadFileType === "video" && isPdf) {
-      toast.error("Please select a video file for a video lesson.");
-      return;
-    }
-    if (uploadFileType === "pdf" && !isPdf) {
-      toast.error("Please select a PDF file for a document lesson.");
-      return;
-    }
-    handleStartUpload(file);
-  }
-
-  async function handleStartUpload(fileToUpload?: File) {
-    const file = fileToUpload || selectedFile;
-    if (!file || !uploadTargetLesson) {
-      toast.error("No file or target lesson selected");
-      return;
-    }
-    setUploadStage("uploading");
-    setUploadProgress(50);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("lessonId", uploadTargetLesson);
-
-      const endpoint = uploadFileType === "pdf" ? "/api/admin/upload/document" : "/api/admin/upload/video";
-      const res = await fetch(endpoint, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Upload failed");
-      }
-
-      const data = await res.json();
-      
-      // Update local state to reflect the uploaded video_id / pdf_url
-      setSections((prev) =>
-        prev.map((s) => ({
-          ...s,
-          lessons: s.lessons?.map((l) => {
-            if (l.id === uploadTargetLesson) {
-               return {
-                 ...l,
-                 type: uploadFileType,
-                 videoId: uploadFileType === "video" ? data.videoId : l.videoId,
-                 pdfUrl: uploadFileType === "pdf" ? (data.key || data.url) : l.pdfUrl,
-                 status: 'published',
-                 published: true
-               };
-            }
-            return l;
-          }),
-        }))
-      );
-
-      setUploadProgress(100);
-      setUploadStage("published");
-      toast.success("Media uploaded successfully");
-    } catch (err: any) {
-      setUploadStage("failed");
-      toast.error(err.message || "Upload failed");
-    }
-  }
-
-  function handleRetryUpload() {
-    setUploadStage("idle");
-    setUploadProgress(0);
-    if (selectedFile) handleStartUpload(selectedFile);
-  }
-
-  function closeUploadModal() {
-    const busy = uploadStage === "uploading" || uploadStage === "processing" || uploadStage === "generating";
-    if (!busy) {
-      setUploadModal(false);
-      setUploadStage("idle");
-      setUploadProgress(0);
-      setSelectedFile(null);
-      setUploadTargetSection(null);
-      setUploadTargetLesson(null);
     }
   }
 
@@ -725,6 +774,8 @@ export function AdminContent({
                                     setNewLessonType(lesson.type);
                                     setNewLessonVideoId(lesson.videoId === "pending" ? "" : (lesson.videoId || ""));
                                     setNewLessonPdfUrl(lesson.pdfUrl || "");
+                                    setSelectedFile(null);
+                                    setUploadStage("idle");
                                   }}
                                   title="Edit Lesson"
                                   className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
@@ -733,29 +784,24 @@ export function AdminContent({
                                   Edit
                                 </button>
                                 <button
+                                  onClick={() => handlePreview(lesson.id)}
+                                  title="Preview Lesson"
+                                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Play className="w-3 h-3" />
+                                  Preview
+                                </button>
+                                <button
                                   onClick={() => promptDeleteLesson(section.id, lesson.id, lesson.title)}
                                   title="Delete lesson"
                                   className="p-1.5 rounded-lg hover:bg-error-light transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3 text-destructive" />
                                 </button>
-                                <button
-                                  onClick={() => {
-                                    setUploadTargetSection(section.id);
-                                    setUploadTargetLesson(lesson.id);
-                                    setUploadFileType(lesson.type);
-                                    setUploadModal(true);
-                                  }}
-                                  title="Upload/Replace Media"
-                                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Upload className="w-3 h-3" />
-                                  Upload
-                                </button>
                               </div>
                               {/* Static Published badge — draft mode removed */}
                               <span className="ml-1 px-2.5 py-0.5 rounded-md text-xs font-bold border flex-shrink-0 bg-success-light text-success-foreground border-success/20">
-                                {lesson.videoId || lesson.pdfUrl ? "Published" : "No media"}
+                                {(lesson.videoId || lesson.pdfUrl) ? "Published" : "No media"}
                               </span>
                             </div>
                           ))
@@ -799,39 +845,6 @@ export function AdminContent({
           </div>
         </div>
       </main>
-
-      {/* Upload Media Modal */}
-      <Modal
-        open={uploadModal}
-        onClose={closeUploadModal}
-        title="Upload lesson content"
-        actions={
-          uploadStage === "published" || uploadStage === "ready" ? (
-            <Button size="sm" onClick={closeUploadModal}>Done</Button>
-          ) : (
-            <Button variant="secondary" size="sm" onClick={closeUploadModal}>Close</Button>
-          )
-        }
-      >
-        {uploadStage === "idle" ? (
-          <div className="flex flex-col gap-4">
-            <FileUpload
-              hint={uploadFileType === "video" ? "MP4, MOV — max 500 MB" : "PDF — max 50 MB"}
-              onChange={handleFileSelected}
-            />
-          </div>
-        ) : (
-          <div className="py-2">
-            <UploadPipeline
-              stage={uploadStage}
-              progress={uploadProgress}
-              filename={selectedFile?.name || (uploadFileType === "video" ? "lesson.mp4" : "document.pdf")}
-              fileType={uploadFileType}
-              onRetry={handleRetryUpload}
-            />
-          </div>
-        )}
-      </Modal>
 
       {/* Delete Lesson Modal */}
       <ConfirmDialog
@@ -890,12 +903,26 @@ export function AdminContent({
       {/* Add/Edit Lesson modal */}
       <Modal
         open={!!addLessonModal}
-        onClose={() => { setAddLessonModal(null); setNewLessonTitle(""); setNewLessonDesc(""); setNewLessonVideoId(""); setNewLessonPdfUrl(""); }}
+        onClose={() => { 
+          if (lessonLoading || uploadStage === "uploading") return;
+          setAddLessonModal(null); 
+          setNewLessonTitle(""); 
+          setNewLessonDesc(""); 
+          setNewLessonVideoId(""); 
+          setNewLessonPdfUrl(""); 
+          setSelectedFile(null);
+          setUploadStage("idle");
+        }}
         title={addLessonModal?.lessonId ? "Edit lesson" : "Add lesson"}
         actions={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setAddLessonModal(null)}>Cancel</Button>
-            <Button size="sm" loading={lessonLoading} disabled={!newLessonTitle.trim()} onClick={handleAddLesson}>
+            <Button variant="secondary" size="sm" onClick={() => {
+              if (lessonLoading || uploadStage === "uploading") return;
+              setAddLessonModal(null);
+              setSelectedFile(null);
+              setUploadStage("idle");
+            }}>Cancel</Button>
+            <Button size="sm" loading={lessonLoading} disabled={!newLessonTitle.trim() || uploadStage === "uploading"} onClick={handleAddLesson}>
               {addLessonModal?.lessonId ? "Save changes" : "Add lesson"}
             </Button>
           </>
@@ -907,6 +934,7 @@ export function AdminContent({
             placeholder="e.g. Introduction to Closures"
             value={newLessonTitle}
             onChange={(e) => setNewLessonTitle(e.target.value)}
+            disabled={uploadStage === "uploading"}
             required
           />
           <div className="flex flex-col gap-1.5">
@@ -918,7 +946,8 @@ export function AdminContent({
               placeholder="What will students learn in this lesson?"
               value={newLessonDesc}
               onChange={(e) => setNewLessonDesc(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              disabled={uploadStage === "uploading"}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors disabled:opacity-50"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -929,11 +958,13 @@ export function AdminContent({
                   key={t}
                   type="button"
                   onClick={() => setNewLessonType(t)}
+                  disabled={uploadStage === "uploading"}
                   className={cn(
-                    "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-bold transition-all cursor-pointer",
+                    "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-bold transition-all",
                     newLessonType === t
                       ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/30"
+                      : "border-border text-muted-foreground hover:border-primary/30 cursor-pointer",
+                    uploadStage === "uploading" && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   {t === "video" ? <Play className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
@@ -942,23 +973,50 @@ export function AdminContent({
               ))}
             </div>
           </div>
-          {newLessonType === "video" && (
-            <FormInput
-              label="Video ID / URL"
-              placeholder="e.g. YouTube URL or ID"
-              value={newLessonVideoId}
-              onChange={(e) => setNewLessonVideoId(e.target.value)}
-              required
-            />
+          {newLessonType === "video" && uploadStage === "idle" && (
+            <div className="flex flex-col gap-2">
+              <FormInput
+                label="Video ID / URL"
+                placeholder="e.g. YouTube URL or ID"
+                value={newLessonVideoId}
+                onChange={(e) => setNewLessonVideoId(e.target.value)}
+              />
+              <div className="text-center text-sm font-bold text-muted-foreground my-2">OR</div>
+              <FileUpload
+                hint="MP4, MOV — max 500 MB"
+                onChange={handleFileSelected}
+              />
+            </div>
           )}
-          {newLessonType === "pdf" && (
-            <FormInput
-              label="PDF URL"
-              placeholder="e.g. https://example.com/file.pdf"
-              value={newLessonPdfUrl}
-              onChange={(e) => setNewLessonPdfUrl(e.target.value)}
-              required
-            />
+          {newLessonType === "pdf" && uploadStage === "idle" && (
+            <div className="flex flex-col gap-2">
+              <FormInput
+                label="PDF URL"
+                placeholder="e.g. https://example.com/file.pdf"
+                value={newLessonPdfUrl}
+                onChange={(e) => setNewLessonPdfUrl(e.target.value)}
+              />
+              <div className="text-center text-sm font-bold text-muted-foreground my-2">OR</div>
+              <FileUpload
+                hint="PDF — max 50 MB"
+                onChange={handleFileSelected}
+              />
+            </div>
+          )}
+          
+          {uploadStage !== "idle" && (
+            <div className="mt-4 p-4 rounded-xl border border-border bg-muted/20">
+              <UploadPipeline
+                stage={uploadStage}
+                progress={uploadProgress}
+                filename={selectedFile?.name || "upload"}
+                fileType={newLessonType === "video" || newLessonType === "pdf" ? newLessonType : undefined}
+                onRetry={() => {
+                  setUploadStage("idle");
+                  setSelectedFile(null);
+                }}
+              />
+            </div>
           )}
         </div>
       </Modal>
@@ -1021,6 +1079,31 @@ export function AdminContent({
         confirmText="Delete course"
         variant="destructive"
       />
+      {/* Preview Modal */}
+      <Modal
+        open={!!previewModal}
+        onClose={() => setPreviewModal(null)}
+        title="Content Preview"
+        maxWidth="max-w-4xl"
+        actions={<Button size="sm" onClick={() => setPreviewModal(null)}>Close</Button>}
+      >
+        <div className="w-full aspect-video rounded-xl overflow-hidden bg-black/5 flex items-center justify-center">
+          {previewModal && previewModal.type === 'video' && (
+            <iframe
+              src={previewModal.url}
+              className="w-full h-full border-0"
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+          {previewModal && previewModal.type === 'pdf' && (
+            <iframe
+              src={previewModal.url}
+              className="w-full h-[80vh] border-0"
+            />
+          )}
+        </div>
+      </Modal>
     </AdminLayout>
   );
 }

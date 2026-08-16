@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
 
 export interface AuthUser {
   id: string
@@ -8,7 +9,12 @@ export interface AuthUser {
   force_password_change?: boolean
 }
 
-async function fetchCurrentUser(): Promise<AuthUser | null> {
+export const authQueryKey = ['auth', 'me'] as const
+
+export async function fetchCurrentUser(): Promise<AuthUser | null> {
+  if (typeof window === 'undefined') {
+    return new Promise(() => {}); // Freeze during SSR
+  }
   const res = await fetch('/api/auth/me', { credentials: 'include' })
   if (res.status === 401) return null
   if (!res.ok) throw new Error('Failed to fetch current user')
@@ -16,10 +22,8 @@ async function fetchCurrentUser(): Promise<AuthUser | null> {
   return data.user as AuthUser
 }
 
-export const authQueryKey = ['auth', 'me'] as const
-
 export function useAuth() {
-  return useQuery({
+  const query = useQuery({
     queryKey: authQueryKey,
     queryFn: fetchCurrentUser,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -27,4 +31,6 @@ export function useAuth() {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   })
+
+  return query
 }

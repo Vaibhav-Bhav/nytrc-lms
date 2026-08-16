@@ -1,3 +1,4 @@
+import { fetchCurrentUser } from '@/hooks/useAuth';
 import { useState } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { StudentDashboard } from '@/app/screens/student/StudentDashboard'
@@ -8,19 +9,21 @@ import { CoursePlayer } from '@/app/screens/student/CoursePlayer'
 import { Screen } from '@/data/types'
 
 export const Route = createFileRoute('/student/dashboard')({
-  beforeLoad: async () => {
+  beforeLoad: async ({ context }) => {
+  if (typeof window === 'undefined') return; // Skip auth redirect on server
+
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' })
-      if (res.status === 401) throw redirect({ to: '/login' })
-      if (!res.ok) throw redirect({ to: '/login' })
-      const data = await res.json()
-      const user = data?.user
-      if (!user) throw redirect({ to: '/login' })
-      if (user.force_password_change) throw redirect({ to: '/force-password' })
-      return { user }
-    } catch (err) {
-      if (err instanceof Response || (err as any)?.isRedirect) throw err
-      throw redirect({ to: '/login' })
+      const user = await context.queryClient.fetchQuery({
+        queryKey: ['auth', 'me'],
+        queryFn: fetchCurrentUser, 
+      });
+      if (!user || user.role !== 'student') throw redirect({ to: '/login' });
+      if (user.force_password_change) throw redirect({ to: '/force-password' });
+    } catch (error) {
+      if (error instanceof Error && error.message !== 'Failed to fetch current user') {
+        throw redirect({ to: '/login' });
+      }
+      throw redirect({ to: '/login' });
     }
   },
   component: StudentDashboardRoute,

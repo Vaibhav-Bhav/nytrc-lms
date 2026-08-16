@@ -124,6 +124,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { DarkProvider } from "@/app/components/DarkContext";
+import { useAuth } from "@/hooks/useAuth";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -131,9 +132,24 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <DarkProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <AuthHydrationWrapper>
+          <Outlet />
+        </AuthHydrationWrapper>
       </DarkProvider>
     </QueryClientProvider>
   );
+}
+
+function AuthHydrationWrapper({ children }: { children: ReactNode }) {
+  const { isPending } = useAuth();
+  
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }

@@ -128,6 +128,11 @@ export async function deleteR2File(key: string): Promise<{ success: boolean }> {
     if (err.message?.startsWith('Missing required environment variable')) {
       throw err
     }
+    // Treat NoSuchKey / 404 as success — the object is already gone
+    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
+      console.warn(`[r2] Object ${cleanKey} not found, treating as already deleted.`)
+      return { success: true }
+    }
     console.error(`[r2] DeleteObjectCommand failed for key ${cleanKey}:`, err)
     throw new Error(`R2 deletion failed for key ${cleanKey}: ${err.message}`)
   }
@@ -191,5 +196,38 @@ export async function getFileMetadata(key: string): Promise<R2ObjectMetadata> {
     }
     console.error(`[r2] HeadObjectCommand failed for key ${cleanKey}:`, err)
     throw new Error(`Failed to fetch metadata for R2 object ${cleanKey}: ${err.message}`)
+  }
+}
+
+/**
+ * Generates a presigned PUT URL for direct file uploads to Cloudflare R2.
+ * Default expiration is 3600 seconds (1 hour).
+ */
+export async function getSignedUploadUrl(
+  key: string,
+  contentType: string,
+  expirationSeconds = 3600,
+): Promise<{ uploadUrl: string }> {
+  const { client, config } = getR2Client()
+  const cleanKey = key.replace(/^\//, '')
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: cleanKey,
+      ContentType: contentType,
+    })
+
+    const uploadUrl = await getSignedUrl(client, command, {
+      expiresIn: expirationSeconds,
+    })
+
+    return { uploadUrl }
+  } catch (err: any) {
+    if (err.message?.startsWith('Missing required environment variable')) {
+      throw err
+    }
+    console.error(`[r2] getSignedUrl (PUT) failed for key ${cleanKey}:`, err)
+    throw new Error(`Failed to generate R2 presigned upload URL for key ${cleanKey}: ${err.message}`)
   }
 }

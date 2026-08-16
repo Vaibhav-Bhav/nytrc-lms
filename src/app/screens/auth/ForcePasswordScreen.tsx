@@ -66,10 +66,10 @@ export function ForcePasswordScreen({ onNavigate }: { onNavigate?: (s: Screen) =
 
       // Navigate based on user role
       if (user?.role === "admin") {
-        if (onNavigate) onNavigate("admin-dashboard");
+        if (onNavigate) onNavigate?.("admin-dashboard");
         else navigate({ to: "/admin/dashboard" });
       } else {
-        if (onNavigate) onNavigate("student-dashboard");
+        if (onNavigate) onNavigate?.("student-dashboard");
         else navigate({ to: "/student/dashboard" });
       }
     } catch (err: any) {

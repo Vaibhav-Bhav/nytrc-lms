@@ -2,7 +2,7 @@
 
 import { lessonRepository } from '@/repositories/lesson'
 import { bunnyVideoService } from '@/services/video/bunny'
-import { uploadR2File, getSignedDownloadUrl, getR2Config, deleteR2File } from '@/lib/r2'
+import { uploadR2File, getSignedDownloadUrl, getSignedUploadUrl, getR2Config, deleteR2File } from '@/lib/r2'
 
 // Allowed MIME types
 const ALLOWED_VIDEO_TYPES = [
@@ -227,6 +227,76 @@ export const storageService = {
         throw new Error('CONFIGURATION_ERROR')
       }
       throw err
+    }
+  },
+
+  /**
+   * Generates a Bunny Stream direct upload ticket.
+   */
+  async generateVideoUploadTicket(lessonId: string, title: string, filename: string) {
+    const lesson = await lessonRepository.findById(lessonId)
+    if (!lesson) throw new Error('LESSON_NOT_FOUND')
+
+    try {
+      if (lesson.video_id && lesson.video_id !== 'pending' && !lesson.video_id.startsWith('http')) {
+        try {
+          await bunnyVideoService.deleteVideoAsset(lesson.video_id)
+        } catch (err) {
+          console.warn(`[storageService] Failed to delete old video asset ${lesson.video_id}:`, err)
+        }
+      }
+
+      const { videoId } = await bunnyVideoService.createVideoAsset({ title })
+      const { libraryId, expirationTime, signature } = bunnyVideoService.generateDirectUploadSignature(videoId)
+
+      return {
+        lessonId,
+        videoId,
+        libraryId,
+        expirationTime,
+        signature,
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith('Missing required environment variable')) {
+        throw new Error('CONFIGURATION_ERROR')
+      }
+      throw new Error('UPLOAD_FAILED')
+    }
+  },
+
+  /**
+   * Generates a Cloudflare R2 presigned PUT upload ticket.
+   */
+  async generateDocumentUploadTicket(lessonId: string, filename: string, contentType: string) {
+    if (!ALLOWED_DOCUMENT_TYPES.includes(contentType.toLowerCase())) {
+      throw new Error('INVALID_FILE_TYPE')
+    }
+
+    const lesson = await lessonRepository.findById(lessonId)
+    if (!lesson) throw new Error('LESSON_NOT_FOUND')
+
+    try {
+      if (lesson.pdf_url && !lesson.pdf_url.startsWith('http')) {
+        try {
+          await deleteR2File(lesson.pdf_url)
+        } catch (err) {
+          console.warn(`[storageService] Failed to delete old document asset ${lesson.pdf_url}:`, err)
+        }
+      }
+
+      const uniqueKey = `lessons/${lessonId}/${Date.now()}-${filename}`
+      const { uploadUrl } = await getSignedUploadUrl(uniqueKey, contentType)
+
+      return {
+        lessonId,
+        key: uniqueKey,
+        uploadUrl,
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith('Missing required environment variable')) {
+        throw new Error('CONFIGURATION_ERROR')
+      }
+      throw new Error('UPLOAD_FAILED')
     }
   },
 }

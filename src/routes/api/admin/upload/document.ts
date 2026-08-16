@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 const documentMetadataSchema = z.object({
   lessonId: z.string().uuid('lessonId must be a valid UUID'),
+  filename: z.string(),
+  contentType: z.string(),
 })
 
 export const Route = createFileRoute('/api/admin/upload/document')({
@@ -15,28 +17,10 @@ export const Route = createFileRoute('/api/admin/upload/document')({
         await requireAdmin(request)
 
         try {
-          const contentTypeHeader = request.headers.get('content-type') ?? ''
-          if (!contentTypeHeader.includes('multipart/form-data')) {
-            return Response.json(
-              { error: 'Content-Type must be multipart/form-data' },
-              { status: 400 },
-            )
-          }
-
-          const formData = await request.formData()
-          const lessonId = formData.get('lessonId')
-          const file = formData.get('file')
-
-          if (!lessonId) {
-            return Response.json({ error: 'Missing lessonId field' }, { status: 400 })
-          }
-
-          if (!file || !(file instanceof Blob)) {
-            return Response.json({ error: 'Missing file field' }, { status: 400 })
-          }
+          const body = await request.json()
 
           // Validate metadata inputs
-          const parsed = documentMetadataSchema.safeParse({ lessonId })
+          const parsed = documentMetadataSchema.safeParse(body)
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', issues: parsed.error.issues },
@@ -44,15 +28,10 @@ export const Route = createFileRoute('/api/admin/upload/document')({
             )
           }
 
-          // Convert web File/Blob to Node Buffer
-          const arrayBuffer = await file.arrayBuffer()
-          const fileBuffer = Buffer.from(arrayBuffer)
-
-          const result = await storageService.uploadDocument(
+          const result = await storageService.generateDocumentUploadTicket(
             parsed.data.lessonId,
-            (file as any).name ?? 'document.pdf',
-            file.type ?? 'application/pdf',
-            fileBuffer,
+            parsed.data.filename,
+            parsed.data.contentType
           )
 
           return Response.json(result, { status: 201 })
@@ -71,7 +50,7 @@ export const Route = createFileRoute('/api/admin/upload/document')({
               return Response.json({ error: 'Storage service configuration is incomplete' }, { status: 503 })
             }
             if (err.message === 'UPLOAD_FAILED') {
-              return Response.json({ error: 'Failed to upload document to storage provider' }, { status: 502 })
+              return Response.json({ error: 'Failed to generate direct upload ticket' }, { status: 502 })
             }
           }
           console.error('[uploadDocument] Unexpected error:', err)

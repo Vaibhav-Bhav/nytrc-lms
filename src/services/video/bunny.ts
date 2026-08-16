@@ -8,6 +8,7 @@ import {
   getBunnyVideo,
   deleteBunnyVideo,
   generateSignedPlaybackUrl,
+  generateDirectUploadSignature,
   type BunnyVideoResponse,
   type BunnyCreateVideoParams,
 } from '@/lib/bunny'
@@ -57,5 +58,12 @@ export const bunnyVideoService = {
    */
   resolvePlaybackUrl(videoId: string, expirationSeconds = 3600): { streamUrl: string } {
     return generateSignedPlaybackUrl(videoId, expirationSeconds)
+  },
+
+  /**
+   * Generates a direct upload authentication signature.
+   */
+  generateDirectUploadSignature(videoId: string, expirationSeconds = 3600) {
+    return generateDirectUploadSignature(videoId, expirationSeconds)
   },
 }

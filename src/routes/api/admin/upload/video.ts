@@ -1,11 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { storageService } from '@/services/storage'
 import { requireAdmin } from '@/middleware/auth'
+import { getBunnyConfig } from '@/lib/bunny'
 import { z } from 'zod'
 
 const videoMetadataSchema = z.object({
   lessonId: z.string().uuid('lessonId must be a valid UUID'),
   title: z.string().optional(),
+  filename: z.string().optional(),
 })
 
 export const Route = createFileRoute('/api/admin/upload/video')({
@@ -16,29 +18,9 @@ export const Route = createFileRoute('/api/admin/upload/video')({
         await requireAdmin(request)
 
         try {
-          const contentTypeHeader = request.headers.get('content-type') ?? ''
-          if (!contentTypeHeader.includes('multipart/form-data')) {
-            return Response.json(
-              { error: 'Content-Type must be multipart/form-data' },
-              { status: 400 },
-            )
-          }
-
-          const formData = await request.formData()
-          const lessonId = formData.get('lessonId')
-          const title = formData.get('title')
-          const file = formData.get('file')
-
-          if (!lessonId) {
-            return Response.json({ error: 'Missing lessonId field' }, { status: 400 })
-          }
-
-          if (!file || !(file instanceof Blob)) {
-            return Response.json({ error: 'Missing file field' }, { status: 400 })
-          }
-
-          // Validate metadata inputs
-          const parsed = videoMetadataSchema.safeParse({ lessonId, title: title || undefined })
+          const body = await request.json()
+          
+          const parsed = videoMetadataSchema.safeParse(body)
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', issues: parsed.error.issues },
@@ -46,29 +28,31 @@ export const Route = createFileRoute('/api/admin/upload/video')({
             )
           }
 
-          // Convert web File/Blob to Node Buffer
-          const arrayBuffer = await file.arrayBuffer()
-          const fileBuffer = Buffer.from(arrayBuffer)
+          const safeTitle = parsed.data.title || parsed.data.filename || 'Untitled Upload'
+          const safeFilename = parsed.data.filename || 'video.mp4'
 
-          const safeTitle = parsed.data.title || (file as any).name || 'Untitled Upload'
-
-          const result = await storageService.uploadVideo(
+          const result = await storageService.generateVideoUploadTicket(
             parsed.data.lessonId,
             safeTitle,
-            (file as any).name ?? 'video.mp4',
-            file.type ?? 'video/mp4',
-            fileBuffer,
+            safeFilename
           )
 
-          return Response.json(result, { status: 201 })
+          // Return the raw API key so the admin browser can PUT directly to Bunny.
+          // This is safe because this route is behind requireAdmin().
+          const bunnyConfig = getBunnyConfig()
+
+          return Response.json({
+            videoId: result.videoId,
+            libraryId: result.libraryId,
+            lessonId: result.lessonId,
+            accessKey: bunnyConfig.apiKey,
+            uploadUrl: `https://video.bunnycdn.com/library/${result.libraryId}/videos/${result.videoId}`,
+          }, { status: 201 })
         } catch (err) {
           if (err instanceof Response) {
             return err
           }
           if (err instanceof Error) {
-            if (err.message === 'INVALID_FILE_TYPE') {
-              return Response.json({ error: 'Unsupported video file format' }, { status: 400 })
-            }
             if (err.message === 'LESSON_NOT_FOUND') {
               return Response.json({ error: 'Target lesson not found' }, { status: 404 })
             }
@@ -76,7 +60,7 @@ export const Route = createFileRoute('/api/admin/upload/video')({
               return Response.json({ error: 'Streaming service configuration is incomplete' }, { status: 503 })
             }
             if (err.message === 'UPLOAD_FAILED') {
-              return Response.json({ error: 'Failed to upload video to streaming host' }, { status: 502 })
+              return Response.json({ error: 'Failed to generate direct upload ticket' }, { status: 502 })
             }
           }
           console.error('[uploadVideo] Unexpected error:', err)

@@ -62,7 +62,7 @@ export function LoginScreen({
           const { pendingAuth } = await import('@/store/pendingAuth');
           pendingAuth.email = email;
           pendingAuth.password = password;
-          if (onNavigate) onNavigate("auth-device-limit-exceeded");
+          if (onNavigate) onNavigate?.("auth-device-limit-exceeded");
           else navigate({ to: '/device-limit' });
         } else {
           toast.error(data.error || "Login failed");
@@ -80,13 +80,13 @@ export function LoginScreen({
 
       // Route based on forced password change status or role
       if (data.user?.force_password_change) {
-        if (onNavigate) onNavigate("force-password");
+        if (onNavigate) onNavigate?.("force-password");
         else navigate({ to: '/force-password' });
       } else if (data.user?.role === 'admin') {
-        if (onNavigate) onNavigate("admin-dashboard");
+        if (onNavigate) onNavigate?.("admin-dashboard");
         else navigate({ to: '/admin/dashboard' });
       } else {
-        if (onNavigate) onNavigate("student-dashboard");
+        if (onNavigate) onNavigate?.("student-dashboard");
         else navigate({ to: '/student/dashboard' });
       }
 
@@ -144,7 +144,7 @@ export function LoginScreen({
           <button
             type="button"
             onClick={() => {
-              if (onNavigate) onNavigate("forgot-password");
+              if (onNavigate) onNavigate?.("forgot-password");
               else navigate({ to: "/forgot-password" });
             }}
             className="text-sm text-primary hover:underline font-medium"

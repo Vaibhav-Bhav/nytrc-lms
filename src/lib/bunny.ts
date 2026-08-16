@@ -173,6 +173,12 @@ export async function deleteBunnyVideo(videoId: string): Promise<{ success: bool
     },
   })
 
+  // Treat 404 as success — the video is already gone
+  if (res.status === 404) {
+    console.warn(`[BunnyStream] Video ${videoId} not found (404), treating as already deleted.`)
+    return { success: true }
+  }
+
   if (!res.ok) {
     const errText = await res.text().catch(() => '')
     throw new Error(`Bunny Stream Delete error (${res.status}): ${errText || res.statusText}`)
@@ -210,5 +216,26 @@ export function generateSignedPlaybackUrl(
   return {
     streamUrl: `https://iframe.mediadelivery.net/embed/${config.libraryId}/${videoId}`,
     isSigned: false,
+  }
+}
+
+/**
+ * Generates an authentication signature for Bunny Stream Direct Upload.
+ */
+export function generateDirectUploadSignature(
+  videoId: string,
+  expirationSeconds = 3600,
+): { libraryId: string; expirationTime: number; signature: string } {
+  const config = getBunnyConfig()
+  const expirationTime = Math.floor(Date.now() / 1000) + expirationSeconds
+  
+  // Signature: sha256(library_id + api_key + expiration_time + video_id)
+  const hashInput = `${config.libraryId}${config.apiKey}${expirationTime}${videoId}`
+  const signature = crypto.createHash('sha256').update(hashInput).digest('hex')
+
+  return {
+    libraryId: config.libraryId,
+    expirationTime,
+    signature,
   }
 }

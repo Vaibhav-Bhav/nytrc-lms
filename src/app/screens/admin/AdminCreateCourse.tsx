@@ -72,7 +72,7 @@ export function AdminCreateCourse({
       const created = await res.json();
       setLoading(false);
       if (onSelectCourse) {
-        onSelectCourse(created.id);
+        onSelectCourse?.(created.id);
       }
       toast.success("Course created — add sections and lessons now.");
       navigate({ to: '/admin/content' });
