@@ -69,38 +69,51 @@ export function StudentCourseDetail({
   selectedCourseId?: string;
 }) {
   const { data: user } = useAuth();
+  const [allCourses, setAllCourses] = useState<ApiCourse[]>([]);
   const [course, setCourse] = useState<ApiCourse | null>(null);
   const [sections, setSections] = useState<ApiSection[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState<CourseProgress>({ completedLessons: 0, totalLessons: 0, percentage: 0 });
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [courseId, setCourseId] = useState<string | null>(selectedCourseId || null);
+  const [activeCourseId, setActiveCourseId] = useState<string | null>(selectedCourseId || null);
 
+  // Fetch available courses list for the dropdown selector
   useEffect(() => {
+    async function loadAvailableCourses() {
+      try {
+        const listRes = await fetch("/api/student/courses", { credentials: "include" });
+        if (listRes.ok) {
+          const list: ApiCourse[] = await listRes.json();
+          setAllCourses(list);
+          if (!selectedCourseId && list.length > 0 && !activeCourseId) {
+            setActiveCourseId(list[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load available courses list:", err);
+      }
+    }
+    loadAvailableCourses();
+  }, []);
+
+  // Update activeCourseId if external selectedCourseId prop changes
+  useEffect(() => {
+    if (selectedCourseId) {
+      setActiveCourseId(selectedCourseId);
+    }
+  }, [selectedCourseId]);
+
+  // Fetch course details & progress whenever activeCourseId changes
+  useEffect(() => {
+    if (!activeCourseId) return;
+
     async function loadCourseDetail() {
       setLoading(true);
       try {
-        // If no specific course ID, get first enrolled course
-        let targetId = selectedCourseId;
-        if (!targetId) {
-          const listRes = await fetch("/api/student/courses", { credentials: "include" });
-          if (listRes.ok) {
-            const list: ApiCourse[] = await listRes.json();
-            targetId = list[0]?.id;
-          }
-        }
-
-        if (!targetId) {
-          setLoading(false);
-          return;
-        }
-
-        setCourseId(targetId);
-
         const [detailRes, progRes] = await Promise.all([
-          fetch(`/api/student/courses/${targetId}`, { credentials: "include" }),
-          fetch(`/api/student/courses/${targetId}/progress`, { credentials: "include" }),
+          fetch(`/api/student/courses/${activeCourseId}`, { credentials: "include" }),
+          fetch(`/api/student/courses/${activeCourseId}/progress`, { credentials: "include" }),
         ]);
 
         if (!detailRes.ok) throw new Error("Failed to load course detail");
@@ -112,6 +125,8 @@ export function StudentCourseDetail({
         if (progRes.ok) {
           const prog: CourseProgress = await progRes.json();
           setProgress(prog);
+        } else {
+          setProgress({ completedLessons: 0, totalLessons: 0, percentage: 0 });
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to load course");
@@ -120,7 +135,12 @@ export function StudentCourseDetail({
       }
     }
     loadCourseDetail();
-  }, [selectedCourseId]);
+  }, [activeCourseId]);
+
+  function handleCourseSelect(newCourseId: string) {
+    setActiveCourseId(newCourseId);
+    onNavigate?.("student-course-detail", { courseId: newCourseId });
+  }
 
   const allLessons = sections.flatMap((s) => s.lessons || []);
   const { completedLessons: completedLessonsCount, totalLessons: totalLessonsCount, percentage: pct } = progress;
@@ -158,13 +178,37 @@ export function StudentCourseDetail({
   return (
     <StudentLayout>
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <Breadcrumb
             items={[
               { label: "Dashboard", onClick: () => onNavigate?.("student-dashboard") },
               { label: course?.title || "Course Detail" },
             ]}
           />
+
+          {allCourses.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="course-selector" className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 whitespace-nowrap">
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+                Course:
+              </label>
+              <div className="relative min-w-[200px] sm:w-64">
+                <select
+                  id="course-selector"
+                  value={activeCourseId || ""}
+                  onChange={(e) => handleCourseSelect(e.target.value)}
+                  className="w-full appearance-none bg-card text-foreground font-bold text-xs sm:text-sm px-3.5 py-2 pr-9 rounded-xl border border-border hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-xs transition-all cursor-pointer truncate"
+                >
+                  {allCourses.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-card text-foreground py-1">
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Course header */}

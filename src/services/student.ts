@@ -19,8 +19,26 @@ export const studentService = {
       return []
     }
 
-    // Return all published courses so every student (Sarah, Fatima, etc.) sees courses equally
-    return await courseRepository.findPublished()
+    const publishedCourses = await courseRepository.findPublished()
+
+    const enriched = await Promise.all(
+      publishedCourses.map(async (course) => {
+        const sections = await sectionRepository.findByCourseId(course.id)
+        let totalLessons = 0
+        for (const sec of sections) {
+          const lessons = await lessonRepository.findBySectionId(sec.id)
+          const publishedLessons = lessons.filter((l) => l.status === 'published')
+          totalLessons += publishedLessons.length
+        }
+        return {
+          ...course,
+          sectionCount: sections.length,
+          lessonCount: totalLessons,
+        }
+      })
+    )
+
+    return enriched
   },
 
   /**

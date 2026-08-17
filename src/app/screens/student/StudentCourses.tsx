@@ -134,7 +134,7 @@ export function StudentCourses({
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                           <Layers className="w-3.5 h-3.5 text-primary" />
-                          {c.sectionCount || 4} sections · {c.lessonCount || 15} lessons
+                          {c.sectionCount ?? 0} {c.sectionCount === 1 ? "section" : "sections"} · {c.lessonCount ?? 0} {c.lessonCount === 1 ? "lesson" : "lessons"}
                         </span>
                       </div>
                       <h2
