@@ -2,6 +2,7 @@
 
 import { authService } from '@/services/auth'
 import { courseAccessRepository } from '@/repositories/courseAccess'
+import { courseRepository } from '@/repositories/course'
 
 // Helper to extract session token from authorization header or cookies
 function getSessionTokenFromRequest(request: Request): string | null {
@@ -145,6 +146,19 @@ export async function requireEnrolled(request: Request, courseId: string): Promi
 
   const access = await courseAccessRepository.findActiveByStudentAndCourse(user.id, courseId)
   if (!access) {
+    const course = await courseRepository.findById(courseId)
+    if (course && course.status === 'published') {
+      const allAccesses = await courseAccessRepository.findAll()
+      const isRevoked = allAccesses.some(
+        (ca) =>
+          ca.student_id === user.id &&
+          ca.course_id === courseId &&
+          ca.access_status === 'revoked'
+      )
+      if (!isRevoked) {
+        return
+      }
+    }
     console.warn(`[authMiddleware] Forbidden: Student ${user.id} attempted to access unenrolled course ${courseId}`)
     throw Response.json(
       { error: 'Forbidden: You do not have active enrollment access to this course' },

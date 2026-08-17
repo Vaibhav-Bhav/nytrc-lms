@@ -19,21 +19,6 @@ export const studentService = {
       return []
     }
 
-    const activeAccesses = await courseAccessRepository.findActiveByStudentId(studentId)
-
-    if (activeAccesses.length > 0) {
-      const enrolledCourses = []
-      for (const ca of activeAccesses) {
-        const course = await courseRepository.findById(ca.course_id)
-        if (course && course.status === 'published') {
-          enrolledCourses.push(course)
-        }
-      }
-      if (enrolledCourses.length > 0) {
-        return enrolledCourses
-      }
-    }
-
     // Return all published courses so every student (Sarah, Fatima, etc.) sees courses equally
     return await courseRepository.findPublished()
   },
