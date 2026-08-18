@@ -24,7 +24,11 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
       .substring(0, 2)
       .toUpperCase() || "ST";
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Active Sessions state
   const [sessions, setSessions] = useState<DeviceSession[]>([]);
@@ -127,13 +131,63 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
     }
   }
 
-  function handlePasswordSubmit(e: React.FormEvent) {
+  async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setPasswordError(null);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      const err = "Please fill in all password fields.";
+      setPasswordError(err);
+      toast.error(err);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      const err = "New password must be at least 8 characters long.";
+      setPasswordError(err);
+      toast.error(err);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      const err = "New passwords do not match.";
+      setPasswordError(err);
+      toast.error(err);
+      return;
+    }
+
     setPasswordLoading(true);
-    setTimeout(() => {
-      setPasswordLoading(false);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const errMsg = data.error || "Failed to update password.";
+        setPasswordError(errMsg);
+        toast.error(errMsg);
+        return;
+      }
+
       toast.success("Password updated successfully");
-    }, 1000);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      const errMsg = "Network error. Please try again.";
+      setPasswordError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setPasswordLoading(false);
+    }
   }
 
   function renderDeviceIcon(type?: string) {
@@ -307,10 +361,38 @@ export function StudentAccount({ onNavigate }: { onNavigate: (s: Screen) => void
               <h2 className="font-bold text-foreground text-base">Security & Password</h2>
             </div>
             <form onSubmit={handlePasswordSubmit} className="px-5 sm:px-6 py-5 flex flex-col gap-4">
-              <FormInput label="Current password" type="password" placeholder="••••••••" required />
-              <FormInput label="New password" type="password" placeholder="At least 8 characters" required />
-              <FormInput label="Confirm new password" type="password" placeholder="Repeat new password" required />
-              <Button type="submit" loading={passwordLoading} className="w-full sm:w-auto self-start">
+              {passwordError && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+              <FormInput
+                label="Current password"
+                type="password"
+                placeholder="••••••••"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+              <FormInput
+                label="New password"
+                type="password"
+                placeholder="At least 8 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+              <FormInput
+                label="Confirm new password"
+                type="password"
+                placeholder="Repeat new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={confirmPassword.length > 0 && newPassword !== confirmPassword ? "Passwords do not match." : undefined}
+                required
+              />
+              <Button type="submit" loading={passwordLoading} disabled={passwordLoading} className="w-full sm:w-auto self-start">
                 Update password
               </Button>
             </form>
