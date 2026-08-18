@@ -96,12 +96,6 @@ export function AdminDashboard() {
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
               <p className="text-muted-foreground text-sm mt-1">Platform overview · LMS Admin Portal</p>
             </div>
-            <div className="flex gap-2.5 self-start flex-shrink-0">
-              <Button onClick={() => navigate({ to: "/admin/create-course" })}>
-                <Plus className="w-4 h-4" />
-                New course
-              </Button>
-            </div>
           </div>
 
           {/* Metric cards */}
@@ -166,15 +160,11 @@ export function AdminDashboard() {
             <div className={aCard}>
               <div className={aHead}>
                 <h2 className="font-bold text-foreground text-sm">Courses ({courses.length})</h2>
-                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/create-course" })}>
-                  <Plus className="w-3.5 h-3.5" />
-                  New
-                </Button>
               </div>
               {courses.length === 0 ? (
                 <div className="p-8 text-center border-b border-border">
                   <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No courses available. Click "Create course" to add one.</p>
+                  <p className="text-sm text-muted-foreground">No courses available. Go to Content Editor to create one.</p>
                 </div>
               ) : (
                 courses.map((course, i) => (

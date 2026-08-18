@@ -388,14 +388,6 @@ export function Header({
                       <User className="w-4 h-4 text-primary" />
                       Admin Control Panel
                     </Link>
-                    <Link
-                      to="/admin/create-course"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer text-left"
-                    >
-                      <Sparkles className="w-4 h-4 text-success-foreground" />
-                      Create New Course
-                    </Link>
                   </>
                 )}
               </div>

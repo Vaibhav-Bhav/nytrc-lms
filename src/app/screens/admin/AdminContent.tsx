@@ -17,6 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import { Screen, Section, UploadStage } from "../../../data/types";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Breadcrumb } from "../../components/Breadcrumb";
@@ -126,6 +127,7 @@ export function AdminContent({
   selectedCourseId?: string;
   onSelectCourse?: (id: string) => void;
 }) {
+  const navigate = useNavigate();
   const [allCourses, setAllCourses] = useState<ReturnType<typeof toUiCourse>[]>([]);
   const [course, setCourse] = useState<ReturnType<typeof toUiCourse> | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
@@ -613,7 +615,7 @@ export function AdminContent({
           <div className="mb-4">
             <Breadcrumb items={[{ label: "Admin" }, { label: "Content Editor" }]} />
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Content Editor</h1>
               {allCourses.length > 1 ? (
@@ -637,7 +639,11 @@ export function AdminContent({
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex flex-wrap items-center sm:justify-end gap-2.5 ml-auto w-full sm:w-auto">
+              <Button onClick={() => navigate({ to: "/admin/create-course" })}>
+                <Plus className="w-4 h-4" />
+                New Course
+              </Button>
               <Button variant="secondary" onClick={() => setAddSectionModal(true)}>
                 <Plus className="w-4 h-4" />
                 Add section
