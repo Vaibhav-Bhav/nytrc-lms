@@ -17,11 +17,12 @@ export const courseSchema = z.object({
 export const newCourseSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().nullable().optional(),
-  thumbnail_url: z.string().url().or(z.literal('')).nullable().optional(),
+  thumbnail_url: z.string().nullable().optional(),
   status: z.enum(['draft', 'published']).default('draft'),
   price: z.number().nonnegative().optional(),
   created_by: z.string().uuid(),
 })
+
 
 export const updateCourseSchema = newCourseSchema.partial()
 

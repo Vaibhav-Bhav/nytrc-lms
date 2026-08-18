@@ -41,7 +41,7 @@ export function StudentCourses({
           description: c.description || "",
           instructor: "Instructor", // Placeholder until instructor names are returned by API
           status: c.status,
-          thumbnail: c.thumbnail_url || COURSE_IMG,
+          thumbnail: c.thumbnail_url || null,
           progress: c.progress || 0,
           sectionCount: c.sectionCount || 0,
           lessonCount: c.lessonCount || 0,
@@ -99,19 +99,15 @@ export function StudentCourses({
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {[1, 2].map((i) => (
-              <div key={i} className="bg-card rounded-2xl border border-border p-6 animate-pulse space-y-3">
-                <div className="h-5 bg-muted rounded w-3/4" />
-                <div className="h-4 bg-muted rounded w-1/2" />
-                <div className="h-16 bg-muted/60 rounded" />
-              </div>
+              <div key={i} className="h-64 bg-card animate-pulse rounded-2xl border border-border" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-card rounded-2xl border border-border p-12 text-center">
-            <BookOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <h3 className="font-semibold text-foreground text-base">No courses found</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {search ? `No courses matching "${search}"` : "No published courses available."}
+          <div className="p-8 text-center bg-card rounded-2xl border border-border">
+            <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm font-bold text-foreground">No courses found</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {search ? "Try adjusting your search criteria." : "No published courses available yet."}
             </p>
           </div>
         ) : (
@@ -124,13 +120,20 @@ export function StudentCourses({
                   key={c.id}
                   className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-primary/40 transition-all duration-200"
                 >
-                  <div className="relative h-40 overflow-hidden bg-muted">
-                    <img
-                      src={c.thumbnail || COURSE_IMG}
-                      alt={c.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="relative h-40 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center">
+                    {c.thumbnail ? (
+                      <img
+                        src={c.thumbnail}
+                        alt={c.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <BookOpen className="w-10 h-10 text-primary/60 mb-2" />
+                        <span className="text-xs font-bold text-white/80 line-clamp-1">{c.title}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                     <div className="absolute top-3 left-3">
                       <Badge variant={c.status} />
                     </div>

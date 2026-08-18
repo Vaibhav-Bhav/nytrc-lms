@@ -165,6 +165,9 @@ export function AdminContent({
   const [deleteCourseModal, setDeleteCourseModal] = useState(false);
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
 
+
+
+
   // ── Data loading ───────────────────────────────────────────────────────────
 
   async function loadSectionsForCourse(courseId: string): Promise<Section[]> {
@@ -654,11 +657,21 @@ export function AdminContent({
           <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20">
               <div className="flex items-center gap-3 min-w-0">
-                <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                {course?.thumbnail_url ? (
+                  <img
+                    src={course.thumbnail_url}
+                    alt={course.title || "Course"}
+                    className="w-10 h-7 object-cover rounded-lg border border-border shrink-0"
+                  />
+                ) : (
+                  <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                )}
                 <span className="text-sm font-bold text-foreground truncate">{course?.title}</span>
               </div>
               <Badge variant={course?.status || "draft"} />
             </div>
+
+
 
             {loading ? (
               <div className="p-8 text-center">
@@ -1107,3 +1120,4 @@ export function AdminContent({
     </AdminLayout>
   );
 }
+

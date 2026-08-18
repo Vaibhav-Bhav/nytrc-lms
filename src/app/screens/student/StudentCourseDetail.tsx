@@ -213,12 +213,14 @@ export function StudentCourseDetail({
 
         {/* Course header */}
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mb-6">
-          <div className="relative h-44 sm:h-52 bg-slate-900 overflow-hidden">
-            <img
-              src={course?.thumbnail_url || COURSE_IMG}
-              alt={course?.title || "Course"}
-              className="w-full h-full object-cover opacity-60"
-            />
+          <div className="relative h-44 sm:h-52 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 overflow-hidden">
+            {course?.thumbnail_url && (
+              <img
+                src={course.thumbnail_url}
+                alt={course.title}
+                className="w-full h-full object-cover opacity-70"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
               <h1 className="text-white font-extrabold text-lg sm:text-2xl leading-snug drop-shadow-md">
@@ -226,6 +228,7 @@ export function StudentCourseDetail({
               </h1>
             </div>
           </div>
+
           <div className="p-5 sm:p-6">
             <p className="text-sm text-muted-foreground leading-relaxed">{course?.description}</p>
 

@@ -24,8 +24,19 @@ export function AdminCreateCourse({
   const [price, setPrice] = useState("999");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; description?: string; price?: string }>({});
+
+  function handleFileSelect(file: File) {
+    setThumbnailName(file.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) setThumbnailUrl(result);
+    };
+    reader.readAsDataURL(file);
+  }
 
   function validate() {
     const e: typeof errors = {};
@@ -59,6 +70,7 @@ export function AdminCreateCourse({
           description: description.trim(),
           status: status.toLowerCase(),
           price: Number(price) || 0,
+          thumbnail_url: thumbnailUrl || null,
           created_by: user.id,
         }),
       });
@@ -74,7 +86,7 @@ export function AdminCreateCourse({
       if (onSelectCourse) {
         onSelectCourse?.(created.id);
       }
-      toast.success("Course created — add sections and lessons now.");
+      toast.success("Course created with uploaded thumbnail.");
       navigate({ to: '/admin/content' });
     } catch (err: any) {
       setLoading(false);
@@ -82,6 +94,7 @@ export function AdminCreateCourse({
       toast.error(err.message || "Failed to create course");
     }
   }
+
 
   return (
     <AdminLayout>
@@ -161,21 +174,29 @@ export function AdminCreateCourse({
               <p className="text-sm text-muted-foreground mb-4">Recommended: 1280×720px JPG or PNG.</p>
               {thumbnailName ? (
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-5 h-5 text-primary" />
-                  </div>
+                  {thumbnailUrl ? (
+                    <img src={thumbnailUrl} alt="Thumbnail preview" className="w-16 h-10 object-cover rounded-lg flex-shrink-0 border border-border" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                  )}
                   <span className="flex-1 text-sm font-medium text-foreground truncate">{thumbnailName}</span>
                   <button
                     type="button"
-                    onClick={() => setThumbnailName(null)}
+                    onClick={() => {
+                      setThumbnailName(null);
+                      setThumbnailUrl(null);
+                    }}
                     className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <FileUpload hint="JPG, PNG — max 5 MB" onChange={(f) => setThumbnailName(f.name)} />
+                <FileUpload hint="JPG, PNG, WEBP — max 5 MB" onChange={handleFileSelect} />
               )}
+
             </div>
 
             {/* Status */}
