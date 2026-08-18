@@ -7,6 +7,7 @@ import {
   LogOut,
   CreditCard,
   Mail,
+  Bell,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -19,7 +20,7 @@ import { Logo } from "./Logo";
 import { DarkToggle } from "./DarkToggle";
 import { toast } from "sonner";
 import { useAuth, authQueryKey } from "../../hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type NavItem = {
   to: string;
@@ -27,6 +28,7 @@ type NavItem = {
   Icon: React.ElementType;
   /** Also mark active when on any of these paths */
   matchPrefixes?: string[];
+  showBadge?: boolean;
 };
 
 const GROUPS: { label: string; items: NavItem[] }[] = [
@@ -44,11 +46,13 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
         Icon: Users,
         matchPrefixes: ["/admin/students/"],
       },
+      { to: "/admin/notifications", label: "Notifications", Icon: Bell, showBadge: true },
       { to: "/admin/payments", label: "Payments", Icon: CreditCard },
       { to: "/admin/email-log", label: "Email Log", Icon: Mail },
     ],
   },
 ];
+
 
 export function AdminSidebar({
   collapsed = false,
@@ -70,11 +74,25 @@ export function AdminSidebar({
   const actualEmail = user?.email || "admin@nytrc.org";
   const initials = actualName.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase() || "AD";
 
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications", { credentials: "include" });
+      if (!res.ok) return { notifications: [] };
+      return res.json();
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+  const unreadCount = (notificationsData?.notifications || []).filter((n: any) => !n.is_read).length;
+
   function isActive(item: NavItem) {
     if (currentPath === item.to) return true;
     if (item.matchPrefixes?.some((p) => currentPath.startsWith(p))) return true;
     return false;
   }
+
 
   async function handleLogout() {
     setShowProfileMenu(false);
@@ -187,8 +205,21 @@ export function AdminSidebar({
                         active ? "text-primary-foreground" : "text-slate-400 group-hover:text-slate-200"
                       )}
                     />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+                    {item.showBadge && unreadCount > 0 && (
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs transition-colors shrink-0",
+                          active
+                            ? "bg-white text-primary"
+                            : "bg-primary text-primary-foreground"
+                        )}
+                      >
+                        {unreadCount}
+                      </span>
+                    )}
                   </Link>
+
                 );
               })}
             </div>

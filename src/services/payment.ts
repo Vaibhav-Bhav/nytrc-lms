@@ -19,6 +19,8 @@ import { generateWordTemporaryPassword } from '@/lib/password'
 import type { CreateOrderInput, VerifyPaymentInput } from '@/schemas/payments'
 import type { CourseAccess } from '@/schemas/courseAccess'
 import type { Invoice } from '@/schemas/invoices'
+import { createNotification } from './notification'
+
 
 // -----------------------------------------------------------------------
 // GST rates by state code (IGST 18% flat for digital services)
@@ -237,7 +239,26 @@ export const paymentService = {
     })
 
     console.log(`[entitlement] Entitlement successfully created with ID: ${courseAccess.id}`)
+
+    createNotification({
+      userId: studentId,
+      targetRole: 'student',
+      title: 'Course Access Activated',
+      message: 'You now have active access to your course. Start learning!',
+      type: 'welcome',
+      link: '/student/courses',
+    }).catch(() => {})
+
+    createNotification({
+      targetRole: 'admin',
+      title: 'New Student Course Enrollment',
+      message: `A student was granted access to a course (Payment: ${paymentId})`,
+      type: 'new_enrollment',
+      link: '/admin/students',
+    }).catch(() => {})
+
     return courseAccess
+
   },
 
   /**
@@ -314,7 +335,18 @@ export const paymentService = {
     })
 
     console.log(`[invoice] Statutory GST invoice generated: ${invoiceNumber} | Base: ${baseAmount} | GST: ${gstAmount} | Total: ${totalAmount}`)
+
+    createNotification({
+      userId: payment.student_id,
+      targetRole: 'student',
+      title: 'Tax Invoice Generated',
+      message: `Invoice ${invoiceNumber} generated for ₹${totalAmount.toFixed(2)}`,
+      type: 'invoice_paid',
+      link: '/student/account',
+    }).catch(() => {})
+
     return invoice
+
   },
 
   // -----------------------------------------------------------------------

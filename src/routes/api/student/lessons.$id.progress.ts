@@ -4,6 +4,8 @@ import { lessonRepository } from '@/repositories/lesson'
 import { sectionService } from '@/services/sections'
 import { patchLessonProgressSchema } from '@/schemas/progress'
 import { authenticate, requireStudent, requireEnrolled } from '@/middleware/auth'
+import { createNotification } from '@/services/notification'
+
 
 export const Route = createFileRoute('/api/student/lessons/$id/progress')({
   server: {
@@ -107,6 +109,14 @@ export const Route = createFileRoute('/api/student/lessons/$id/progress')({
           if (parsed.data.completed) {
             try {
               result = await progressService.markLessonCompleted(user.id, lessonId)
+
+              createNotification({
+                targetRole: 'admin',
+                title: 'Lesson Completed',
+                message: `Student ${user.name || user.email} completed lesson "${lesson.title}".`,
+                type: 'system',
+                link: `/admin/students/${user.id}`,
+              }).catch(() => {})
             } catch (completionErr: any) {
               if (completionErr.message === 'INSUFFICIENT_PROGRESS_FOR_COMPLETION') {
                 return Response.json(
@@ -117,6 +127,7 @@ export const Route = createFileRoute('/api/student/lessons/$id/progress')({
               throw completionErr
             }
           }
+
 
           return Response.json({
             lesson_id: result.lessonId,

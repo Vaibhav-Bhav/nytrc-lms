@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { courseService } from '@/services/courses'
 import { newCourseSchema } from '@/schemas/courses'
 import { requireAdmin } from '@/middleware/auth'
+import { createNotification } from '@/services/notification'
 
 export const Route = createFileRoute('/api/admin/courses')({
     server: {
@@ -40,7 +41,26 @@ export const Route = createFileRoute('/api/admin/courses')({
                         )
                     }
                     const course = await courseService.create(parsed.data)
+
+                    // Emit real notifications for Admin and Students
+                    await createNotification({
+                        targetRole: 'admin',
+                        title: 'New Course Created',
+                        message: `Course "${course.title}" was created successfully.`,
+                        type: 'course_update',
+                        link: '/admin/content',
+                    }).catch(() => {})
+
+                    await createNotification({
+                        targetRole: 'student',
+                        title: 'New Course Added',
+                        message: `A new course "${course.title}" is now available on NYTRC LMS!`,
+                        type: 'course_update',
+                        link: '/student/courses',
+                    }).catch(() => {})
+
                     return Response.json(course, { status: 201 })
+
                 } catch (err) {
                     if (err instanceof Error && err.message === 'TITLE_REQUIRED') {
                         return Response.json({ error: 'Course title is required' }, { status: 400 })

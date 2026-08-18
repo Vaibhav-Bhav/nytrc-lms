@@ -30,8 +30,11 @@ import { Route as AdminContentRouteImport } from './routes/admin/content'
 import { Route as AdminCreateCourseRouteImport } from './routes/admin/create-course'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminEmailLogRouteImport } from './routes/admin/email-log'
+import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
 import { Route as AdminPaymentsRouteImport } from './routes/admin/payments'
 import { Route as ApiCoursesRouteImport } from './routes/api/courses'
+import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
+import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as StudentAccountRouteImport } from './routes/student/account'
 import { Route as StudentCourseRouteImport } from './routes/student/course'
 import { Route as StudentCoursesRouteImport } from './routes/student/courses'
@@ -187,6 +190,11 @@ const AdminEmailLogRoute = AdminEmailLogRouteImport.update({
   path: '/admin/email-log',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/admin/notifications',
+  path: '/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   id: '/admin/payments',
   path: '/admin/payments',
@@ -195,6 +203,16 @@ const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
 const ApiCoursesRoute = ApiCoursesRouteImport.update({
   id: '/api/courses',
   path: '/api/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
+  id: '/api/notifications',
+  path: '/api/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSearchRoute = ApiSearchRouteImport.update({
+  id: '/api/search',
+  path: '/api/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudentAccountRoute = StudentAccountRouteImport.update({
@@ -477,8 +495,11 @@ export interface FileRoutesByFullPath {
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/search': typeof ApiSearchRoute
   '/student/account': typeof StudentAccountRoute
   '/student/course': typeof StudentCourseRoute
   '/student/courses': typeof StudentCoursesRoute
@@ -551,8 +572,11 @@ export interface FileRoutesByTo {
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/search': typeof ApiSearchRoute
   '/student/account': typeof StudentAccountRoute
   '/student/course': typeof StudentCourseRoute
   '/student/courses': typeof StudentCoursesRoute
@@ -626,8 +650,11 @@ export interface FileRoutesById {
   '/admin/create-course': typeof AdminCreateCourseRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/email-log': typeof AdminEmailLogRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/api/courses': typeof ApiCoursesRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/search': typeof ApiSearchRoute
   '/student/account': typeof StudentAccountRoute
   '/student/course': typeof StudentCourseRoute
   '/student/courses': typeof StudentCoursesRoute
@@ -702,8 +729,11 @@ export interface FileRouteTypes {
     | '/admin/create-course'
     | '/admin/dashboard'
     | '/admin/email-log'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/api/courses'
+    | '/api/notifications'
+    | '/api/search'
     | '/student/account'
     | '/student/course'
     | '/student/courses'
@@ -776,8 +806,11 @@ export interface FileRouteTypes {
     | '/admin/create-course'
     | '/admin/dashboard'
     | '/admin/email-log'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/api/courses'
+    | '/api/notifications'
+    | '/api/search'
     | '/student/account'
     | '/student/course'
     | '/student/courses'
@@ -850,8 +883,11 @@ export interface FileRouteTypes {
     | '/admin/create-course'
     | '/admin/dashboard'
     | '/admin/email-log'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/api/courses'
+    | '/api/notifications'
+    | '/api/search'
     | '/student/account'
     | '/student/course'
     | '/student/courses'
@@ -925,8 +961,11 @@ export interface RootRouteChildren {
   AdminCreateCourseRoute: typeof AdminCreateCourseRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmailLogRoute: typeof AdminEmailLogRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   ApiCoursesRoute: typeof ApiCoursesRouteWithChildren
+  ApiNotificationsRoute: typeof ApiNotificationsRoute
+  ApiSearchRoute: typeof ApiSearchRoute
   StudentAccountRoute: typeof StudentAccountRoute
   StudentCourseRoute: typeof StudentCourseRoute
   StudentCoursesRoute: typeof StudentCoursesRoute
@@ -1109,6 +1148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEmailLogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/admin/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/payments': {
       id: '/admin/payments'
       path: '/admin/payments'
@@ -1121,6 +1167,20 @@ declare module '@tanstack/react-router' {
       path: '/api/courses'
       fullPath: '/api/courses'
       preLoaderRoute: typeof ApiCoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications': {
+      id: '/api/notifications'
+      path: '/api/notifications'
+      fullPath: '/api/notifications'
+      preLoaderRoute: typeof ApiNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/search': {
+      id: '/api/search'
+      path: '/api/search'
+      fullPath: '/api/search'
+      preLoaderRoute: typeof ApiSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/student/account': {
@@ -1631,8 +1691,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCreateCourseRoute: AdminCreateCourseRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmailLogRoute: AdminEmailLogRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   ApiCoursesRoute: ApiCoursesRouteWithChildren,
+  ApiNotificationsRoute: ApiNotificationsRoute,
+  ApiSearchRoute: ApiSearchRoute,
   StudentAccountRoute: StudentAccountRoute,
   StudentCourseRoute: StudentCourseRoute,
   StudentCoursesRoute: StudentCoursesRoute,

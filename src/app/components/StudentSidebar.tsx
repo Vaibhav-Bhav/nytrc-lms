@@ -19,7 +19,7 @@ import { cn } from "./Button";
 import { Logo } from "./Logo";
 import { NotificationModal } from "./NotificationModal";
 import { useAuth, authQueryKey } from "../../hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type NavItem = {
   to?: string;
@@ -28,6 +28,7 @@ type NavItem = {
   matchPrefixes?: string[];
   matchTab?: string;
   action?: () => void;
+  showBadge?: boolean;
 };
 
 const MAIN_NAV: NavItem[] = [
@@ -53,14 +54,29 @@ export function StudentSidebar({
   const { location } = useRouterState();
   const currentPath = location.pathname;
 
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications", { credentials: "include" });
+      if (!res.ok) return { notifications: [] };
+      return res.json();
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+  const unreadCount = (notificationsData?.notifications || []).filter((n: any) => !n.is_read).length;
+
   const SECONDARY_NAV: NavItem[] = [
     {
       label: "Notifications",
       Icon: Bell,
       action: () => setShowNotificationsModal(true),
+      showBadge: true,
     },
     { to: "/student/account?tab=settings", label: "Settings", Icon: Settings, matchTab: "settings" },
   ];
+
 
   const actualName = user?.name || "Student User";
   const actualEmail = user?.email || "student@example.com";
@@ -154,7 +170,19 @@ export function StudentSidebar({
             className={commonClasses}
           >
             <item.Icon className={iconClasses} />
-            {!collapsed && <span className="truncate">{item.label}</span>}
+            {!collapsed && <span className="truncate flex-1 text-left">{item.label}</span>}
+            {item.showBadge && unreadCount > 0 && (
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs transition-colors shrink-0",
+                  active
+                    ? "bg-white text-primary"
+                    : "bg-primary text-primary-foreground"
+                )}
+              >
+                {unreadCount}
+              </span>
+            )}
           </button>
         );
       }
@@ -168,9 +196,22 @@ export function StudentSidebar({
           className={commonClasses}
         >
           <item.Icon className={iconClasses} />
-          {!collapsed && <span className="truncate">{item.label}</span>}
+          {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+          {item.showBadge && unreadCount > 0 && (
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs transition-colors shrink-0",
+                active
+                  ? "bg-white text-primary"
+                  : "bg-primary text-primary-foreground"
+              )}
+            >
+              {unreadCount}
+            </span>
+          )}
         </Link>
       );
+
     });
   };
 

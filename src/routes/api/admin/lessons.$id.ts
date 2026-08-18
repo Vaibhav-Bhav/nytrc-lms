@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lessonService } from '@/services/lessons'
 import { updateLessonSchema } from '@/schemas/lessons'
 import { requireAdmin } from '@/middleware/auth'
+import { createNotification } from '@/services/notification'
 
 export const Route = createFileRoute('/api/admin/lessons/$id')({
   server: {
@@ -33,6 +34,23 @@ export const Route = createFileRoute('/api/admin/lessons/$id')({
             )
           }
           const updated = await lessonService.update(params.id, parsed.data)
+
+          await createNotification({
+            targetRole: 'admin',
+            title: 'Lesson Updated',
+            message: `Lesson "${updated.title}" content was updated.`,
+            type: 'course_update',
+            link: '/admin/content',
+          }).catch(() => {})
+
+          await createNotification({
+            targetRole: 'student',
+            title: 'Lesson Updated',
+            message: `Lesson "${updated.title}" has been updated with fresh materials!`,
+            type: 'course_update',
+            link: '/student/courses',
+          }).catch(() => {})
+
           return Response.json(updated)
         } catch (err) {
           if (err instanceof Error) {
@@ -51,7 +69,19 @@ export const Route = createFileRoute('/api/admin/lessons/$id')({
         await requireAdmin(request)
 
         try {
+          const existing = await lessonService.findById(params.id).catch(() => null)
           await lessonService.remove(params.id)
+
+          const title = existing?.title || 'Lesson'
+
+          await createNotification({
+            targetRole: 'admin',
+            title: 'Lesson Removed',
+            message: `Lesson "${title}" was removed from the course section.`,
+            type: 'course_update',
+            link: '/admin/content',
+          }).catch(() => {})
+
           return new Response(null, { status: 204 })
         } catch (err) {
           if (err instanceof Error && err.message === 'LESSON_NOT_FOUND') {
@@ -62,4 +92,4 @@ export const Route = createFileRoute('/api/admin/lessons/$id')({
       },
     },
   },
-})
+})

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lessonService } from '@/services/lessons'
 import { newLessonSchema } from '@/schemas/lessons'
 import { requireAdmin } from '@/middleware/auth'
+import { createNotification } from '@/services/notification'
 
 export const Route = createFileRoute('/api/admin/lessons')({
   server: {
@@ -15,10 +16,27 @@ export const Route = createFileRoute('/api/admin/lessons')({
           if (!parsed.success) {
             return Response.json(
               { error: 'Validation failed', details: parsed.error.issues },
-              { status: 400 },
+              { status: 400 }
             )
           }
           const lesson = await lessonService.create(parsed.data)
+
+          await createNotification({
+            targetRole: 'admin',
+            title: 'New Lesson Added',
+            message: `Lesson "${lesson.title}" was added to the course section.`,
+            type: 'course_update',
+            link: '/admin/content',
+          }).catch(() => {})
+
+          await createNotification({
+            targetRole: 'student',
+            title: 'New Lesson Available',
+            message: `A new lesson "${lesson.title}" has been added to your course!`,
+            type: 'course_update',
+            link: '/student/courses',
+          }).catch(() => {})
+
           return Response.json(lesson, { status: 201 })
         } catch (err) {
           if (err instanceof Error) {

@@ -5,8 +5,10 @@ import { progressRepository } from '@/repositories/progress'
 import { invoiceRepository } from '@/repositories/invoice'
 import { courseAccessRepository } from '@/repositories/courseAccess'
 import { requireAdmin } from '@/middleware/auth'
+import { createNotification } from '@/services/notification'
 
 export const Route = createFileRoute('/api/admin/students/$id')({
+
     server: {
         handlers: {
             GET: async ({ request, params }) => {
@@ -108,6 +110,24 @@ export const Route = createFileRoute('/api/admin/students/$id')({
                                 revoked_at: new Date().toISOString()
                             })
                         }
+
+                        await createNotification({
+                            userId: studentId,
+                            targetRole: 'student',
+                            title: 'Access Suspended',
+                            message: 'Your account access has been suspended by an administrator.',
+                            type: 'system',
+                            link: '/student/account',
+                        }).catch(() => {})
+
+                        await createNotification({
+                            targetRole: 'admin',
+                            title: 'Student Access Revoked',
+                            message: `Access for student ${user.name} (${user.email}) was revoked.`,
+                            type: 'system',
+                            link: `/admin/students/${studentId}`,
+                        }).catch(() => {})
+
                         return Response.json({ message: 'Student access revoked', status: 'revoked' })
                     } else if (action === 'restore') {
                         await userRepository.update(studentId, { is_active: true })
@@ -119,8 +139,27 @@ export const Route = createFileRoute('/api/admin/students/$id')({
                                 revoked_at: null
                             })
                         }
+
+                        await createNotification({
+                            userId: studentId,
+                            targetRole: 'student',
+                            title: 'Access Restored',
+                            message: 'Your account access has been fully restored!',
+                            type: 'welcome',
+                            link: '/student/courses',
+                        }).catch(() => {})
+
+                        await createNotification({
+                            targetRole: 'admin',
+                            title: 'Student Access Restored',
+                            message: `Access for student ${user.name} (${user.email}) was restored.`,
+                            type: 'system',
+                            link: `/admin/students/${studentId}`,
+                        }).catch(() => {})
+
                         return Response.json({ message: 'Student access restored', status: 'active' })
                     }
+
 
                     return Response.json({ error: 'Invalid action' }, { status: 400 })
                 } catch (err) {

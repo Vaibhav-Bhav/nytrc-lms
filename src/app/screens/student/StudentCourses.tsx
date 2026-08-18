@@ -18,7 +18,14 @@ export function StudentCourses({
   onSelectCourse?: (id: string) => void;
 }) {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("q") || "";
+    }
+    return "";
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
