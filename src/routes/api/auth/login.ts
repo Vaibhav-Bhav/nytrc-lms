@@ -17,12 +17,12 @@ export const Route = createFileRoute('/api/auth/login')({
           }
 
           const userAgent = request.headers.get('user-agent') ?? 'unknown'
-          const ipAddress = request.headers.get('x-forwarded-for') ?? '127.0.0.1'
+          const ipAddress = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1'
 
           const result = await authService.login(parsed.data, {
-            device_identifier: body.device_identifier ?? 'Desktop App',
-            browser: userAgent,
-            os: 'Detected OS',
+            device_identifier: body.device_identifier ?? (userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device'),
+            browser: body.browser ?? (userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : 'Browser'),
+            os: body.os ?? (userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'macOS' : userAgent.includes('Android') ? 'Android' : userAgent.includes('iPhone') ? 'iOS' : 'OS'),
             ip_address: ipAddress,
             location_metadata: body.location_metadata ?? null,
           })

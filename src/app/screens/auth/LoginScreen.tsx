@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { authQueryKey } from "../../../hooks/useAuth";
+import { detectDeviceDetails, getPersistentDeviceId } from "../../../services/sessionService";
 import { AuthLayout } from "../../components/AuthLayout";
 import { AuthStatusBanner } from "../../components/ErrorBanner";
 import { FormInput } from "../../components/FormInput";
@@ -34,13 +35,23 @@ export function LoginScreen({
     setAuthStatus("loading");
 
     try {
+      const deviceDetails = detectDeviceDetails();
+      const persistentId = getPersistentDeviceId();
+      const deviceIdentifier = `${deviceDetails.device_name} (${persistentId.slice(-6)})`;
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          device_identifier: deviceIdentifier,
+          browser: deviceDetails.browser,
+          os: deviceDetails.os,
+        }),
       });
 
       const data = await response.json().catch(() => ({}));

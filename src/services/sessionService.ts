@@ -4,7 +4,18 @@ const MAX_ALLOWED_DEVICES = 2;
 const STORAGE_KEYS = {
   SESSIONS: "lms_active_device_sessions",
   CURRENT_ID: "lms_current_device_id",
+  PERSISTENT_DEVICE_ID: "lms_persistent_device_id",
 };
+
+export function getPersistentDeviceId(): string {
+  if (typeof window === "undefined") return "dev_server";
+  let id = localStorage.getItem(STORAGE_KEYS.PERSISTENT_DEVICE_ID);
+  if (!id) {
+    id = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    localStorage.setItem(STORAGE_KEYS.PERSISTENT_DEVICE_ID, id);
+  }
+  return id;
+}
 
 // Initial seed sessions for testing and demo flow
 const INITIAL_SEED_SESSIONS: DeviceSession[] = [
